@@ -157,10 +157,64 @@
         .bottom-nav { height: 60px; background: #111; border-top: 1px solid #333; display: flex; justify-content: space-around; align-items: center; z-index: 30; }
         .nav-btn { color: #666; display: flex; flex-direction: column; align-items: center; font-size: 10px; padding: 10px; }
         .nav-btn.active { color: var(--primary); }
+        /* --- Loading Screen (質感雪花版) --- */
+.loading-screen {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: #09090b; /* 極深灰黑，比純黑更有質感 */
+    z-index: 9999;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    transition: opacity 0.8s ease-out; /* 淡出動畫 */
+}
+
+.loading-content {
+    text-align: center;
+    color: #ECEFF4;
+}
+
+.loading-icon {
+    font-size: 40px;
+    color: var(--primary); /* 使用粉色，或改白 #fff */
+    margin-bottom: 20px;
+    filter: drop-shadow(0 0 10px rgba(255, 107, 139, 0.6));
+    animation: spinSlow 4s linear infinite; /* 緩慢優雅的旋轉 */
+}
+
+.loading-text {
+    font-size: 12px;
+    letter-spacing: 3px; /* 字距拉開，質感提升 */
+    text-transform: uppercase;
+    color: #888;
+    animation: breathe 2s ease-in-out infinite; /* 呼吸燈效果 */
+}
+
+.loading-bar-bg {
+    width: 200px; height: 2px; background: #333; margin-top: 15px; border-radius: 2px; overflow: hidden;
+}
+.loading-bar-fill {
+    height: 100%; background: var(--primary);
+    transition: width 0.3s;
+    box-shadow: 0 0 10px var(--primary);
+}
+
+@keyframes spinSlow { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+@keyframes breathe { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
     </style>
 </head>
 <body>
 <div id="app" :class="screenEffectClass">
+    <div id="app" :class="screenEffectClass">
+    
+    <div class="loading-screen" :style="{ opacity: isLoading ? 1 : 0, pointerEvents: isLoading ? 'auto' : 'none' }">
+        <div class="loading-content">
+            <i class="fas fa-snowflake loading-icon"></i>
+            <div class="loading-text">Loading Memories...</div>
+            <div class="loading-bar-bg">
+                <div class="loading-bar-fill" :style="{width: loadingProgress + '%'}"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="debug-panel">...</div>
     <div class="debug-panel">
         <button class="debug-btn" @click="jumpTo('chapter1')">跳轉: 樂園</button>
         <button class="debug-btn" @click="jumpTo('chapter2')">跳轉: 海洋</button>
@@ -312,11 +366,11 @@
     </div>
 </div>
 <script>
-    const { createApp, ref, computed } = Vue;
+    const { createApp, ref, computed, onMounted } = Vue; // ★ 注意這裡多了 onMounted
 
     createApp({
         setup() {
-            // --- 變數 ---
+            // --- 核心變數 ---
             const phase = ref('prologue');
             const money = ref(0);
             const hp = ref(100);
@@ -333,12 +387,16 @@
             const showResultModal = ref(false);
             const resultInfo = ref({ title:'', desc:'', changes:[], bg:'', isLucky:false });
             
-            // 特效變數
+            // 特效與變數
             const isHurt = ref(false);
             const screenEffectClass = ref(""); 
             const moneyBox = ref(null); const hpBox = ref(null);
 
-            // 資料庫
+            // ★★★ Loading 系統變數 ★★★
+            const isLoading = ref(true);
+            const loadingProgress = ref(0);
+
+            // 資料庫 (圖片路徑)
             const landRides = ref([
                 { id:'beauty', name:'美女與野獸', icon:'fas fa-chess-rook', cost:2, played:false, bg:'images/land-castle.png', desc:'賭運氣：抽到DPA賺大錢！' },
                 { id:'splash', name:'飛濺山', icon:'fas fa-water', cost:2, played:false, bg:'images/land-castle.png', desc:'刺激！小心濕透。' },
@@ -378,7 +436,6 @@
             const windColor = computed(()=>['#2ecc71','#f39c12','#ff4757'][windLv.value]);
             const windLabel = computed(()=>['微風 Lv.0','強風 Lv.1','暴風 Lv.2'][windLv.value]);
 
-            // ★★★ 新增：章節預設背景邏輯 ★★★
             const currentBg = computed(() => {
                 if (selectedCard.value) return selectedCard.value.bg;
                 if (phase.value === 'chapter1') return 'images/land-castle.png';
@@ -387,94 +444,76 @@
                 return '';
             });
 
-            const jumpTo = (p) => {
-                phase.value = p; time.value = 6; money.value = 1000;
-                if(p === 'karuizawa') { skatingLife.value=5; skatingDistance.value=0; gameScore.value=0; gameRunning.value=false; }
+            // ★★★ 自動化預載入邏輯 ★★★
+            const preloadImages = async () => {
+                // 1. 收集所有需要下載的圖片
+                let imagesToLoad = [
+                    'images/prologue-bg.png', // 只有這張需要手動加，因為它沒寫在資料庫裡
+                    'images/ice-skating.png'  // 滑冰背景
+                ];
+
+                // 2. 自動把資料庫裡的圖片加進來 (避免重複)
+                const addUnique = (arr) => {
+                    arr.forEach(item => { if (item.bg && !imagesToLoad.includes(item.bg)) imagesToLoad.push(item.bg); });
+                };
+                addUnique(landRides.value);
+                addUnique(seaRides.value);
+                addUnique(onsenOptions.value);
+
+                // 3. 開始下載
+                let loadedCount = 0;
+                const total = imagesToLoad.length;
+
+                const loadImage = (src) => {
+                    return new Promise((resolve) => {
+                        const img = new Image();
+                        img.src = src;
+                        img.onload = () => { loadedCount++; loadingProgress.value = (loadedCount/total)*100; resolve(); };
+                        img.onerror = () => { console.warn('Missing:', src); loadedCount++; resolve(); }; // 失敗也算完成，避免卡死
+                    });
+                };
+
+                // 等待所有圖片下載完
+                await Promise.all(imagesToLoad.map(src => loadImage(src)));
+                
+                // 4. 全部完成，延遲一下讓動畫跑完，然後淡出
+                setTimeout(() => {
+                    isLoading.value = false;
+                }, 500);
             };
 
+            // 在網頁元件掛載後執行預載
+            onMounted(() => {
+                preloadImages();
+            });
+
+            // ... (以下為原本的遊戲邏輯，不用動) ...
+            const jumpTo = (p) => { phase.value = p; time.value = 6; money.value = 1000; if(p === 'karuizawa') { skatingLife.value=5; skatingDistance.value=0; gameScore.value=0; gameRunning.value=false; } };
             const startGame = () => { money.value = 600; phase.value = 'chapter1'; time.value = 6; };
             const selectCard = (c) => { selectedCard.value = c; stageMessage.value = ""; stageResult.value = false; };
             const canAfford = (c) => (time.value >= c.cost) && (!c.moneyCost || money.value >= c.moneyCost);
             const spawnText = (t,c,tag) => { const el=tag==='money'?moneyBox.value:hpBox.value; if(!el)return; const r=el.getBoundingClientRect(); effects.value.push({id:Date.now(),txt:t,cls:c,x:r.left+10,y:r.top+30}); setTimeout(()=>effects.value.shift(),1200); };
-
             const executeAction = () => {
                 const c = selectedCard.value;
-                if(phase.value === 'onsen') {
-                    hp.value=100; resultInfo.value = { title:'極致放鬆', desc:'溫泉太舒服了！', changes:[{text:'溫暖 MAX', color:'#2ED573'}], bg:c.bg, isLucky:true };
-                    showResultModal.value = true;
-                } else {
-                    time.value -= c.cost;
-                    if(c.moneyCost) money.value -= c.moneyCost;
-                    money.value += 200;
-                    resultInfo.value = { title:'美好回憶', desc:'玩得很開心！', changes:[{text:'+$200', color:'gold'}], bg:c.bg, isLucky:true };
-                    showResultModal.value = true; c.played = true; if(orderCooldown.value>0)orderCooldown.value--;
-                }
+                if(phase.value === 'onsen') { hp.value=100; resultInfo.value = { title:'極致放鬆', desc:'溫泉太舒服了！', changes:[{text:'溫暖 MAX', color:'#2ED573'}], bg:c.bg, isLucky:true }; showResultModal.value = true; } 
+                else { time.value -= c.cost; if(c.moneyCost) money.value -= c.moneyCost; money.value += 200; resultInfo.value = { title:'美好回憶', desc:'玩得很開心！', changes:[{text:'+$200', color:'gold'}], bg:c.bg, isLucky:true }; showResultModal.value = true; c.played = true; if(orderCooldown.value>0)orderCooldown.value--; }
             };
-
-            const confirmResult = () => {
-                showResultModal.value = false; selectedCard.value = null;
-                if(phase.value === 'onsen') startDinner();
-                else endTurnCheck();
-            };
-
+            const confirmResult = () => { showResultModal.value = false; selectedCard.value = null; if(phase.value === 'onsen') startDinner(); else endTurnCheck(); };
             const startDinner = () => { const d=dinnerDishes[Math.floor(Math.random()*dinnerDishes.length)]; dinnerResult.value=d; if(d.effect.hp) hp.value=Math.min(100,hp.value+d.effect.hp); showDinner.value=true; };
             const finishDinner = () => { showDinner.value=false; phase.value='karuizawa'; skatingLife.value=5; skatingDistance.value=0; gameScore.value=0; gameRunning.value=false; };
-
             const buyFood = (f) => { money.value-=f.price; hp.value=Math.min(100,hp.value+f.hp); showOrder.value=false; orderCooldown.value=1; endTurnCheck(); };
-
-            const endTurnCheck = () => {
-                if(phase.value==='chapter2' && windLv.value>0){ const d=windLv.value*10; hp.value-=d; isHurt.value=true; setTimeout(()=>isHurt.value=false,400); spawnText(`-${d} 風`,'ft-dmg','hp'); windLv.value=Math.floor(Math.random()*2)+1; }
-                const isAllPlayed = currentCards.value.length === 0;
-                if (isAllPlayed && time.value > 0) { spawnText("設施全制霸！", 'ft-money', 'money'); setTimeout(() => { time.value = 0; endTurnCheck(); }, 1500); return; }
-                if(time.value<=0){ 
-                    setTimeout(()=>{ 
-                        if(phase.value==='chapter1'){ alert("前往海洋..."); phase.value='chapter2'; time.value=6; windLv.value=1; }
-                        else { alert("前往溫泉..."); phase.value='onsen'; } 
-                    },500); 
-                }
-            };
-
-            const toggleGame = () => {
-                if(skatingLife.value<=0 || skatingDistance.value>=maxDistance) { money.value+=gameScore.value*10; spawnText(`+$${gameScore.value*10}`,'ft-money','money'); alert("前往明治神宮(待續)"); return; }
-                gameRunning.value = true; playerX.value = 50; skatingSpeed.value = 0.8; lastSpawnTime = Date.now(); gameLoopId = requestAnimationFrame(gameLoop);
-            };
+            const endTurnCheck = () => { if(phase.value==='chapter2' && windLv.value>0){ const d=windLv.value*10; hp.value-=d; isHurt.value=true; setTimeout(()=>isHurt.value=false,400); spawnText(`-${d} 風`,'ft-dmg','hp'); windLv.value=Math.floor(Math.random()*2)+1; } const isAllPlayed = currentCards.value.length === 0; if (isAllPlayed && time.value > 0) { spawnText("設施全制霸！", 'ft-money', 'money'); setTimeout(() => { time.value = 0; endTurnCheck(); }, 1500); return; } if(time.value<=0){ setTimeout(()=>{ if(phase.value==='chapter1'){ alert("前往海洋..."); phase.value='chapter2'; time.value=6; windLv.value=1; } else { alert("前往溫泉..."); phase.value='onsen'; } },500); } };
+            const toggleGame = () => { if(skatingLife.value<=0 || skatingDistance.value>=maxDistance) { money.value+=gameScore.value*10; spawnText(`+$${gameScore.value*10}`,'ft-money','money'); alert("前往明治神宮(待續)"); return; } gameRunning.value = true; playerX.value = 50; skatingSpeed.value = 0.8; lastSpawnTime = Date.now(); gameLoopId = requestAnimationFrame(gameLoop); };
             const movePlayer = (d) => { if(gameRunning.value) playerX.value = Math.max(0, Math.min(80, playerX.value+(d*20))); };
-            
-            const gameLoop = () => {
-                if(!gameRunning.value) return;
-                skatingSpeed.value += 0.0002;
-                const move = skatingSpeed.value * 4; 
-                skatingDistance.value += move; trackOffset.value = (trackOffset.value + move) % 100;
-                if(skatingDistance.value >= maxDistance) { endGame(); return; }
-                const now = Date.now();
-                const rate = Math.max(400, 1000 - (skatingSpeed.value * 200));
-                if(now - lastSpawnTime > rate) {
-                    const lanes=[10,30,50,70,90]; const x=lanes[Math.floor(Math.random()*lanes.length)]; const r=Math.random();
-                    let t='obstacle', i='fas fa-stop-circle'; 
-                    if(r>0.6){t='item-coin';i='fas fa-coins';} else if(r>0.95){t='item-heart';i='fas fa-heart';}
-                    gameObjects.value.push({id:now, x, y:-10, type:t, icon:i, hit:false}); lastSpawnTime=now;
-                }
-                gameObjects.value.forEach((o, idx)=>{
-                    o.y += (1.0 * skatingSpeed.value);
-                    if(!o.hit && o.y>75 && o.y<90 && Math.abs(o.x-playerX.value)<15){
-                        o.hit=true;
-                        if(o.type==='obstacle'){
-                            if(!isFever.value){ skatingLife.value--; isHurt.value=true; skatingSpeed.value=Math.max(0.8, skatingSpeed.value*0.8); setTimeout(()=>isHurt.value=false, 500); if(skatingLife.value<=0) endGame(); }
-                            else o.icon='fas fa-bahai';
-                        } else if(o.type==='item-coin'){ gameScore.value+=5; gameObjects.value.splice(idx,1); }
-                        else if(o.type==='item-heart'){ isFever.value=true; setTimeout(()=>isFever.value=false,3000); gameObjects.value.splice(idx,1); }
-                    }
-                });
-                gameObjects.value = gameObjects.value.filter(o=>o.y<110);
-                requestAnimationFrame(gameLoop);
-            };
+            const gameLoop = () => { if(!gameRunning.value) return; skatingSpeed.value += 0.0002; const move = skatingSpeed.value * 4; skatingDistance.value += move; trackOffset.value = (trackOffset.value + move) % 100; if(skatingDistance.value >= maxDistance) { endGame(); return; } const now = Date.now(); const rate = Math.max(400, 1000 - (skatingSpeed.value * 200)); if(now - lastSpawnTime > rate) { const lanes=[10,30,50,70,90]; const x=lanes[Math.floor(Math.random()*lanes.length)]; const r=Math.random(); let t='obstacle', i='fas fa-stop-circle'; if(r>0.6){t='item-coin';i='fas fa-coins';} else if(r>0.95){t='item-heart';i='fas fa-heart';} gameObjects.value.push({id:now, x, y:-10, type:t, icon:i, hit:false}); lastSpawnTime=now; } gameObjects.value.forEach((o, idx)=>{ o.y += (1.0 * skatingSpeed.value); if(!o.hit && o.y>75 && o.y<90 && Math.abs(o.x-playerX.value)<15){ o.hit=true; if(o.type==='obstacle'){ if(!isFever.value){ skatingLife.value--; isHurt.value=true; skatingSpeed.value=Math.max(0.8, skatingSpeed.value*0.8); setTimeout(()=>isHurt.value=false, 500); if(skatingLife.value<=0) endGame(); } else o.icon='fas fa-bahai'; } else if(o.type==='item-coin'){ gameScore.value+=5; gameObjects.value.splice(idx,1); } else if(o.type==='item-heart'){ isFever.value=true; setTimeout(()=>isFever.value=false,3000); gameObjects.value.splice(idx,1); } } }); gameObjects.value = gameObjects.value.filter(o=>o.y<110); requestAnimationFrame(gameLoop); };
             const endGame = () => { gameRunning.value = false; cancelAnimationFrame(gameLoopId); };
 
             return {
                 phase, money, hp, time, windLv, windColor, windLabel, effects, jumpTo,
                 selectedCard, stageMessage, stageResult, showOrder, showResultModal, resultInfo, showDinner, dinnerResult,
                 landRides, seaRides, onsenOptions, currentCards, currentMenu, moneyBox, hpBox, isHurt, screenEffectClass,
-                currentBg, // ★ 重要：回傳此變數給 HTML 使用
+                currentBg, 
+                isLoading, loadingProgress, // ★ 回傳給 HTML 使用
                 startGame, selectCard, canAfford, executeAction, confirmResult, buyFood, finishDinner,
                 gameRunning, gameScore, playerX, trackOffset, gameObjects, isFever, isHit,
                 skatingSpeed, skatingDistance, maxDistance, skatingLife, toggleGame, movePlayer
@@ -482,5 +521,6 @@
         }
     }).mount('#app');
 </script>
+
 </body>
 </html>
