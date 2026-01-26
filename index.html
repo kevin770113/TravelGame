@@ -366,7 +366,7 @@
     </div>
 </div>
 <script>
-    const { createApp, ref, computed, onMounted } = Vue; // ★ 注意這裡多了 onMounted
+    const { createApp, ref, computed, onMounted } = Vue;
 
     createApp({
         setup() {
@@ -396,18 +396,18 @@
             const isLoading = ref(true);
             const loadingProgress = ref(0);
 
-            // 資料庫 (圖片路徑)
+            // ★★★ 資料路徑更新 (對應您的 GitHub 檔名) ★★★
             const landRides = ref([
-                { id:'beauty', name:'美女與野獸', icon:'fas fa-chess-rook', cost:2, played:false, bg:'images/land-castle.png', desc:'賭運氣：抽到DPA賺大錢！' },
-                { id:'splash', name:'飛濺山', icon:'fas fa-water', cost:2, played:false, bg:'images/land-castle.png', desc:'刺激！小心濕透。' },
-                { id:'train', name:'西部鐵路', icon:'fas fa-train', cost:1, played:false, bg:'images/land-castle.png', desc:'休息回復體溫。' },
-                { id:'shoot', name:'西部射擊', icon:'fas fa-crosshairs', cost:1, played:false, moneyCost:100, bg:'images/land-castle.png', desc:'花錢買子彈賭獎金。' },
-                { id:'monsters', name:'怪獸電力', icon:'fas fa-flashlight', cost:2, played:false, bg:'images/land-castle.png', desc:'找阿布賺積分。' }
+                { id:'beauty', name:'美女與野獸', icon:'fas fa-chess-rook', cost:2, played:false, bg:'images/beauty-beast.png', desc:'賭運氣：抽到DPA賺大錢！' },
+                { id:'splash', name:'飛濺山', icon:'fas fa-water', cost:2, played:false, bg:'images/splash-mountain.png', desc:'刺激！小心濕透。' },
+                { id:'train', name:'西部鐵路', icon:'fas fa-train', cost:1, played:false, bg:'images/western-river.png', desc:'休息回復體溫。' },
+                { id:'shoot', name:'西部射擊', icon:'fas fa-crosshairs', cost:1, played:false, moneyCost:100, bg:'images/westernland-shootin.png', desc:'花錢買子彈賭獎金。' },
+                { id:'monsters', name:'怪獸電力', icon:'fas fa-flashlight', cost:2, played:false, bg:'images/monsters.png', desc:'找阿布賺積分。' }
             ]);
             const seaRides = ref([
-                { id:'rapunzel', name:'樂佩天燈', icon:'fas fa-lightbulb', cost:2, played:false, bg:'images/disney-sea.png', desc:'絕美場景，必去。' },
-                { id:'20k', name:'海底兩萬哩', icon:'fas fa-subway', cost:1, played:false, bg:'images/disney-sea.png', desc:'躲避海風。' },
-                { id:'arendelle', name:'皇家宴會', icon:'fas fa-utensils', cost:2, played:false, moneyCost:500, bg:'images/disney-sea.png', desc:'花錢補滿狀態。' }
+                { id:'rapunzel', name:'樂佩天燈', icon:'fas fa-lightbulb', cost:2, played:false, bg:'images/rapunzel-lantern.png', desc:'絕美場景，必去。' },
+                { id:'20k', name:'海底兩萬哩', icon:'fas fa-subway', cost:1, played:false, bg:'images/under-the-sea.png', desc:'躲避海風。' },
+                { id:'arendelle', name:'皇家宴會', icon:'fas fa-utensils', cost:2, played:false, moneyCost:500, bg:'images/frozen.png', desc:'花錢補滿狀態。' }
             ]);
             const onsenOptions = ref([
                 { id:'maka', name:'摩訶溫泉', icon:'fas fa-hot-tub', cost:0, bg:'images/hot-spring.png', desc:'可能撿到錢？', tags:'機率金錢' },
@@ -415,6 +415,7 @@
                 { id:'child', name:'子寶溫泉', icon:'fas fa-gem', cost:0, bg:'images/hot-spring.png', desc:'高風險高報酬。', tags:'機率大獎' },
                 { id:'maya', name:'麻耶溫泉', icon:'fas fa-spa', cost:0, bg:'images/hot-spring.png', desc:'絕對放鬆。', tags:'回血' }
             ]);
+            
             const menus = { chapter1:[{id:'pop',name:'爆米花',icon:'🍿',price:100,hp:15},{id:'turkey',name:'火雞腿',icon:'🍗',price:400,hp:60}], chapter2:[{id:'cocoa',name:'熱可可',icon:'☕',price:300,hp:35}] };
             const dinnerDishes = [{ name:'熊肉火鍋', icon:'🥘', effect:{hp:100}, effectText:'溫暖值 MAX!'},{ name:'鹽烤岩魚', icon:'🐟', effect:{luck:30}, effectText:'隱藏幸運 +30'},{ name:'山菜天婦羅', icon:'🍄', effect:{hp:30,luck:10}, effectText:'溫暖+30 / 幸運+10'}];
             
@@ -436,23 +437,25 @@
             const windColor = computed(()=>['#2ecc71','#f39c12','#ff4757'][windLv.value]);
             const windLabel = computed(()=>['微風 Lv.0','強風 Lv.1','暴風 Lv.2'][windLv.value]);
 
+            // ★★★ 章節預設背景 (沒選卡片時顯示的大圖) ★★★
             const currentBg = computed(() => {
                 if (selectedCard.value) return selectedCard.value.bg;
-                if (phase.value === 'chapter1') return 'images/land-castle.png';
-                if (phase.value === 'chapter2') return 'images/disney-sea.png';
-                if (phase.value === 'onsen') return 'images/hot-spring.png';
+                if (phase.value === 'chapter1') return 'images/land-castle.png'; // 樂園預設
+                if (phase.value === 'chapter2') return 'images/disney-sea.png'; // 海洋預設
+                if (phase.value === 'onsen') return 'images/hot-spring.png';    // 溫泉預設
                 return '';
             });
 
             // ★★★ 自動化預載入邏輯 ★★★
             const preloadImages = async () => {
-                // 1. 收集所有需要下載的圖片
                 let imagesToLoad = [
-                    'images/prologue-bg.png', // 只有這張需要手動加，因為它沒寫在資料庫裡
-                    'images/ice-skating.png'  // 滑冰背景
+                    'images/prologue-bg.png', 
+                    'images/ice-skating.png',
+                    'images/land-castle.png', // 確保章節預設圖也被預載
+                    'images/disney-sea.png',
+                    'images/hot-spring.png'
                 ];
 
-                // 2. 自動把資料庫裡的圖片加進來 (避免重複)
                 const addUnique = (arr) => {
                     arr.forEach(item => { if (item.bg && !imagesToLoad.includes(item.bg)) imagesToLoad.push(item.bg); });
                 };
@@ -460,7 +463,6 @@
                 addUnique(seaRides.value);
                 addUnique(onsenOptions.value);
 
-                // 3. 開始下載
                 let loadedCount = 0;
                 const total = imagesToLoad.length;
 
@@ -469,25 +471,17 @@
                         const img = new Image();
                         img.src = src;
                         img.onload = () => { loadedCount++; loadingProgress.value = (loadedCount/total)*100; resolve(); };
-                        img.onerror = () => { console.warn('Missing:', src); loadedCount++; resolve(); }; // 失敗也算完成，避免卡死
+                        img.onerror = () => { console.warn('Missing:', src); loadedCount++; resolve(); };
                     });
                 };
 
-                // 等待所有圖片下載完
                 await Promise.all(imagesToLoad.map(src => loadImage(src)));
                 
-                // 4. 全部完成，延遲一下讓動畫跑完，然後淡出
-                setTimeout(() => {
-                    isLoading.value = false;
-                }, 500);
+                setTimeout(() => { isLoading.value = false; }, 500);
             };
 
-            // 在網頁元件掛載後執行預載
-            onMounted(() => {
-                preloadImages();
-            });
+            onMounted(() => { preloadImages(); });
 
-            // ... (以下為原本的遊戲邏輯，不用動) ...
             const jumpTo = (p) => { phase.value = p; time.value = 6; money.value = 1000; if(p === 'karuizawa') { skatingLife.value=5; skatingDistance.value=0; gameScore.value=0; gameRunning.value=false; } };
             const startGame = () => { money.value = 600; phase.value = 'chapter1'; time.value = 6; };
             const selectCard = (c) => { selectedCard.value = c; stageMessage.value = ""; stageResult.value = false; };
@@ -512,8 +506,7 @@
                 phase, money, hp, time, windLv, windColor, windLabel, effects, jumpTo,
                 selectedCard, stageMessage, stageResult, showOrder, showResultModal, resultInfo, showDinner, dinnerResult,
                 landRides, seaRides, onsenOptions, currentCards, currentMenu, moneyBox, hpBox, isHurt, screenEffectClass,
-                currentBg, 
-                isLoading, loadingProgress, // ★ 回傳給 HTML 使用
+                currentBg, isLoading, loadingProgress,
                 startGame, selectCard, canAfford, executeAction, confirmResult, buyFood, finishDinner,
                 gameRunning, gameScore, playerX, trackOffset, gameObjects, isFever, isHit,
                 skatingSpeed, skatingDistance, maxDistance, skatingLife, toggleGame, movePlayer
@@ -521,6 +514,5 @@
         }
     }).mount('#app');
 </script>
-
 </body>
 </html>
