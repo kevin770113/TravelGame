@@ -192,9 +192,10 @@
 
     <template v-else-if="['chapter1', 'chapter2', 'onsen'].includes(phase)">
         <div class="stage-area">
-            <div v-if="selectedCard" class="stage-bg" :style="{backgroundImage: 'url(' + selectedCard.bg + ')'}"></div>
+            <div class="stage-bg" :style="{backgroundImage: 'url(' + currentBg + ')'}"></div>
             <div class="stage-overlay"></div>
-            <div class="stage-content" v-if="selectedCard || phase === 'prologue'">
+            
+            <div class="stage-content" v-if="selectedCard">
                 <div class="stage-title">{{ selectedCard.name }}</div>
                 <div class="stage-tags">
                     <span class="tag" v-if="selectedCard.cost > 0"><i class="far fa-clock"></i> {{ selectedCard.cost }}h</span>
@@ -211,11 +212,13 @@
                     <i class="fas fa-check"></i> {{ phase === 'onsen' ? '享用晚餐' : '繼續旅程' }}
                 </button>
             </div>
-            <div v-else style="margin: auto; color: #666; display: flex; flex-direction: column; align-items: center;">
-                <i class="fas fa-hand-pointer" style="font-size: 40px; margin-bottom: 10px;"></i>
+            
+            <div v-else style="margin: auto; color: #fff; display: flex; flex-direction: column; align-items: center; z-index: 5; text-shadow: 0 2px 5px black;">
+                <i class="fas fa-hand-pointer" style="font-size: 40px; margin-bottom: 10px; animation: bounce 1s infinite;"></i>
                 <div>{{ phase === 'onsen' ? '請選擇一種溫泉' : '請從下方選擇設施' }}</div>
             </div>
         </div>
+        
         <div class="deck-area">
             <div class="deck-label">{{ phase === 'onsen' ? '♨️ 汪泉閣：四湯巡禮' : (phase === 'chapter1' ? '📍 Disney Land' : '📍 Disney Sea') }}</div>
             <div class="card-scroller">
@@ -313,7 +316,7 @@
 
     createApp({
         setup() {
-            // --- 核心變數 ---
+            // --- 變數 ---
             const phase = ref('prologue');
             const money = ref(0);
             const hp = ref(100);
@@ -322,7 +325,7 @@
             const orderCooldown = ref(0);
             const effects = ref([]);
             
-            // UI 與特效控制
+            // UI
             const selectedCard = ref(null);
             const stageMessage = ref("");
             const stageResult = ref(false);
@@ -330,10 +333,9 @@
             const showResultModal = ref(false);
             const resultInfo = ref({ title:'', desc:'', changes:[], bg:'', isLucky:false });
             
-            // ★★★ 修正點：確保這兩個變數有被定義 ★★★
+            // 特效變數
             const isHurt = ref(false);
             const screenEffectClass = ref(""); 
-            
             const moneyBox = ref(null); const hpBox = ref(null);
 
             // 資料庫
@@ -355,21 +357,15 @@
                 { id:'child', name:'子寶溫泉', icon:'fas fa-gem', cost:0, bg:'images/hot-spring.png', desc:'高風險高報酬。', tags:'機率大獎' },
                 { id:'maya', name:'麻耶溫泉', icon:'fas fa-spa', cost:0, bg:'images/hot-spring.png', desc:'絕對放鬆。', tags:'回血' }
             ]);
-            
-            const dinnerDishes = [
-                { name:'熊肉火鍋', icon:'🥘', effect:{hp:100}, effectText:'溫暖值 MAX!'},
-                { name:'鹽烤岩魚', icon:'🐟', effect:{luck:30}, effectText:'隱藏幸運 +30'},
-                { name:'山菜天婦羅', icon:'🍄', effect:{hp:30,luck:10}, effectText:'溫暖+30 / 幸運+10'}
-            ];
             const menus = { chapter1:[{id:'pop',name:'爆米花',icon:'🍿',price:100,hp:15},{id:'turkey',name:'火雞腿',icon:'🍗',price:400,hp:60}], chapter2:[{id:'cocoa',name:'熱可可',icon:'☕',price:300,hp:35}] };
+            const dinnerDishes = [{ name:'熊肉火鍋', icon:'🥘', effect:{hp:100}, effectText:'溫暖值 MAX!'},{ name:'鹽烤岩魚', icon:'🐟', effect:{luck:30}, effectText:'隱藏幸運 +30'},{ name:'山菜天婦羅', icon:'🍄', effect:{hp:30,luck:10}, effectText:'溫暖+30 / 幸運+10'}];
             
             const showDinner = ref(false); const dinnerResult = ref({});
 
             // 滑冰變數
             const gameRunning = ref(false); const gameScore = ref(0); const playerX = ref(50);
             const trackOffset = ref(0); const gameObjects = ref([]); const isFever = ref(false); const isHit = ref(false);
-            const skatingSpeed = ref(0.8); const skatingDistance = ref(0); const maxDistance = 3000; 
-            const skatingLife = ref(5);
+            const skatingSpeed = ref(0.8); const skatingDistance = ref(0); const maxDistance = 3000; const skatingLife = ref(5);
             let gameLoopId = null; let lastSpawnTime = 0;
 
             const currentCards = computed(() => {
@@ -382,6 +378,15 @@
             const windColor = computed(()=>['#2ecc71','#f39c12','#ff4757'][windLv.value]);
             const windLabel = computed(()=>['微風 Lv.0','強風 Lv.1','暴風 Lv.2'][windLv.value]);
 
+            // ★★★ 新增：章節預設背景邏輯 ★★★
+            const currentBg = computed(() => {
+                if (selectedCard.value) return selectedCard.value.bg;
+                if (phase.value === 'chapter1') return 'images/land-castle.png';
+                if (phase.value === 'chapter2') return 'images/disney-sea.png';
+                if (phase.value === 'onsen') return 'images/hot-spring.png';
+                return '';
+            });
+
             const jumpTo = (p) => {
                 phase.value = p; time.value = 6; money.value = 1000;
                 if(p === 'karuizawa') { skatingLife.value=5; skatingDistance.value=0; gameScore.value=0; gameRunning.value=false; }
@@ -390,14 +395,7 @@
             const startGame = () => { money.value = 600; phase.value = 'chapter1'; time.value = 6; };
             const selectCard = (c) => { selectedCard.value = c; stageMessage.value = ""; stageResult.value = false; };
             const canAfford = (c) => (time.value >= c.cost) && (!c.moneyCost || money.value >= c.moneyCost);
-            
-            // 特效飄字 helper
-            const spawnText = (t,c,tag) => { 
-                const el=tag==='money'?moneyBox.value:hpBox.value; if(!el)return; 
-                const r=el.getBoundingClientRect(); 
-                effects.value.push({id:Date.now(),txt:t,cls:c,x:r.left+10,y:r.top+30}); 
-                setTimeout(()=>effects.value.shift(),1200); 
-            };
+            const spawnText = (t,c,tag) => { const el=tag==='money'?moneyBox.value:hpBox.value; if(!el)return; const r=el.getBoundingClientRect(); effects.value.push({id:Date.now(),txt:t,cls:c,x:r.left+10,y:r.top+30}); setTimeout(()=>effects.value.shift(),1200); };
 
             const executeAction = () => {
                 const c = selectedCard.value;
@@ -447,9 +445,7 @@
                 skatingSpeed.value += 0.0002;
                 const move = skatingSpeed.value * 4; 
                 skatingDistance.value += move; trackOffset.value = (trackOffset.value + move) % 100;
-
                 if(skatingDistance.value >= maxDistance) { endGame(); return; }
-
                 const now = Date.now();
                 const rate = Math.max(400, 1000 - (skatingSpeed.value * 200));
                 if(now - lastSpawnTime > rate) {
@@ -458,20 +454,12 @@
                     if(r>0.6){t='item-coin';i='fas fa-coins';} else if(r>0.95){t='item-heart';i='fas fa-heart';}
                     gameObjects.value.push({id:now, x, y:-10, type:t, icon:i, hit:false}); lastSpawnTime=now;
                 }
-
                 gameObjects.value.forEach((o, idx)=>{
                     o.y += (1.0 * skatingSpeed.value);
                     if(!o.hit && o.y>75 && o.y<90 && Math.abs(o.x-playerX.value)<15){
                         o.hit=true;
                         if(o.type==='obstacle'){
-                            if(!isFever.value){ 
-                                skatingLife.value--; 
-                                // 受傷特效
-                                isHurt.value=true; 
-                                skatingSpeed.value=Math.max(0.8, skatingSpeed.value*0.8); 
-                                setTimeout(()=>isHurt.value=false, 500); 
-                                if(skatingLife.value<=0) endGame(); 
-                            }
+                            if(!isFever.value){ skatingLife.value--; isHurt.value=true; skatingSpeed.value=Math.max(0.8, skatingSpeed.value*0.8); setTimeout(()=>isHurt.value=false, 500); if(skatingLife.value<=0) endGame(); }
                             else o.icon='fas fa-bahai';
                         } else if(o.type==='item-coin'){ gameScore.value+=5; gameObjects.value.splice(idx,1); }
                         else if(o.type==='item-heart'){ isFever.value=true; setTimeout(()=>isFever.value=false,3000); gameObjects.value.splice(idx,1); }
@@ -482,12 +470,11 @@
             };
             const endGame = () => { gameRunning.value = false; cancelAnimationFrame(gameLoopId); };
 
-            // ★★★ 關鍵修正：這裡一定要包含 screenEffectClass ★★★
             return {
                 phase, money, hp, time, windLv, windColor, windLabel, effects, jumpTo,
                 selectedCard, stageMessage, stageResult, showOrder, showResultModal, resultInfo, showDinner, dinnerResult,
-                landRides, seaRides, onsenOptions, currentCards, currentMenu, moneyBox, hpBox, 
-                isHurt, screenEffectClass, // 這裡加回來了！
+                landRides, seaRides, onsenOptions, currentCards, currentMenu, moneyBox, hpBox, isHurt, screenEffectClass,
+                currentBg, // ★ 重要：回傳此變數給 HTML 使用
                 startGame, selectCard, canAfford, executeAction, confirmResult, buyFood, finishDinner,
                 gameRunning, gameScore, playerX, trackOffset, gameObjects, isFever, isHit,
                 skatingSpeed, skatingDistance, maxDistance, skatingLife, toggleGame, movePlayer
