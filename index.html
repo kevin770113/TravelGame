@@ -1,316 +1,506 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>2026 東京極致之旅 (最終確認版)</title>
+    <title>冬日時空冒險 (Final Tuned)</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
+        /* --- 1. 全域變數 --- */
         :root {
-            --primary: #2c3e50;
-            --accent: #2980b9;
-            --warning: #c0392b;
-            --success: #27ae60;
-            --jr-gold: #f39c12;
-            --disney-land: #e91e63;
-            --disney-sea: #3f51b5;
-            --bg: #f4f4f4;
-            --card-bg: #ffffff;
-            --text-main: #333;
-            --text-sub: #555;
+            --primary: #FF6B8B; --secondary: #00B4D8; --accent: #FFD700;
+            --bg-dark: #121212; --card-bg: #1E1E1E; --text-main: #ECEFF4;
+            --danger: #FF4757; --safe: #2ED573;
         }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg); margin: 0; padding-bottom: 100px; color: var(--text-main); -webkit-tap-highlight-color: transparent; }
-        .header { background: #fff; padding: 12px 16px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border-bottom: 1px solid #ddd; }
-        .header-top { display: flex; justify-content: space-between; align-items: center; }
-        .header h1 { font-size: 18px; font-weight: 800; margin: 0; color: var(--primary); }
-        .header-sub { display: flex; justify-content: space-between; align-items: center; margin-top: 5px; font-size: 13px; color: var(--text-sub); }
-        .sunset-tag { background: #fff3e0; color: #d35400; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 12px; display: flex; align-items: center; gap: 4px; }
-        .jr-banner { background: linear-gradient(90deg, #f39c12, #e67e22); color: white; text-align: center; padding: 10px; font-size: 14px; font-weight: bold; display: none; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .jr-banner.active { display: block; }
-        .content-area { padding: 12px; max-width: 600px; margin: 0 auto; min-height: 80vh; }
-        .day-page { display: none; }
-        .day-page.active { display: block; animation: fadeIn 0.3s ease-out; }
-        .card { background: var(--card-bg); border-radius: 10px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); overflow: hidden; border-left: 5px solid transparent; transition: transform 0.1s; }
-        .card[data-type="transport"] { border-left-color: var(--accent); }
-        .card[data-type="important"] { border-left-color: var(--warning); }
-        .card[data-type="hotel"] { border-left-color: #8e44ad; }
-        .card[data-type="normal"] { border-left-color: #95a5a6; }
-        .card[data-type="ticket"] { border-left-color: #27ae60; }
-        .card[data-type="land"] { border-left-color: var(--disney-land); }
-        .card[data-type="sea"] { border-left-color: var(--disney-sea); }
-        .jr-active .card[data-type="transport"] { border-left-color: var(--jr-gold); }
-        .card-header { padding: 15px; position: relative; cursor: pointer; background: #fff; }
-        .time-badge { display: inline-block; font-family: monospace; font-weight: 700; background: #eceff1; color: var(--primary); padding: 3px 6px; border-radius: 4px; font-size: 14px; margin-bottom: 6px; }
-        .card[data-type="important"] .time-badge { background: #ffebee; color: #c62828; }
-        .card[data-type="ticket"] .time-badge { background: #e8f8f5; color: #27ae60; }
-        .card[data-type="land"] .time-badge { background: #fce4ec; color: #c2185b; }
-        .card[data-type="sea"] .time-badge { background: #e8eaf6; color: #303f9f; }
-        .card-title { font-size: 17px; font-weight: 700; margin: 0; line-height: 1.4; color: #222; }
-        .card-subtitle { font-size: 14px; color: #666; margin-top: 4px; }
-        .toggle-icon { position: absolute; right: 15px; top: 15px; color: #999; transition: transform 0.3s; }
-        .card.expanded .toggle-icon { transform: rotate(180deg); }
-        .card-body { max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.25, 1, 0.5, 1); background: #fafafa; border-top: 1px solid transparent; }
-        .card.expanded .card-body { max-height: 5000px; border-top-color: #eee; }
-        .body-content { padding: 15px; }
-        .section-header { font-size: 12px; font-weight: bold; color: #888; margin-top: 12px; margin-bottom: 6px; text-transform: uppercase; }
-        .section-header:first-child { margin-top: 0; }
-        .detail-list { list-style: none; padding: 0; margin: 0; }
-        .detail-item { position: relative; padding-left: 15px; margin-bottom: 8px; font-size: 15px; color: #333; line-height: 1.6; }
-        .detail-item::before { content: '•'; position: absolute; left: 0; color: var(--accent); font-weight: bold; }
-        .detail-item strong { color: #000; font-weight: 700; background: #fffbe6; padding: 0 2px; }
-        .detail-item.alert { color: #c0392b; font-weight: 600; }
-        .detail-item.alert::before { content: '!'; color: #c0392b; }
-        .res-code { font-family: monospace; background: #eee; padding: 2px 5px; border-radius: 4px; font-weight: bold; color: #333; border: 1px solid #ccc; }
-        .status-ok { color: var(--success); font-weight: bold; }
-        .status-no { color: var(--warning); font-weight: bold; }
-        .route-visual { margin-left: 6px; border-left: 2px solid #ccc; padding-left: 20px; padding-top: 5px; padding-bottom: 5px; margin-bottom: 10px; }
-        .route-point { position: relative; margin-bottom: 15px; }
-        .route-point:last-child { margin-bottom: 0; }
-        .point-dot { position: absolute; left: -26px; top: 5px; width: 10px; height: 10px; background: #fff; border: 2px solid #999; border-radius: 50%; }
-        .point-start .point-dot, .point-end .point-dot { background: var(--accent); border-color: var(--accent); }
-        .jr-active .point-start .point-dot, .jr-active .point-end .point-dot { background: var(--jr-gold); border-color: var(--jr-gold); }
-        .point-name { font-weight: bold; font-size: 15px; color: #222; }
-        .point-time { font-size: 12px; color: #666; margin-top: 2px; font-family: monospace; }
-        .point-arrow { font-size: 12px; color: var(--accent); margin: 4px 0 4px 2px; font-weight: bold;}
-        .footer { position: fixed; bottom: 0; left: 0; right: 0; width: 100%; background: #fff; border-top: 1px solid #ddd; padding: 12px 16px 25px 16px; z-index: 999; display: grid; grid-template-columns: 1fr auto 1fr; gap: 15px; align-items: center; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); box-sizing: border-box; }
-        .nav-btn { background: #fff; border: 1px solid #ddd; padding: 12px 0; width: 100%; border-radius: 6px; font-size: 14px; font-weight: 600; color: #555; cursor: pointer; text-align: center; }
-        .nav-btn:active { background: #f9f9f9; }
-        .nav-btn.primary { background: var(--primary); color: white; border: none; }
-        .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-        .day-indicator { font-size: 16px; font-weight: 800; color: var(--primary); text-align: center; white-space: nowrap; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
+        body {
+            margin: 0; padding: 0; font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #000; color: var(--text-main);
+            height: 100vh; width: 100vw; overflow: hidden;
+            display: flex; justify-content: center;
+        }
+        #app {
+            width: 100%; max-width: 430px; height: 100%; position: relative;
+            background: #1a1a1a; display: flex; flex-direction: column; overflow: hidden;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+        }
+
+        /* --- 2. 開發者測試面板 --- */
+        .debug-panel {
+            position: fixed; top: 70px; left: 10px; z-index: 999;
+            display: flex; flex-direction: column; gap: 5px; opacity: 0.3; transition: 0.3s;
+        }
+        .debug-panel:hover { opacity: 1; }
+        .debug-btn {
+            background: rgba(0, 0, 0, 0.8); border: 1px solid #555; color: #ccc;
+            padding: 5px 8px; font-size: 10px; border-radius: 4px; cursor: pointer;
+        }
+
+        /* --- 3. 狀態列與特效 --- */
+        .status-bar {
+            height: 60px; background: rgba(0,0,0,0.9); backdrop-filter: blur(5px);
+            display: flex; justify-content: space-between; align-items: center; padding: 0 15px;
+            z-index: 20; border-bottom: 1px solid rgba(255,255,255,0.1); flex-shrink: 0;
+        }
+        .stat-box { display: flex; flex-direction: column; align-items: center; width: 60px; position: relative; }
+        .stat-val { font-size: 14px; font-weight: bold; }
+        .wind-badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-top: 2px; }
+
+        .float-text { position: absolute; font-weight: 900; font-size: 20px; z-index: 999; animation: floatUp 1.2s forwards; pointer-events: none; text-shadow: -1px -1px 0 #000; }
+        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-80px); } }
+        .ft-money { color: var(--accent); } .ft-hp { color: var(--safe); } .ft-dmg { color: var(--danger); }
+        .shake-effect { animation: shake 0.4s ease-in-out; }
+        @keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-5px);color:var(--danger)} 40%,80%{transform:translateX(5px)} }
+        
+        .damage-flash {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 50, 50, 0.3); pointer-events: none; z-index: 100;
+            animation: flashFade 0.3s ease-out forwards;
+        }
+        @keyframes flashFade { 0% { opacity: 1; } 100% { opacity: 0; } }
+
+        /* --- 4. 舞台區 --- */
+        .stage-area { flex: 7; position: relative; background: #222; overflow: hidden; display: flex; flex-direction: column; }
+        .stage-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; background-position: center; opacity: 0.6; transition: all 0.5s ease; }
+        .stage-overlay { position: absolute; bottom: 0; left: 0; width: 100%; height: 70%; background: linear-gradient(to top, rgba(0,0,0,0.95), transparent); pointer-events: none; }
+        .stage-content { position: absolute; bottom: 20px; left: 0; width: 100%; padding: 20px; z-index: 5; }
+        .stage-title { font-size: 28px; font-weight: bold; margin-bottom: 10px; text-shadow: 0 2px 10px black; }
+        .stage-desc { font-size: 15px; color: #ccc; line-height: 1.5; margin-bottom: 20px; min-height: 45px; }
+        .stage-tags { display: flex; gap: 10px; margin-bottom: 15px; }
+        .tag { background: rgba(255,255,255,0.15); padding: 5px 10px; border-radius: 15px; font-size: 12px; display: flex; align-items: center; }
+        
+        .btn-play {
+            width: 100%; padding: 16px; border-radius: 30px; border: none; font-size: 18px; font-weight: bold; color: white;
+            background: linear-gradient(45deg, var(--primary), #e66767); box-shadow: 0 5px 20px rgba(255, 107, 139, 0.4); cursor: pointer;
+            display: flex; justify-content: center; align-items: center; gap: 8px;
+        }
+        .btn-play:disabled { filter: grayscale(1); opacity: 0.5; cursor: not-allowed; }
+
+        /* --- 5. 手牌區 --- */
+        .deck-area { flex: 3; background: #151515; border-top: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; padding: 10px 0; z-index: 10; }
+        .deck-label { padding: 0 20px; font-size: 12px; color: #666; margin-bottom: 5px; }
+        .card-scroller { flex-grow: 1; display: flex; overflow-x: auto; padding: 0 20px; gap: 15px; align-items: center; scrollbar-width: none; }
+        .mini-card {
+            flex: 0 0 140px; height: 160px; background: var(--card-bg); border-radius: 15px; border: 1px solid rgba(255,255,255,0.1);
+            display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.2s; cursor: pointer;
+        }
+        .mini-card.active { border-color: var(--primary); transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+
+        /* --- 6. 滑冰小遊戲樣式 (極致護眼版) --- */
+        .game-container {
+            width: 100%; height: 100%; position: absolute; top: 0; left: 0;
+            /* 背景改為極深藍色，減少光害 */
+            background: #0B1026; 
+            overflow: hidden; z-index: 50;
+        }
+        
+        .game-hud { position: absolute; top: 70px; left: 15px; right: 15px; z-index: 60; display: flex; justify-content: space-between; align-items: flex-start; }
+        
+        .progress-bar-container { flex-grow: 1; height: 16px; background: rgba(0,0,0,0.8); border-radius: 8px; margin-right: 15px; position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); }
+        .progress-bar-fill { height: 100%; background: linear-gradient(90deg, #6c5ce7, #a29bfe); transition: width 0.1s linear; }
+        .progress-text { position: absolute; top: 0; left: 0; width: 100%; text-align: center; font-size: 10px; line-height: 16px; color: #fff; font-weight: bold; }
+        
+        .life-container { display: flex; gap: 5px; }
+        .life-container .fa-heart { color: #ff4757; font-size: 20px; filter: drop-shadow(0 0 5px rgba(255, 71, 87, 0.5)); transition: 0.3s; }
+        .life-container .fa-heart.lost { color: #2d3436; transform: scale(0.8); opacity: 0.3; }
+
+        .game-canvas { width: 100%; height: 100%; position: relative; perspective: 600px; overflow: hidden; }
+        
+        /* 賽道背景：改為微弱星光，去除網格 */
+        .track {
+            width: 100%; height: 200%; position: absolute; top: -100%; left: 0;
+            background-image: radial-gradient(white 1px, transparent 1px);
+            background-size: 50px 50px; opacity: 0.1; /* 非常淡的點點 */
+        }
+        
+        .sprite { position: absolute; bottom: 15%; width: 50px; height: 60px; font-size: 40px; text-align: center; transition: left 0.2s ease-out; z-index: 10; }
+        .player { color: #ff6b81; z-index: 11; filter: drop-shadow(0 0 10px rgba(255, 107, 129, 0.6)); }
+        .player.hit { animation: blinkRed 0.5s infinite; }
+        .partner { color: #54a0ff; opacity: 0.6; transform: scale(0.9); bottom: 18%; }
+        .sprite.fever { filter: drop-shadow(0 0 15px gold); animation: feverShake 0.2s infinite; }
+        @keyframes feverShake { 0% { transform: scale(1.2) translateX(0); } 50% { transform: scale(1.2) translateX(2px); } 100% { transform: scale(1.2) translateX(-2px); } }
+        @keyframes blinkRed { 0%, 100% { filter: drop-shadow(0 0 5px red) brightness(2) sepia(1) hue-rotate(-50deg) saturate(5); } 50% { filter: none; } }
+
+        .game-obj { position: absolute; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 32px; transition: top 0.1s linear; }
+        /* 障礙物改為亮色，在深色背景下對比明顯 */
+        .obstacle { color: #dfe6e9; font-size: 34px; filter: drop-shadow(0 0 5px rgba(255,255,255,0.3)); } 
+        .item-coin { color: #f1c40f; text-shadow: 0 0 10px gold; animation: spin 1s infinite linear; }
+        .item-heart { color: #ff4757; animation: pulse 0.5s infinite; }
+        @keyframes spin { 0% { transform: rotateY(0deg); } 100% { transform: rotateY(360deg); } }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+
+        /* 按鍵樣式優化 */
+        .game-controls { position: absolute; bottom: 0; left: 0; width: 100%; height: 25%; display: flex; z-index: 90; gap: 15px; padding: 10px 15px; box-sizing: border-box; }
+        .control-zone {
+            width: 50%; height: 100%; display: flex; align-items: center; justify-content: center;
+            font-size: 50px; color: rgba(255,255,255,0.4);
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            transition: all 0.1s;
+        }
+        .control-zone:active { background: rgba(255,255,255,0.2); color: #fff; transform: scale(0.98); border-color: rgba(255,255,255,0.5); }
+
+        /* --- 7. Modal --- */
+        .result-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 200; background: #000; display: flex; flex-direction: column; justify-content: flex-end; animation: fadeIn 0.3s ease-out; }
+        .result-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; opacity: 0.6; filter: brightness(1.2); }
+        .result-content { position: relative; z-index: 210; padding: 40px 30px; background: linear-gradient(to top, #000 10%, transparent); text-align: center; }
+        .result-title { font-size: 32px; font-weight: 900; margin-bottom: 10px; text-shadow: 0 0 20px rgba(255,255,255,0.5); }
+        .stat-change { font-size: 24px; font-weight: bold; padding: 10px 20px; border-radius: 15px; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.2); margin: 5px; display: inline-block; }
+        
+        .modal-mask { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 100; display: flex; align-items: flex-end; }
+        .order-panel { width: 100%; background: #222; border-radius: 20px 20px 0 0; padding: 20px; animation: slideUp 0.3s ease-out; max-height: 80%; overflow-y: auto; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } } @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+        .bottom-nav { height: 60px; background: #111; border-top: 1px solid #333; display: flex; justify-content: space-around; align-items: center; z-index: 30; }
+        .nav-btn { color: #666; display: flex; flex-direction: column; align-items: center; font-size: 10px; padding: 10px; }
+        .nav-btn.active { color: var(--primary); }
     </style>
 </head>
 <body>
-    <div class="header">
-        <div class="header-top">
-            <h1>2026 東京極致之旅</h1>
-            <div class="sunset-tag"><span>🌇</span><span id="sunset-display">--:--</span></div>
+<div id="app" :class="screenEffectClass">
+    <div class="debug-panel">
+        <button class="debug-btn" @click="jumpTo('chapter1')">跳轉: 樂園</button>
+        <button class="debug-btn" @click="jumpTo('chapter2')">跳轉: 海洋</button>
+        <button class="debug-btn" @click="jumpTo('onsen')">跳轉: 溫泉</button>
+        <button class="debug-btn" @click="jumpTo('karuizawa')">跳轉: 滑冰</button>
+    </div>
+
+    <div v-if="isHurt" class="damage-flash"></div>
+
+    <div class="status-bar">
+        <div class="stat-box" ref="moneyBox"><i class="fas fa-coins" style="color: gold;"></i><div class="stat-val">{{ money }}</div></div>
+        <div class="stat-box" ref="hpBox"><i class="fas fa-heart" :class="{'shake-effect': isHurt}" style="color: #ff4757;"></i><div class="stat-val">{{ hp }}%</div></div>
+        <div class="stat-box"><i class="fas fa-clock"></i><div class="stat-val">{{ time }}h</div></div>
+        <div class="stat-box" v-if="phase === 'chapter2'"><i class="fas fa-wind" :style="{color: windColor}"></i><div class="wind-badge" :style="{background: windColor, color: '#000'}">{{ windLabel }}</div></div>
+        <div class="stat-box" v-if="phase === 'karuizawa'"><i class="fas fa-star" style="color: #e67e22;"></i><div class="stat-val">{{ gameScore }}</div></div>
+    </div>
+
+    <div v-for="fx in effects" :key="fx.id" class="float-text" :class="fx.cls" :style="{top: fx.y + 'px', left: fx.x + 'px'}">{{ fx.txt }}</div>
+
+    <div v-if="phase === 'prologue'" class="stage-area" style="align-items: center; justify-content: center; text-align: center;">
+        <h1 style="color: var(--primary);">冬日時空冒險</h1>
+        <p style="color: #888; margin-bottom: 30px;">一段尋找溫度與回憶的旅程</p>
+        <button class="btn-play" style="width: 60%;" @click="startGame">開始旅程</button>
+    </div>
+
+    <template v-else-if="['chapter1', 'chapter2', 'onsen'].includes(phase)">
+        <div class="stage-area">
+            <div v-if="selectedCard" class="stage-bg" :style="{backgroundImage: 'url(' + selectedCard.bg + ')'}"></div>
+            <div class="stage-overlay"></div>
+            <div class="stage-content" v-if="selectedCard || phase === 'prologue'">
+                <div class="stage-title">{{ selectedCard.name }}</div>
+                <div class="stage-tags">
+                    <span class="tag" v-if="selectedCard.cost > 0"><i class="far fa-clock"></i> {{ selectedCard.cost }}h</span>
+                    <span class="tag" v-if="selectedCard.moneyCost"><i class="fas fa-coins"></i> ${{ selectedCard.moneyCost }}</span>
+                    <span class="tag" v-if="phase === 'onsen'" style="background: #2ecc71;">♨️ 溫泉</span>
+                </div>
+                <div class="stage-desc" v-html="stageMessage || selectedCard.desc"></div>
+                
+                <button v-if="!stageResult" class="btn-play" @click="executeAction" :disabled="!canAfford(selectedCard)">
+                    <span v-if="canAfford(selectedCard)"><i class="fas fa-play"></i> {{ phase === 'onsen' ? '進入溫泉' : '開始體驗' }}</span>
+                    <span v-else><i class="fas fa-ban"></i> 資源不足</span>
+                </button>
+                <button v-else class="btn-play" style="background: #444;" @click="confirmResult">
+                    <i class="fas fa-check"></i> {{ phase === 'onsen' ? '享用晚餐' : '繼續旅程' }}
+                </button>
+            </div>
+            <div v-else style="margin: auto; color: #666; display: flex; flex-direction: column; align-items: center;">
+                <i class="fas fa-hand-pointer" style="font-size: 40px; margin-bottom: 10px;"></i>
+                <div>{{ phase === 'onsen' ? '請選擇一種溫泉' : '請從下方選擇設施' }}</div>
+            </div>
         </div>
-        <div class="header-sub"><span id="date-display">--/--</span><span id="day-title-display">行程</span></div>
+        <div class="deck-area">
+            <div class="deck-label">{{ phase === 'onsen' ? '♨️ 汪泉閣：四湯巡禮' : (phase === 'chapter1' ? '📍 Disney Land' : '📍 Disney Sea') }}</div>
+            <div class="card-scroller">
+                <div v-for="card in currentCards" :key="card.id" class="mini-card" 
+                     :class="{active: selectedCard && selectedCard.id === card.id}" @click="selectCard(card)">
+                    <i :class="card.icon" style="font-size: 30px; color: #aaa; margin-bottom: 10px;"></i>
+                    <div style="font-size: 12px; font-weight: bold; text-align: center;">{{ card.name }}</div>
+                    <div v-if="card.tags" style="font-size: 10px; color: #e67e22; margin-top: 5px;">{{ card.tags }}</div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <div v-if="phase === 'karuizawa'" class="game-container">
+        <div class="game-hud">
+            <div class="progress-bar-container">
+                <div class="progress-bar-fill" :style="{width: Math.min(100, (skatingDistance / maxDistance * 100)) + '%'}"></div>
+                <div class="progress-text">🏁 距離終點 {{ Math.max(0, Math.floor(maxDistance - skatingDistance)) }}m</div>
+            </div>
+            <div class="life-container">
+                <i v-for="n in 5" :key="n" class="fas fa-heart" :class="{lost: n > skatingLife}"></i>
+            </div>
+        </div>
+
+        <div class="game-canvas">
+            <div class="track" :style="{transform: 'translateY(' + trackOffset + 'px)'}"></div>
+            <div class="sprite player" :class="{fever: isFever, hit: isHit}" :style="{left: playerX + '%'}"><i class="fas fa-skating"></i></div>
+            <div class="sprite partner" v-if="!isFever" :style="{left: (playerX + 12) + '%'}"><i class="fas fa-user"></i></div>
+            <div v-for="obj in gameObjects" :key="obj.id" class="game-obj" :class="obj.type" :style="{left: obj.x + '%', top: obj.y + '%'}"><i :class="obj.icon"></i></div>
+        </div>
+
+        <div class="game-controls">
+            <div class="control-zone left" @click="movePlayer(-1)"><i class="fas fa-chevron-left"></i></div>
+            <div class="control-zone right" @click="movePlayer(1)"><i class="fas fa-chevron-right"></i></div>
+        </div>
+
+        <div v-if="!gameRunning" class="modal-mask" style="align-items: center; justify-content: center;">
+            <div class="order-panel" style="text-align: center; width: 85%;">
+                <h2 v-if="skatingLife > 0 && skatingDistance < maxDistance">⛸️ 冰之舞</h2>
+                <h2 v-else-if="skatingLife <= 0" style="color: #ff4757;">💥 發生碰撞！</h2>
+                <h2 v-else style="color: gold;">🏆 抵達終點！</h2>
+                
+                <p v-if="skatingLife > 0 && skatingDistance < maxDistance" style="color:#aaa;">
+                    左右點擊閃避障礙物<br>請堅持 30 秒！(5次機會)
+                </p>
+                <p v-else>本次滑冰獎勵：<span style="color: gold;">${{ gameScore * 10 }}</span></p>
+
+                <button class="btn-play" @click="toggleGame">
+                    {{ (skatingLife > 0 && skatingDistance < maxDistance) ? '開始滑行' : '前往明治神宮' }}
+                </button>
+            </div>
+        </div>
     </div>
-    <div class="jr-banner" id="jr-banner">🎫 JR 廣域周遊券啟用日 (請使用實體票)</div>
-    <div class="content-area" id="content-container"></div>
-    <div class="footer">
-        <button class="nav-btn" id="prev-btn" onclick="changeDay(-1)">上一天</button>
-        <div class="day-indicator" id="day-indicator">首頁</div>
-        <button class="nav-btn primary" id="next-btn" onclick="changeDay(1)">下一天</button>
+
+    <div class="bottom-nav" v-if="['chapter1', 'chapter2', 'onsen'].includes(phase)">
+        <div class="nav-btn active"><i class="fas fa-map"></i></div>
+        <div class="nav-btn" @click="showOrder = true" style="color: #e67e22;"><i class="fas fa-utensils"></i></div>
+        <div class="nav-btn"><i class="fas fa-suitcase"></i></div>
     </div>
-    <script>
-        const tripData = [
-            {
-                day: "首頁", date: "行前確認", title: "出發前資訊彙整", sunset: "N/A", jrActive: false,
-                cards: [
-                    { time: "確認", title: "✅ 重大任務已達成", subtitle: "SHIBUYA SKY 門票", type: "ticket", details: [{ text: "日期：Day 7 (2026/01/15 週四)。" }, { text: "入場時間：<strong>18:00 - 18:19</strong> (憑 Trip.com 憑證)。" }, { text: "狀態：已確認購票完成，無需再搶票。" }] },
-                    { time: "列表", title: "🚄 新幹線劃位狀態清單", subtitle: "已預約 & 待預約車票", type: "ticket", details: [{ text: "<span class='status-ok'>✅ 已預約</span> Day 4 東京 → 輕井澤<br>預約號：<span class='res-code'>E22134</span><br>10:33 出發 - 11:36 抵達" }, { text: "<span class='status-ok'>✅ 已預約</span> Day 5 輕井澤 → 高崎<br>預約號：<span class='res-code'>E54876</span><br>12:00 出發 - 12:19 抵達" }, { text: "<span class='status-ok'>✅ 已預約</span> Day 5 高崎 → 上毛高原<br>預約號：<span class='res-code'>E59744</span><br>12:28 出發 - 12:43 抵達<br>⚠️ <strong>高崎站轉乘僅 9 分鐘</strong>" }, { text: "<span class='status-ok'>✅ 已預約</span> Day 6 上毛高原 → 上野<br>預約號：<span class='res-code'>E51499</span><br>班次：Tanigawa 408號 (10號車 20D, 20E)<br>10:46 出發 - 11:42 抵達" }] },
-                    { time: "航班", title: "✈️ 航班資訊", subtitle: "樂桃 & 酷航", type: "transport", details: [{ text: "去程：MM626 (TPE -> NRT T1)<br>14:55 抵達成田" }, { text: "回程：TR899 (NRT T1 -> TPE)<br>11:55 起飛 (09:55 前櫃台報到)" }], route: [] },
-                    { time: "住宿", title: "🏨 住宿總覽", subtitle: "10天9夜", type: "hotel", details: [{ text: "Day 1-3：東京灣喜來登 (迪士尼)" }, { text: "Day 4：輕井澤王子大飯店 西館" }, { text: "Day 5：寶川溫泉 汪泉閣 (秘湯)" }, { text: "Day 6-9：三井花園飯店上野" }] },
-                    { time: "票券", title: "🎫 交通票券與活動", subtitle: "已確認項目", type: "normal", details: [{ text: "JR 東京廣域周遊券：憑證已購。<br>效期：Day 4 (1/12) - Day 6 (1/14)" }, { text: "活動：迪士尼樂園 (Day 2)、海洋 (Day 3)、溫泉接駁 (Day 5,6)、淺草和服 (Day 8)" }] }
-                ]
-            },
-            {
-                day: 1, date: "2026/01/09 (五)", title: "抵達與準備", sunset: "16:48", jrActive: false,
-                cards: [
-                    { time: "14:55", title: "班機抵達 (MM626)", subtitle: "成田機場 T1", type: "transport", details: [{ text: "下機後重要提醒：開通 SIM 卡 / eSIM，確保手機可上網。" }, { text: "準備西瓜卡 (Suica/PASMO)：若無實體卡，請用手機綁定數位卡或在機場機台購買。" }, { text: "預計辦理入境手續約 60-90 分鐘。" }], route: [{ name: "樂桃 MM626", time: "14:55 抵達", type: "start" }, { name: "成田機場 T1", time: "入境檢查", type: "end" }] },
-                    { time: "16:00", title: "💳 購買西瓜卡 (Suica)", subtitle: "第一階段：機場購買", type: "ticket", details: [{ text: "地點：JR 車站機台或服務中心。" }, { text: "購買實體西瓜卡：<strong>一張 2,000 日圓</strong>。" }, { text: "內容：內含 500 押金 + 1,500 可用餘額。" }, { text: "用途：這 1,500 日幣足夠您 Day 1~3 在迪士尼搭單軌電車使用。" }] },
-                    { time: "16:30", title: "【重要】領取 JR PASS & 票券", subtitle: "B1 JR 東日本旅行服務中心", type: "important", details: [{ text: "地點：第一航廈 B1 樓層。" }, { text: "動作 1：出示憑證與護照，領取實體 JR 東京廣域周遊券。" }, { text: "動作 2：<strong>務必領取所有「新幹線指定席車票」</strong> (Day 4, 5, 6)。", alert: true }, { text: "服務中心營業至 21:00。" }] },
-                    { time: "17:30", title: "利木津巴士：前往飯店", subtitle: "直達東京灣喜來登", type: "transport", details: [{ text: "購票：入境大廳「南翼」巴士櫃台。" }, { text: "目的地：告知櫃台前往「Sheraton Grande Tokyo Bay」。" }, { text: "車程：約 70-90 分鐘 (視交通狀況)。" }], route: [{ name: "成田 T1 (南翼)", time: "約 17:30 發車", type: "start" }, { name: "東關東自動車道", time: "途經", type: "mid" }, { name: "東京灣喜來登飯店", time: "約 19:30 抵達", type: "end" }] },
-                    { time: "20:00", title: "入住與晚餐", subtitle: "飯店內或商場", type: "hotel", details: [{ text: "辦理入住手續。" }, { text: "晚餐選擇：飯店內餐廳，或搭單軌電車去「伊克斯皮兒莉 (Ikspiari)」商場用餐。" }] }
-                ]
-            },
-{
-                day: 2, date: "2026/01/10 (六)", title: "迪士尼陸地攻略", sunset: "16:49", jrActive: false,
-                cards: [
-                    { time: "07:00", title: "早晨：分秒必爭", subtitle: "開園前排隊", type: "land", details: [{ text: "07:00 從喜來登出發 (搭飯店接駁車轉單軌電車至樂園站)。" }, { text: "目標：在開園前 1 小時抵達排隊。" }] },
-                    { time: "08:30", title: "📲 關鍵 1 分鐘操作", subtitle: "入園後動作", type: "important", details: [{ text: "行動準則：過閘門後聽到「嗶」一聲，立刻移步旁邊操作 App。" }, { text: "<strong>1. 搶 DPA (付費快通)：</strong>立刻購買「美女與野獸」。預算夠再買「杯麵的快樂乘車遊」。" }, { text: "<strong>2. 抽 PP (免費快通)：</strong>抽「怪獸電力公司」或「巨雷山」。" }, { text: "<strong>3. 申請 Entry Request：</strong>抽選大秀「米奇俱樂部動感節奏」。" }] },
-                    { time: "上午", title: "上午行程 & 午餐", subtitle: "經典設施", type: "land", details: [{ text: "09:00 - 10:30：上午黃金時間 (排隊玩經典設施如小熊維尼獵蜜記)。" }, { text: "11:00：提早吃午餐 (強烈建議使用 Mobile Order 行動點餐)。" }, { text: "推薦：紅心女王宴會大廳。" }] },
-                    { time: "下午", title: "遊行 & DPA 設施", subtitle: "眾彩交融", type: "land", details: [{ text: "13:00：觀賞日間遊行「迪士尼眾彩交融」。" }, { text: "14:30 - 16:30：使用早上的 DPA 和 PP 玩設施，抽第二張 PP。" }] },
-                    { time: "晚餐", title: "晚餐推薦", subtitle: "園內", type: "land", details: [{ text: "園內「加斯頓酒館」(帶骨香腸)。" }] },
-                    { time: "晚上", title: "夜間遊行 & 煙火", subtitle: "電子大遊行", type: "land", details: [{ text: "19:15：夜間遊行「東京迪士尼樂園電子大遊行」。" }, { text: "20:30：煙火「迪士尼炫彩夜空」。" }] }
-                ]
-            },
-            {
-                day: 3, date: "2026/01/11 (日)", title: "迪士尼海洋攻略", sunset: "16:50", jrActive: false,
-                cards: [
-                    { time: "06:40", title: "決戰：夢幻泉鄉", subtitle: "比昨天更重要", type: "sea", details: [{ text: "06:40：從喜來登出發 (搭飯店接駁車轉單軌電車至海洋站)。一定要提早。" }] },
-                    { time: "08:15", title: "📲 關鍵入園操作", subtitle: "搶 DPA/SP", type: "important", details: [{ text: "<strong>目標：取得「夢幻泉鄉」的 DPA 或 SP 以進入新園區。</strong>" }, { text: "<strong>步驟 1 (搶夢幻泉鄉 DPA)：</strong>首選「冰雪奇緣」。(通常秒殺)。" }, { text: "<strong>步驟 2 (搶夢幻泉鄉 SP)：</strong>DPA 買完或沒搶到，立刻抽 SP。首選「樂佩公主」或「彼得潘」。" }, { text: "步驟 3 (買外部 DPA)：買「翱翔：夢幻奇航」。" }, { text: "步驟 4 (抽外部 PP)：抽「印第安納瓊斯」或「忿怒雙神」。" }] },
-                    { time: "上午", title: "上午行程", subtitle: "港灣表演", type: "sea", details: [{ text: "沒搶到夢幻泉鄉時段先玩外面。" }, { text: "11:30 看港灣表演。" }] },
-                    { time: "午餐", title: "午餐推薦", subtitle: "達菲餐廳", type: "sea", details: [{ text: "達菲熊餐廳 (看表演) 或 水平線海灣餐廳。" }] },
-                    { time: "下午", title: "夢幻泉鄉 / 玩樂", subtitle: "新區域", type: "sea", details: [{ text: "14:00 - 16:00：若成功預約，進入「夢幻泉鄉」遊玩。" }] },
-                    { time: "晚餐", title: "晚餐推薦", subtitle: "飯店/商場", type: "sea", details: [{ text: "回飯店吃 Grand Café 自助餐，或 Ikspiari 吃一風堂拉麵。" }] },
-                    { time: "晚上", title: "夜間大秀 & 煙火", subtitle: "Believe!", type: "sea", details: [{ text: "19:15 (時間請當天確認)：必看大秀「Believe! Sea of Dreams」。(建議提早 1.5 小時卡位)。" }, { text: "20:30：煙火。" }] }
-                ]
-            },
-{
-                day: 4, date: "2026/01/12 (一)", title: "前往輕井澤", sunset: "16:51", jrActive: true,
-                cards: [
-                    { time: "08:50", title: "移動：前往東京車站", subtitle: "轉乘注意", type: "transport", details: [{ text: "08:50 辦理退房完畢，從喜來登飯店出發。" }, { text: "路段 1：搭乘飯店接駁車至單軌海濱站，轉乘單軌至 JR 舞濱站。" }, { text: "路段 2 (09:20)：搭乘 [JR 京葉線 (快速或各停)]。" }, { text: "⚠️ <strong>關鍵轉乘</strong>：京葉線月台在地下深處，請跟隨「新幹線」指標，走非常長的聯絡通道與手扶梯前往 1 樓的新幹線區域。(預抓 20 分鐘)。" }], route: [{ name: "喜來登飯店", time: "08:50 出發", type: "start" }, { name: "JR 舞濱站", time: "09:20 進站", type: "mid" }, { name: "東京站 (地下月台)", time: "09:40 抵達", type: "mid" }, { name: "東京站 (新幹線)", time: "10:00 抵達", type: "end" }] },
-                    { time: "10:24", title: "新幹線：前往輕井澤", subtitle: "Hakutaka 559 號", type: "ticket", details: [{ text: "狀態：<span class='status-ok'>✅ 已劃位 E22134</span>" }, { text: "班次：北陸新幹線 Hakutaka (はくたか) 559 號。" }, { text: "座位：6號車廂 14C, 14D。" }, { text: "行動：在閘門內外便當店購買午餐。憑票通過閘門。" }], route: [{ name: "東京車站", time: "10:24 發車", type: "start" }, { name: "上野/大宮/高崎", time: "途經", type: "mid" }, { name: "輕井澤站", time: "11:23 抵達", type: "end" }] },
-                    { time: "11:30", title: "輕井澤：行李與景點", subtitle: "王子西館 & 星野區", type: "normal", details: [{ text: "11:23 抵達輕井澤站，南口出站，搭飯店接駁車或計程車去「輕井澤王子大飯店西館」寄行李。" }, { text: "<strong>13:30 第一站：雲場池</strong> (計程車前往)。欣賞水墨畫雪景。" }, { text: "<strong>15:00 第二站：中輕井澤 / 星野區</strong> (計程車前往)。必訪：石之教堂、輕井澤高原教堂。(建議 16:30 前參觀完畢，以免關門)。" }] },
-                    { time: "16:30", title: "晚餐：榆樹街小鎮", subtitle: "餐廳詳細推薦", type: "normal", details: [{ text: "交通：步行下坡約 5 分鐘。欣賞色溫變化的暖燈雪景。" }, { text: "<strong>1. 丸山咖啡 (Maruyama Coffee)</strong>：可以在這裡喝杯冠軍咖啡，看著窗外雪景發呆。" }, { text: "<strong>2. 川上庵 (Kawakami-an)</strong>：(晚餐首選) 非常有名的蕎麥麵店。推薦點「天婦羅蕎麥麵」(炸蝦非常大隻酥脆) 或熱的鴨肉蕎麥麵。" }, { text: "<strong>3. Sawamura (沢村)</strong>：如果想吃西式，這家的麵包和燉牛肉非常有名。" }] },
-                    { time: "18:30", title: "體驗：森林滑冰", subtitle: "KERA-IKE", type: "normal", details: [{ text: "第四站：KERA-IKE 滑冰場 (步行即達)。喝熱飲欣賞森林冰場夢幻燈光。" }, { text: "晚上：搭計程車返回飯店。" }] }
-                ]
-            },
-            {
-                day: 5, date: "2026/01/13 (二)", title: "秘湯寶川溫泉", sunset: "16:52", jrActive: true,
-                cards: [
-                    { time: "11:30", title: "午餐任務：山口釜飯", subtitle: "輕井澤車站", type: "normal", details: [{ text: "在輕井澤車站購買知名的「峠の釜めし (山口釜飯)」便當。" }] },
-                    { time: "12:00", title: "新幹線 1：往高崎", subtitle: "Asama 614 號", type: "ticket", details: [{ text: "狀態：<span class='status-ok'>✅ 已劃位 E54876</span>" }, { text: "班次：北陸新幹線 Asama (あさま) 614 號。" }, { text: "車程僅 16 分鐘。" }], route: [{ name: "輕井澤站", time: "12:00 發車", type: "start" }, { name: "安中榛名", time: "途經", type: "mid" }, { name: "高崎站", time: "12:16 抵達", type: "end" }] },
-                    { time: "12:16", title: "⚡ 高崎站關鍵轉乘", subtitle: "9分鐘極速轉乘", type: "important", details: [{ text: "⚠️ <strong>全程不出站！不要走出驗票口！</strong>", alert: true }, { text: "步驟 1：下車 (3F) 立刻找手扶梯下樓。" }, { text: "步驟 2：到 2F 轉乘大廳，確認往「新潟」方向的「Toki 319號」月台 (通常 11/12 號)。" }, { text: "步驟 3：再搭手扶梯上樓候車。" }] },
-                    { time: "12:28", title: "新幹線 2：往上毛高原", subtitle: "Toki 319 號", type: "ticket", details: [{ text: "狀態：<span class='status-ok'>✅ 已劃位 E59744</span>" }, { text: "班次：上越新幹線 Toki (とき) 319 號。" }, { text: "直達，中間無停靠。" }, { text: "抵達後往<strong>「東口 (EAST EXIT)」</strong>集合。" }], route: [{ name: "高崎站", time: "12:28 發車", type: "start" }, { name: "上毛高原站", time: "12:43 抵達", type: "end" }] },
-                    { time: "13:00", title: "接駁：前往寶川溫泉", subtitle: "汪泉閣專車", type: "transport", details: [{ text: "在東口搭乘汪泉閣免費接駁巴士。" }, { text: "車程約 45 分鐘。" }, { text: "13:45 抵達並快速辦理入住。" }, { text: "⚠️ <strong>手機鎖進房間保險箱，只帶房間鑰匙和零錢。</strong>", alert: true }], route: [{ name: "上毛高原站", time: "13:00 發車", type: "start" }, { name: "寶川溫泉 汪泉閣", time: "13:45 抵達", type: "end" }] },
-                    { time: "14:30", title: "♨️ 溫泉與晚餐行程", subtitle: "一泊二食", type: "normal", details: [{ text: "14:30 - 16:00 露天混浴：先攻「子寶之湯」(最大/雪景)，再泡「般若之湯」(淺灘)。" }, { text: "18:00 晚餐：享用招牌「熊肉湯（熊汁）」山珍料理。" }, { text: "20:30 晚間泡湯：前往「摩訶之湯」欣賞夜間點燈。" }] }
-                ]
-            },
-            {
-                day: 6, date: "2026/01/14 (三)", title: "返回上野", sunset: "16:53", jrActive: true,
-                cards: [
-                    { time: "09:15", title: "接駁：返回車站", subtitle: "汪泉閣專車", type: "transport", details: [{ text: "07:30 早餐 (推薦溫泉蛋配群馬米)。" }, { text: "09:00 退房，在大廳等候。" }, { text: "09:15 發車返回上毛高原站。" }, { text: "10:20 抵達車站，注意保暖，可在站內休息。" }], route: [{ name: "寶川溫泉", time: "09:15 發車", type: "start" }, { name: "上毛高原站", time: "10:20 抵達", type: "end" }] },
-                    { time: "10:46", title: "新幹線：回上野", subtitle: "Tanigawa 408 號", type: "ticket", details: [{ text: "狀態：<span class='status-ok'>✅ 已劃位 E51499</span>" }, { text: "班次：上越新幹線 Tanigawa (たにがわ) 408 號。" }, { text: "座位：<strong>10號車 20D, 20E</strong>。" }, { text: "11:42 抵達上野站。" }, { text: "下車後往「中央驗票口」走，從「淺草口」或「中央口」出站。" }, { text: "步行 3 分鐘至三井花園飯店寄放行李。" }], route: [{ name: "上毛高原", time: "10:46 發車", type: "start" }, { name: "高崎/本庄/熊谷/大宮", time: "途經", type: "mid" }, { name: "上野站", time: "11:42 抵達", type: "end" }] },
-                    { time: "12:15", title: "上野美食與散策", subtitle: "炸牛排 & 牡丹苑", type: "normal", details: [{ text: "午餐：步行前往御徒町「牛かつ あおな (炸牛排)」。" }, { text: "13:30 散步前往上野公園。" }, { text: "14:00 景點：上野東照宮「冬牡丹苑」。" }] },
-                    { time: "15:30", title: "阿美橫丁 & 藥妝採購", subtitle: "重點時段", type: "important", details: [{ text: "美食：肉的大山 (炸肉餅)、湊屋 (海鮮丼)。" }, { text: "<strong>採購 (二選一或都去)：</strong>" }, { text: "1. <strong>OS Drug 上野店</strong>：現金超低價，約 19:30 關門。" }, { text: "2. <strong>多慶屋</strong>：御徒町紫色大樓，一站買齊可刷卡退稅，約 21:00 關門。" }, { text: "18:00 回飯店辦理入住休息。" }] },
-                    { time: "晚上", title: "💳 交通卡儲值提醒", subtitle: "第二階段", type: "important", details: [{ text: "明天開始要大量搭地鐵與 JR。" }, { text: "建議今晚或明早，<strong>再儲值 3,000 日圓</strong> 進西瓜卡。" }] }
-                ]
-            },
-{
-                day: 7, date: "2026/01/15 (四)", title: "事業財運與高空絕景", sunset: "16:54", jrActive: false,
-                cards: [
-                    { time: "提醒", title: "🔥 今日重要提醒", subtitle: "Skyliner & 門票", type: "important", details: [{ text: "提醒 1：出發前，請先走到隔壁的「京成上野站」售票機或櫃檯，<strong>買好 Day 10 (週日) 早上前往機場的 Skyliner 車票！</strong>", alert: true }, { text: "提醒 2：✅ SHIBUYA SKY 門票已確認：18:00 入場。" }] },
-                    { time: "09:00", title: "移動：前往原宿", subtitle: "JR 山手線", type: "transport", details: [{ text: "行動：從三井花園飯店步行至 JR 上野站。" }, { text: "交通：搭乘 <strong>[JR 山手線 (外回/往池袋新宿方向)]</strong>。" }, { text: "經過站點 (約 30 分鐘)：<br>上野 → 鶯谷 → 日暮里 → 西日暮里 → 田端 → 駒込 → 巢鴨 → 大塚 → 池袋 → 目白 → 高田馬場 → 新大久保 → 新宿 → 代代木 → 原宿 (下車)。" }], route: [{ name: "上野站", time: "09:00 出發", type: "start" }, { name: "原宿站", time: "09:30 抵達", type: "end" }] },
-                    { time: "09:30", title: "明治神宮", subtitle: "森林浴", type: "normal", details: [{ text: "行動：從原宿站「表參道口」或「西口」出站，步行 2 分鐘看見大鳥居入口。" }, { text: "體驗：漫步碎石參道，參拜本殿。" }] },
-                    { time: "11:00", title: "表參道散步 & 午餐", subtitle: "時尚街區", type: "normal", details: [{ text: "行動：離開明治神宮，沿著表參道林蔭大道往青山方向散步。" }, { text: "<strong>午餐備選 (表參道區域)：</strong>" }, { text: "1. <strong>まい泉 青山本店 (Maisen)</strong>：著名的炸豬排老店，環境好。(營業時間 11:00-22:00)" }, { text: "2. <strong>Luke's Lobster 表參道店</strong>：人氣龍蝦堡，適合輕食快速解決。(營業時間 11:00-20:00)" }, { text: "3. <strong>Aoyama Flower Market Tea House</strong>：在花店裡用餐，氣氛夢幻，餐點精緻。(營業時間 11:00-18:30)" }] },
-                    { time: "13:00", title: "金王八幡宮", subtitle: "事業繁榮・正財攻略", type: "important", details: [{ text: "行動：吃飽後，從表參道區域開始導航前往「金王八幡宮」。路程步行約 10-15 分鐘，沿途會經過比較安靜的巷弄。" }, { text: "策略：位於澀谷鬧區的靜謐處。這裡是祈求事業成功、升職加薪的寶地。" }, { text: "<strong>【參拜重點流程】：</strong>" }, { text: "1. 神門與本殿：主祭神是應神天皇，請祈求整體運勢與事業基礎穩固。" }, { text: "2. <strong>玉造稻荷神社（隱藏財位，最重要）</strong>：位於本殿右側。<strong>動作：這裡務必誠心祈求具體的「事業目標」或「財務目標」</strong>（例如：公司營收達成多少、希望拿下哪個大客戶）。" }, { text: "<strong>【必買授與品】：</strong>" }, { text: "金王守：祈求建立功勳、獲得財富。" }, { text: "福財布：如果運氣好有看到，是一種可以放入彩券或存摺的黃色布套。" }] },
-                    { time: "13:45", title: "移動：前往澀谷", subtitle: "步行", type: "transport", details: [{ text: "離開神社，步行約 10-15 分鐘走向最熱鬧的澀谷站周邊。" }], route: [{ name: "金王八幡宮", time: "13:45 出發", type: "start" }, { name: "澀谷中心區", time: "14:00 抵達", type: "end" }] },
-                    { time: "14:00", title: "澀谷體驗 & 採購", subtitle: "十字路口 & 藥妝", type: "normal", details: [{ text: "體驗世界最繁忙的十字路口人潮、八公像拍照。" }, { text: "<strong>【藥妝採購備案時段】</strong>" }, { text: "1. <strong>MEGA 唐吉訶德 澀谷本店</strong>：24H 營業，超大間。" }, { text: "2. <strong>松本清澀谷店</strong>：通常營業至 22:00。" }] },
-                    { time: "17:30", title: "前往展望台", subtitle: "Scramble Square", type: "transport", details: [{ text: "前往澀谷站共構的「Scramble Square」大樓，依照指標搭乘專用電梯前往 SHIBUYA SKY 入口。" }] },
-                    { time: "18:00", title: "SHIBUYA SKY", subtitle: "百萬夜景", type: "important", details: [{ text: "<strong>✅ 【已確認】憑 Trip.com 憑證入場。</strong>" }, { text: "指定入場時間：<strong>18:00 - 18:19</strong> (請務必準時)。" }, { text: "體驗：欣賞城市點燈後的百萬夜景 (約停留 1.5 小時)。" }] },
-                    { time: "20:00", title: "晚餐", subtitle: "澀谷或上野", type: "normal", details: [{ text: "<strong>晚餐備選：</strong>" }, { text: "澀谷區域：一蘭拉麵 澀谷店、鳥貴族 (平價串燒, 營業至凌晨)。" }, { text: "上野區域 (回飯店附近吃)：根岸 (ねぎし) 牛舌定食 (上野站前店, 至 22:30)。" }] },
-                    { time: "晚上", title: "移動：返回上野", subtitle: "JR 山手線", type: "transport", details: [{ text: "交通：在澀谷站搭乘 <strong>[JR 山手線 (外回)]</strong>。" }, { text: "經過站點 (約 30 分鐘)：<br>澀谷 → 惠比壽 → 目黑 → 五反田 → 大崎 → 品川 → 高輪Gateway → 田町 → 濱松町 → 新橋 → 有樂町 → 東京 → 神田 → 秋葉原 → 御徒町 → 上野 (下車)。" }], route: [{ name: "澀谷站", time: "晚上回程", type: "start" }, { name: "上野站", time: "30分鐘後", type: "end" }] }
-                ]
-            },
-            {
-                day: 8, date: "2026/01/16 (五)", title: "淺草華麗振袖體驗", sunset: "16:55", jrActive: false,
-                cards: [
-                    { time: "提醒", title: "Skyliner 購票", subtitle: "最後提醒", type: "important", details: [{ text: "若昨天沒買，今天務必去京成上野站買好 Skyliner 車票！" }] },
-                    { time: "09:45", title: "移動：前往淺草", subtitle: "銀座線", type: "transport", details: [{ text: "從飯店步行至上野站。" }, { text: "交通：搭乘 <strong>[東京Metro銀座線 (往淺草方向)]</strong>。" }, { text: "經過站點 (約 6 分鐘)：<br>上野 → 稻荷町 → 田原町 → 淺草 (終點, 下車)。" }], route: [{ name: "上野站", time: "10:00 發車", type: "start" }, { name: "淺草站", time: "10:06 抵達", type: "end" }] },
-                    { time: "10:30", title: "淺草和服體驗", subtitle: "梨花和服 (已預約)", type: "normal", details: [{ text: "步行至「梨花和服」報到。" }, { text: "內容：挑選正絹振袖、著裝、髮型 (預抓 1.5-2 小時)。" }, { text: "12:30 著裝完成 & 輕午餐 (MISOJYU 飯糰或仲見世通炸肉餅)。" }] },
-                    { time: "13:30", title: "淺草寺美拍散策", subtitle: "古都風情", type: "normal", details: [{ text: "路線：傳法院通 → 淺草寺本堂與五重塔 → 隅田川公園 (晴空塔背景)。" }, { text: "15:30 喫茶店休息 (Fuglen Asakusa 或珈琲 天國)。" }, { text: "16:30 回到店裡歸還和服、換裝。" }] },
-                    { time: "17:30", title: "移動：回上野", subtitle: "銀座線", type: "transport", details: [{ text: "交通：在淺草站搭乘 <strong>[東京Metro銀座線 (往澀谷方向)]</strong>。" }, { text: "經過站點：<br>淺草 → 田原町 → 稻荷町 → 上野 (下車)。" }, { text: "先回飯店放東西、休息。" }], route: [{ name: "淺草站", time: "17:30 出發", type: "start" }, { name: "上野站", time: "17:36 抵達", type: "end" }] },
-                    { time: "18:30", title: "晚餐：上野燒肉饗宴", subtitle: "二選一", type: "normal", details: [{ text: "1. <strong>燒肉 陽山道 上野本店</strong>：優雅老字號 (營業至 23:00，最後點餐 22:00)。" }, { text: "2. <strong>房家 上野六丁目店</strong>：熱鬧高CP值 (通常營業至深夜或 24h)。" }] }
-                ]
-            },
-            {
-                day: 9, date: "2026/01/17 (六)", title: "強運洗錢・築地・鐵塔夜景", sunset: "16:56", jrActive: false,
-                cards: [
-                    { time: "08:00", title: "早鳥首衝：小網神社", subtitle: "避開人潮", type: "transport", details: [{ text: "🔥 為了避開小網神社週末瘋狂人潮，今天行程提早一小時出發，務必盡早抵達！" }, { text: "行動：從三井花園飯店步行至地鐵上野站 (日比谷線入口較近)。" }, { text: "交通：搭乘 <strong>[東京Metro日比谷線 (Hibiya Line) / 往中目黑方向]</strong>。" }, { text: "經過站點 (約 6 分鐘)：<br>上野 (H18) → 仲御徒町 (H17) → 秋葉原 (H16) → 小傳馬町 (H15) → 人形町 (H14, 下車)。" }, { text: "步行：從人形町站 <strong>A2 出口</strong>走上地面，步行約 5 分鐘抵達小網神社。" }], route: [{ name: "上野站", time: "08:00 出發", type: "start" }, { name: "人形町站", time: "08:06 抵達", type: "end" }] },
-                    { time: "08:30", title: "小網神社", subtitle: "強運厄除・洗錢弁財天", type: "important", details: [{ text: "策略：東京目前排隊最瘋狂的神社之一，務必耐心等候。" }, { text: "<strong>【參拜重點流程】：</strong>" }, { text: "1. 鳥居鞠躬與手水舍：進門前一鞠躬，簡單洗手漱口。" }, { text: "2. 本殿參拜：先向主神（稻荷大神）祈求強運與厄除。" }, { text: "3. 福祿壽像（重要）：本殿左側有一尊福祿壽像，摸摸祂的頭據說能帶來健康與德望。" }, { text: "4. <strong>洗錢（銭洗い，最核心步驟）</strong>：走到「東京錢洗弁天」像前。拿起竹簍，放入硬幣（建議 5 円或 500 円）或紙鈔（紙鈔稍微淋濕邊角即可）。用勺子舀水淋在錢上，心中默念祈求財運滾滾。" }, { text: "5. <strong>關鍵後續</strong>：洗好的錢要用手帕擦乾，放入錢包中成為「種錢」（錢母）。建議可留一枚洗過的硬幣當護身符，紙鈔則有意義地花掉（如投資或買生財工具）以利滾利。" }, { text: "<strong>【必買授與品】：</strong>" }, { text: "強運厄除守（龍紋）、金運久遠守（黃色/蛇皮，非常搶手）、繭氣守、財運神籤。" }] },
-                    { time: "09:15", title: "移動：前往築地", subtitle: "日比谷線", type: "transport", details: [{ text: "行動：步行走回剛剛的「人形町站」。" }, { text: "交通：繼續搭乘 <strong>[東京Metro日比谷線 / 往中目黑方向]</strong>。" }, { text: "經過站點 (約 6 分鐘)：<br>人形町 (H14) → 茅場町 (H13) → 八丁堀 (H12) → 築地 (H11, 下車)。" }, { text: "步行：從 1 號或 2 號出口出站，跟著人潮走即達市場。" }], route: [{ name: "人形町站", time: "09:15 出發", type: "start" }, { name: "築地站", time: "09:21 抵達", type: "end" }] },
-                    { time: "09:40", title: "築地場外市場", subtitle: "早午餐吃透透", type: "normal", details: [{ text: "體驗：在充滿活力的市場巷弄間探索。" }, { text: "美食：找間小店站著吃新鮮的「海鮮丼」或「壽司」。" }, { text: "小吃：品嚐熱騰騰甜甜的「玉子燒串」(如：丸武、山長)。" }, { text: "街邊小吃：烤扇貝、烤和牛串、草莓大福等。" }, { text: "⚠️ 週六人潮眾多，請注意隨身財物。", alert: true }] },
-                    { time: "11:40", title: "散步前往濱離宮", subtitle: "步行消化", type: "transport", details: [{ text: "行動：離開熱鬧的市場，開啟手機導航定位「濱離宮恩賜庭園 大手門」。" }, { text: "路線：沿著新大橋通往新橋方向走，步行約 10-15 分鐘即可抵達入口。" }], route: [{ name: "築地市場", time: "11:40 出發", type: "start" }, { name: "濱離宮 (大手門)", time: "12:00 抵達", type: "end" }] },
-                    { time: "12:00", title: "濱離宮恩賜庭園", subtitle: "絕景抹茶", type: "normal", details: [{ text: "體驗：在廣闊的庭園中散步消化。" }, { text: "<strong>強烈推薦</strong>：付費進入「中島御茶屋」，坐在榻榻米上喝抹茶、吃和菓子，欣賞庭園池塘與背景汐留摩天大樓群的古今對比絕景。" }] },
-                    { time: "13:30", title: "移動：前往銀座", subtitle: "步行", type: "transport", details: [{ text: "行動：從濱離宮大手門離開，步行約 10-15 分鐘即可抵達銀座最熱鬧的「中央通」。" }], route: [{ name: "濱離宮", time: "13:30 出發", type: "start" }, { name: "銀座中央通", time: "13:45 抵達", type: "end" }] },
-                    { time: "14:00", title: "銀座步行者天國", subtitle: "下午茶 & 逛街", type: "normal", details: [{ text: "體驗：此時中央通已封街成為步行者天國。把握機會在馬路正中央與經典的「和光鐘樓」合影。" }, { text: "行動：因為午餐吃得早，可以找間咖啡廳 (如資生堂 Parlour, Ginza Six 內) 享受下午茶。或逛逛 UNIQLO、無印良品旗艦店。" }] },
-                    { time: "16:30", title: "移動：前往神谷町", subtitle: "日比谷線", type: "transport", details: [{ text: "交通：走到銀座站，搭乘 <strong>[東京Metro日比谷線 / 往中目黑方向]</strong>。" }, { text: "經過站點 (約 7 分鐘)：<br>銀座 (H09) → 日比谷 (H08) → 虎之門Hills (H07) → 神谷町 (H06, 下車)。" }], route: [{ name: "銀座站", time: "16:30 出發", type: "start" }, { name: "神谷町站", time: "16:37 抵達", type: "end" }] },
-                    { time: "17:00", title: "麻布台之丘 & 鐵塔", subtitle: "經典夜景", type: "normal", details: [{ text: "<strong>景點 1 (麻布台之丘)</strong>：神谷町站直結。欣賞最新的流線型建築設計與廣場點燈夜景。" }, { text: "<strong>景點 2 (芝公園 4號地)</strong>：從麻布台之丘步行約 10 分鐘至「芝公園 4 號地」。這裡是拍攝東京鐵塔全景最經典的角度，欣賞紅白相間的鐵塔在夜空中亮起溫暖橘光的模樣。" }] },
-                    { time: "19:00", title: "移動：返回上野", subtitle: "日比谷線", type: "transport", details: [{ text: "交通：回到神谷町站，搭乘 <strong>[東京Metro日比谷線 / 往北千住方向]</strong>。" }, { text: "經過站點 (約 23 分鐘)：<br>神谷町 (H06) → 虎之門Hills (H07) → 日比谷 (H08) → 銀座 (H09) → 東銀座 (H10) → 築地 (H11) → 八丁堀 (H12) → 茅場町 (H13) → 人形町 (H14) → 小傳馬町 (H15) → 秋葉原 (H16) → 仲御徒町 (H17) → 上野 (H18, 下車)。" }], route: [{ name: "神谷町站", time: "19:00 出發", type: "start" }, { name: "上野站", time: "19:23 抵達", type: "end" }] },
-                    { time: "19:30", title: "晚餐：博多內臟鍋", subtitle: "上野", type: "normal", details: [{ text: "推薦 1 (首選)：<strong>博多滿月 (Hakata Mangetsu) 上野店</strong> (高CP值，氣氛熱鬧，營業至 23:30 或 24:00)。" }, { text: "推薦 2 (備案)：<strong>九州熱中屋 (Kyushu Neccu-ya) 上野 LIVE</strong> (營業至 23:00 或 23:30)。" }] },
-                    { time: "21:30", title: "回飯店休息", subtitle: "整理行囊", type: "important", details: [{ text: "行動：吃飽喝足，步行回三井花園飯店上野。" }, { text: "整理行李，確認戰利品，準備明天回國。" }] }
-                ]
-            },
-{
-                day: 10, date: "2026/01/18 (日)", title: "滿載而歸", sunset: "16:57", jrActive: false,
-                cards: [
-                    { time: "08:15", title: "退房與前往車站", subtitle: "步行", type: "important", details: [{ text: "08:15 辦理退房。" }, { text: "前往「京成上野站」 (注意：不是 JR 站，預留拉行李時間)。" }, { text: "準備好護照與預先買好的 Skyliner 車票。" }] },
-                    { time: "09:00", title: "Skyliner：前往機場", subtitle: "回程班次", type: "transport", details: [{ text: "班次目標：搭乘 09:00 從京成上野出發的班次。" }, { text: "車程約 44 分鐘。" }], route: [{ name: "京成上野站", time: "09:00 出發", type: "start" }, { name: "日暮里", time: "途經", type: "mid" }, { name: "成田機場 T1", time: "09:44 抵達", type: "end" }] },
-                    { time: "11:55", title: "班機起飛 (TR899)", subtitle: "酷航 Scoot", type: "transport", details: [{ text: "09:45 抵達第一航廈。" }, { text: "10:00 酷航櫃台報到托運。" }, { text: "10:40 安檢、證照查驗、免稅店。" }, { text: "11:55 起飛，平安返台。" }], route: [{ name: "成田機場 T1", time: "11:55 起飛", type: "start" }, { name: "台北桃園", time: "平安抵達", type: "end" }] }
-                ]
-            }
-        ];
+    
+    <div v-if="showResultModal" class="result-modal" @click="confirmResult">
+        <div class="result-bg" :style="{backgroundImage: 'url(' + resultInfo.bg + ')'}"></div>
+        <div class="result-content">
+            <div class="result-title" :style="{color: resultInfo.isLucky ? '#FFD700' : '#fff'}">{{ resultInfo.title }}</div>
+            <div class="result-stats">
+                <div v-for="(c, i) in resultInfo.changes" :key="i" class="stat-change" :style="{color: c.color}">{{ c.text }}</div>
+            </div>
+            <div class="result-desc">{{ resultInfo.desc }}</div>
+            <button class="btn-play" style="background: rgba(255,255,255,0.2);">點擊繼續</button>
+        </div>
+    </div>
 
-        let currentIndex = 0;
-        const container = document.getElementById('content-container');
-        const dayIndicator = document.getElementById('day-indicator');
-        const dateDisplay = document.getElementById('date-display');
-        const sunsetDisplay = document.getElementById('sunset-display');
-        const dayTitleDisplay = document.getElementById('day-title-display');
-        const jrBanner = document.getElementById('jr-banner');
-        const prevBtn = document.getElementById('prev-btn');
-        const nextBtn = document.getElementById('next-btn');
+    <div v-if="showDinner" class="modal-mask" style="align-items: center; justify-content: center;">
+        <div class="order-panel" style="text-align: center;">
+            <h2 style="color: #e67e22;">🍽️ 溫泉晚餐</h2>
+            <div style="font-size: 80px;">{{ dinnerResult.icon }}</div>
+            <h3>{{ dinnerResult.name }}</h3>
+            <div class="stat-change" style="color: #2ED573;">{{ dinnerResult.effectText }}</div>
+            <button class="btn-play" style="margin-top:20px;" @click="finishDinner">吃飽了！</button>
+        </div>
+    </div>
 
-        function init() { renderAll(); updateView(); }
+    <div v-if="showOrder" class="modal-mask" @click.self="showOrder = false">
+        <div class="order-panel">
+            <h3 style="color: #e67e22; margin-top: 0;">Mobile Order</h3>
+            <p style="font-size: 12px; color: #666; margin-bottom: 20px;">
+                ⚠️ 消耗 <b>1小時</b> 與 <b>金錢</b>。<br>{{ orderCooldown > 0 ? `忙碌中 (剩${orderCooldown}回)` : '目前可下單' }}
+            </p>
+            <div v-for="food in currentMenu" :key="food.id" style="display: flex; align-items: center; padding: 15px 0; border-bottom: 1px solid #333;">
+                <div style="font-size: 30px; margin-right: 15px;">{{ food.icon }}</div>
+                <div style="flex: 1;">
+                    <div style="font-weight: bold;">{{ food.name }}</div>
+                    <div style="color: #2ED573; font-size: 12px;">❤️ +{{ food.hp }}</div>
+                </div>
+                <button @click="buyFood(food)" :disabled="money < food.price || time < 1 || orderCooldown > 0" 
+                        style="background: #e67e22; border: none; color: white; padding: 6px 15px; border-radius: 20px;">
+                    ${{ food.price }}
+                </button>
+            </div>
+            <button class="btn-play" style="margin-top: 20px; background: #333; padding: 10px;" @click="showOrder = false">關閉</button>
+        </div>
+    </div>
 
-        function renderAll() {
-            container.innerHTML = '';
-            tripData.forEach((day, idx) => {
-                const dayDiv = document.createElement('div');
-                dayDiv.className = `day-page ${day.jrActive ? 'jr-active' : ''}`;
-                dayDiv.id = `day-${idx}`;
-                if (idx === 0) dayDiv.classList.add('active');
+</div>
+<script>
+    const { createApp, ref, computed } = Vue;
 
-                let html = '';
-                day.cards.forEach(card => {
-                    let detailsHtml = '';
-                    if (card.details && card.details.length > 0) {
-                        detailsHtml += `<div class="section-header">詳細指南</div><ul class="detail-list">`;
-                        card.details.forEach(d => { detailsHtml += `<li class="detail-item ${d.alert ? 'alert' : ''}">${d.text}</li>`; });
-                        detailsHtml += `</ul>`;
-                    }
-                    if (card.route && card.route.length > 0) {
-                        detailsHtml += `<div class="section-header">交通路徑</div><div class="route-visual">`;
-                        card.route.forEach((point, i) => {
-                            let typeClass = 'point-mid';
-                            if (point.type === 'start') typeClass = 'point-start';
-                            if (point.type === 'end') typeClass = 'point-end';
-                            detailsHtml += `<div class="route-point ${typeClass}"><div class="point-dot"></div><div class="point-name">${point.name}</div><div class="point-time">${point.time}</div></div>`;
-                            if (i < card.route.length - 1) detailsHtml += `<div class="point-arrow">↓</div>`;
-                        });
-                        detailsHtml += `</div>`;
-                    }
-                    html += `<div class="card" data-type="${card.type}" onclick="toggleCard(this)"><div class="card-header"><div class="time-badge">${card.time}</div><div class="toggle-icon">▼</div><h3 class="card-title">${card.title}</h3><div class="card-subtitle">${card.subtitle}</div></div><div class="card-body"><div class="body-content">${detailsHtml}</div></div></div>`;
-                });
-                dayDiv.innerHTML = html;
-                container.appendChild(dayDiv);
+    createApp({
+        setup() {
+            // --- 核心變數 ---
+            const phase = ref('prologue');
+            const money = ref(0);
+            const hp = ref(100);
+            const time = ref(6); // ★ 第一章 6 小時
+            const windLv = ref(0);
+            const orderCooldown = ref(0);
+            const effects = ref([]);
+            
+            // UI
+            const selectedCard = ref(null);
+            const stageMessage = ref("");
+            const stageResult = ref(false);
+            const showOrder = ref(false);
+            const showResultModal = ref(false);
+            const resultInfo = ref({ title:'', desc:'', changes:[], bg:'', isLucky:false });
+            const isHurt = ref(false);
+            const screenEffectClass = ref("");
+            const moneyBox = ref(null); const hpBox = ref(null);
+
+            // 資料
+            const landRides = ref([
+                { id:'beauty', name:'美女與野獸', icon:'fas fa-chess-rook', cost:2, played:false, bg:'https://source.unsplash.com/random/400x600/?castle', desc:'賭運氣：抽到DPA賺大錢！' },
+                { id:'splash', name:'飛濺山', icon:'fas fa-water', cost:2, played:false, bg:'https://source.unsplash.com/random/400x600/?waterfall', desc:'刺激！小心濕透。' },
+                { id:'train', name:'西部鐵路', icon:'fas fa-train', cost:1, played:false, bg:'https://source.unsplash.com/random/400x600/?steamtrain', desc:'休息回復體溫。' },
+                { id:'shoot', name:'西部射擊', icon:'fas fa-crosshairs', cost:1, played:false, moneyCost:100, bg:'https://source.unsplash.com/random/400x600/?cowboy', desc:'花錢買子彈賭獎金。' },
+                { id:'monsters', name:'怪獸電力', icon:'fas fa-flashlight', cost:2, played:false, bg:'https://source.unsplash.com/random/400x600/?monster', desc:'找阿布賺積分。' }
+            ]);
+            const seaRides = ref([
+                { id:'rapunzel', name:'樂佩天燈', icon:'fas fa-lightbulb', cost:2, played:false, bg:'https://source.unsplash.com/random/400x600/?lanterns', desc:'絕美場景，必去。' },
+                { id:'20k', name:'海底兩萬哩', icon:'fas fa-subway', cost:1, played:false, bg:'https://source.unsplash.com/random/400x600/?submarine', desc:'躲避海風。' },
+                { id:'arendelle', name:'皇家宴會', icon:'fas fa-utensils', cost:2, played:false, moneyCost:500, bg:'https://source.unsplash.com/random/400x600/?feast', desc:'花錢補滿狀態。' }
+            ]);
+            const onsenOptions = ref([
+                { id:'maka', name:'摩訶溫泉', icon:'fas fa-hot-tub', cost:0, bg:'https://source.unsplash.com/random/400x600/?onsen', desc:'可能撿到錢？', tags:'機率金錢' },
+                { id:'hannya', name:'般若溫泉', icon:'fas fa-brain', cost:0, bg:'https://source.unsplash.com/random/400x600/?winter', desc:'思考人生。', tags:'幸運UP' },
+                { id:'child', name:'子寶溫泉', icon:'fas fa-gem', cost:0, bg:'https://source.unsplash.com/random/400x600/?treasure', desc:'高風險高報酬。', tags:'機率大獎' },
+                { id:'maya', name:'麻耶溫泉', icon:'fas fa-spa', cost:0, bg:'https://source.unsplash.com/random/400x600/?beauty', desc:'絕對放鬆。', tags:'回血' }
+            ]);
+            const dinnerDishes = [
+                { name:'熊肉火鍋', icon:'🥘', effect:{hp:100}, effectText:'溫暖值 MAX!'},
+                { name:'鹽烤岩魚', icon:'🐟', effect:{luck:30}, effectText:'隱藏幸運 +30'},
+                { name:'山菜天婦羅', icon:'🍄', effect:{hp:30,luck:10}, effectText:'溫暖+30 / 幸運+10'}
+            ];
+            const menus = { chapter1:[{id:'pop',name:'爆米花',icon:'🍿',price:100,hp:15},{id:'turkey',name:'火雞腿',icon:'🍗',price:400,hp:60}], chapter2:[{id:'cocoa',name:'熱可可',icon:'☕',price:300,hp:35}] };
+            
+            // 晚餐變數
+            const showDinner = ref(false); const dinnerResult = ref({});
+
+            // 滑冰變數
+            const gameRunning = ref(false); const gameScore = ref(0); const playerX = ref(50);
+            const trackOffset = ref(0); const gameObjects = ref([]); const isFever = ref(false); const isHit = ref(false);
+            const skatingSpeed = ref(0.8); // ★ 初始速度變慢 (原1.0)
+            const skatingDistance = ref(0); 
+            const maxDistance = 3000; // ★ 距離設為 3000 (約 30 秒)
+            const skatingLife = ref(5); // ★ 5 條命
+            let gameLoopId = null; let lastSpawnTime = 0;
+
+            const currentCards = computed(() => {
+                if(phase.value==='chapter1') return landRides.value.filter(r=>!r.played);
+                if(phase.value==='chapter2') return seaRides.value.filter(r=>!r.played);
+                if(phase.value==='onsen') return onsenOptions.value;
+                return [];
             });
-        }
+            const currentMenu = computed(() => menus[phase.value] || []);
+            const windColor = computed(()=>['#2ecc71','#f39c12','#ff4757'][windLv.value]);
+            const windLabel = computed(()=>['微風 Lv.0','強風 Lv.1','暴風 Lv.2'][windLv.value]);
 
-        function toggleCard(card) {
-            const currentDayDiv = document.getElementById(`day-${currentIndex}`);
-            const isExpanding = !card.classList.contains('expanded');
-            if (isExpanding) {
-                const expandedCards = currentDayDiv.querySelectorAll('.card.expanded');
-                expandedCards.forEach(c => c.classList.remove('expanded'));
-            }
-            card.classList.toggle('expanded');
-        }
+            // debug jump
+            const jumpTo = (p) => {
+                phase.value = p; time.value = 6; money.value = 1000;
+                if(p === 'karuizawa') { skatingLife.value=5; skatingDistance.value=0; gameScore.value=0; gameRunning.value=false; }
+            };
 
-        function changeDay(offset) {
-            const newIndex = currentIndex + offset;
-            if (newIndex < 0 || newIndex >= tripData.length) return;
-            const currentDayDiv = document.getElementById(`day-${currentIndex}`);
-            const expandedCards = currentDayDiv.querySelectorAll('.card.expanded');
-            expandedCards.forEach(card => card.classList.remove('expanded'));
-            const delay = expandedCards.length > 0 ? 250 : 0;
-            setTimeout(() => {
-                currentDayDiv.classList.remove('active');
-                currentIndex = newIndex;
-                const nextDayDiv = document.getElementById(`day-${currentIndex}`);
-                nextDayDiv.classList.add('active');
-                window.scrollTo(0, 0);
-                updateView();
-            }, delay);
-        }
+            const startGame = () => { money.value = 600; phase.value = 'chapter1'; time.value = 6; };
+            const selectCard = (c) => { selectedCard.value = c; stageMessage.value = ""; stageResult.value = false; };
+            const canAfford = (c) => (time.value >= c.cost) && (!c.moneyCost || money.value >= c.moneyCost);
+            const spawnText = (t,c,tag) => { const el=tag==='money'?moneyBox.value:hpBox.value; if(!el)return; const r=el.getBoundingClientRect(); effects.value.push({id:Date.now(),txt:t,cls:c,x:r.left+10,y:r.top+30}); setTimeout(()=>effects.value.shift(),1200); };
 
-        function updateView() {
-            const data = tripData[currentIndex];
-            dayIndicator.innerText = (data.day === "首頁") ? "首頁" : `Day ${data.day}`;
-            dateDisplay.innerText = data.date;
-            sunsetDisplay.innerText = data.sunset;
-            dayTitleDisplay.innerText = data.title;
-            prevBtn.disabled = (currentIndex === 0);
-            nextBtn.disabled = (currentIndex === tripData.length - 1);
-            if (data.jrActive) jrBanner.classList.add('active'); else jrBanner.classList.remove('active');
-        }
+            const executeAction = () => {
+                const c = selectedCard.value;
+                if(phase.value === 'onsen') {
+                    hp.value=100; resultInfo.value = { title:'極致放鬆', desc:'溫泉太舒服了！', changes:[{text:'溫暖 MAX', color:'#2ED573'}], bg:c.bg, isLucky:true };
+                    showResultModal.value = true;
+                } else {
+                    time.value -= c.cost;
+                    if(c.moneyCost) money.value -= c.moneyCost;
+                    money.value += 200;
+                    resultInfo.value = { title:'美好回憶', desc:'玩得很開心！', changes:[{text:'+$200', color:'gold'}], bg:c.bg, isLucky:true };
+                    showResultModal.value = true; c.played = true; if(orderCooldown.value>0)orderCooldown.value--;
+                }
+            };
 
-        init();
-    </script>
+            const confirmResult = () => {
+                showResultModal.value = false; selectedCard.value = null;
+                if(phase.value === 'onsen') startDinner();
+                else endTurnCheck();
+            };
+
+            const startDinner = () => { const d=dinnerDishes[Math.floor(Math.random()*dinnerDishes.length)]; dinnerResult.value=d; if(d.effect.hp) hp.value=Math.min(100,hp.value+d.effect.hp); showDinner.value=true; };
+            const finishDinner = () => { showDinner.value=false; phase.value='karuizawa'; skatingLife.value=5; skatingDistance.value=0; gameScore.value=0; gameRunning.value=false; };
+
+            const buyFood = (f) => { money.value-=f.price; hp.value=Math.min(100,hp.value+f.hp); showOrder.value=false; orderCooldown.value=1; endTurnCheck(); };
+
+            const endTurnCheck = () => {
+                if(phase.value==='chapter2' && windLv.value>0){ 
+                    const d=windLv.value*10; hp.value-=d; isHurt.value=true; setTimeout(()=>isHurt.value=false,400); spawnText(`-${d} 風`,'ft-dmg','hp'); 
+                    // ★ 風速修改：1 或 2
+                    windLv.value=Math.floor(Math.random() * 2) + 1; 
+                }
+                
+                const isAllPlayed = currentCards.value.length === 0;
+                if (isAllPlayed && time.value > 0) { spawnText("設施全制霸！", 'ft-money', 'money'); setTimeout(() => { time.value = 0; endTurnCheck(); }, 1500); return; }
+                
+                if(time.value<=0){ 
+                    setTimeout(()=>{ 
+                        if(phase.value==='chapter1'){ alert("前往海洋..."); phase.value='chapter2'; time.value=6; windLv.value=1; }
+                        else { alert("前往溫泉..."); phase.value='onsen'; } 
+                    },500); 
+                }
+            };
+
+            // 滑冰遊戲
+            const toggleGame = () => {
+                if(skatingLife.value<=0 || skatingDistance.value>=maxDistance) { money.value+=gameScore.value*10; spawnText(`+$${gameScore.value*10}`,'ft-money','money'); alert("前往明治神宮(待續)"); return; }
+                gameRunning.value = true; playerX.value = 50; skatingSpeed.value = 0.8; lastSpawnTime = Date.now(); gameLoopId = requestAnimationFrame(gameLoop);
+            };
+            const movePlayer = (d) => { if(gameRunning.value) playerX.value = Math.max(0, Math.min(80, playerX.value+(d*20))); };
+            
+            const gameLoop = () => {
+                if(!gameRunning.value) return;
+                // ★ 慢慢加速
+                skatingSpeed.value += 0.0002;
+                const move = skatingSpeed.value * 4; 
+                skatingDistance.value += move; trackOffset.value = (trackOffset.value + move) % 100;
+
+                if(skatingDistance.value >= maxDistance) { endGame(); return; }
+
+                const now = Date.now();
+                const rate = Math.max(400, 1000 - (skatingSpeed.value * 200));
+                if(now - lastSpawnTime > rate) {
+                    const lanes=[10,30,50,70,90]; const x=lanes[Math.floor(Math.random()*lanes.length)]; const r=Math.random();
+                    let t='obstacle', i='fas fa-stop-circle'; 
+                    if(r>0.6){t='item-coin';i='fas fa-coins';} else if(r>0.95){t='item-heart';i='fas fa-heart';}
+                    gameObjects.value.push({id:now, x, y:-10, type:t, icon:i, hit:false}); lastSpawnTime=now;
+                }
+
+                gameObjects.value.forEach((o, idx)=>{
+                    // ★ 下落速度變慢 (從 1.5 -> 1.0)
+                    o.y += (1.0 * skatingSpeed.value);
+                    if(!o.hit && o.y>75 && o.y<90 && Math.abs(o.x-playerX.value)<15){
+                        o.hit=true;
+                        if(o.type==='obstacle'){
+                            if(!isFever.value){ 
+                                skatingLife.value--; 
+                                isHurt.value=true; // ★ 觸發紅光特效
+                                skatingSpeed.value=Math.max(0.8, skatingSpeed.value*0.8); 
+                                setTimeout(()=>isHurt.value=false, 500); 
+                                if(skatingLife.value<=0) endGame(); 
+                            }
+                            else o.icon='fas fa-bahai';
+                        } else if(o.type==='item-coin'){ gameScore.value+=5; gameObjects.value.splice(idx,1); }
+                        else if(o.type==='item-heart'){ isFever.value=true; setTimeout(()=>isFever.value=false,3000); gameObjects.value.splice(idx,1); }
+                    }
+                });
+                gameObjects.value = gameObjects.value.filter(o=>o.y<110);
+                requestAnimationFrame(gameLoop);
+            };
+            const endGame = () => { gameRunning.value = false; cancelAnimationFrame(gameLoopId); };
+
+            return {
+                phase, money, hp, time, windLv, windColor, windLabel, effects, jumpTo,
+                selectedCard, stageMessage, stageResult, showOrder, showResultModal, resultInfo, showDinner, dinnerResult,
+                landRides, seaRides, onsenOptions, currentCards, currentMenu, moneyBox, hpBox, isHurt, screenEffectClass,
+                startGame, selectCard, canAfford, executeAction, confirmResult, buyFood, finishDinner,
+                gameRunning, gameScore, playerX, trackOffset, gameObjects, isFever, isHit,
+                skatingSpeed, skatingDistance, maxDistance, skatingLife, toggleGame, movePlayer
+            };
+        }
+    }).mount('#app');
+</script>
 </body>
 </html>
