@@ -181,9 +181,14 @@
     <div v-for="fx in effects" :key="fx.id" class="float-text" :class="fx.cls" :style="{top: fx.y + 'px', left: fx.x + 'px'}">{{ fx.txt }}</div>
 
     <div v-if="phase === 'prologue'" class="stage-area" style="align-items: center; justify-content: center; text-align: center;">
-        <h1 style="color: var(--primary);">冬日時空冒險</h1>
-        <p style="color: #888; margin-bottom: 30px;">一段尋找溫度與回憶的旅程</p>
-        <button class="btn-play" style="width: 60%;" @click="startGame">開始旅程</button>
+        <div class="stage-bg" style="background-image: url('images/prologue-bg.png'); opacity: 0.8;"></div>
+        <div class="stage-overlay" style="height: 100%; background: rgba(0,0,0,0.4);"></div>
+        
+        <div style="position: relative; z-index: 10;">
+            <h1 style="color: var(--primary); text-shadow: 0 2px 10px black; font-size: 32px;">冬日時空冒險</h1>
+            <p style="color: #ECEFF4; margin-bottom: 30px; text-shadow: 0 1px 5px black;">一段尋找溫度與回憶的旅程</p>
+            <button class="btn-play" style="width: 80%; margin: 0 auto;" @click="startGame">開始旅程</button>
+        </div>
     </div>
 
     <template v-else-if="['chapter1', 'chapter2', 'onsen'].includes(phase)">
