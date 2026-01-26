@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>冬日時空冒險 (Final UX)</title>
+    <title>冬日時空冒險 (Final Release)</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -23,21 +23,21 @@
         .debug-panel:hover { opacity: 1; }
         .debug-btn { background: rgba(0, 0, 0, 0.8); border: 1px solid #555; color: #ccc; padding: 5px 8px; font-size: 10px; border-radius: 4px; cursor: pointer; }
 
-        /* --- 3. 狀態列與強化特效 --- */
+        /* --- 3. 狀態列與強化飄字特效 --- */
         .status-bar { height: 60px; background: rgba(0,0,0,0.9); backdrop-filter: blur(5px); display: flex; justify-content: space-between; align-items: center; padding: 0 15px; z-index: 20; border-bottom: 1px solid rgba(255,255,255,0.1); flex-shrink: 0; }
         .stat-box { display: flex; flex-direction: column; align-items: center; width: 60px; position: relative; }
         .stat-val { font-size: 14px; font-weight: bold; }
         .wind-badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-top: 2px; }
         
-        /* ★★★ 強化飄字特效 ★★★ */
+        /* ★★★ 強化版飄字：大字體 + 黑邊 ★★★ */
         .float-text { 
-            position: absolute; font-weight: 900; font-size: 28px; z-index: 999; 
+            position: absolute; font-weight: 900; font-size: 32px; z-index: 999; 
             animation: floatUp 1.5s cubic-bezier(0.19, 1, 0.22, 1) forwards; 
             pointer-events: none; 
-            -webkit-text-stroke: 1px #000; /* 文字黑邊 */
-            text-shadow: 0 0 10px rgba(255,255,255,0.5);
+            -webkit-text-stroke: 1.2px #000; /* 文字黑邊，增加對比 */
+            text-shadow: 0 0 15px rgba(255,255,255,0.8);
         }
-        @keyframes floatUp { 0% { opacity: 0; transform: translateY(10px) scale(0.5); } 20% { opacity: 1; transform: translateY(0) scale(1.2); } 100% { opacity: 0; transform: translateY(-100px) scale(1); } }
+        @keyframes floatUp { 0% { opacity: 0; transform: translateY(10px) scale(0.5); } 15% { opacity: 1; transform: translateY(0) scale(1.2); } 100% { opacity: 0; transform: translateY(-120px) scale(1); } }
         .ft-money { color: var(--accent); } .ft-hp { color: var(--safe); } .ft-dmg { color: var(--danger); }
         
         .shake-effect { animation: shake 0.4s ease-in-out; }
@@ -103,7 +103,7 @@
         @keyframes spinSlow { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         @keyframes breathe { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
 
-        /* --- 8. ★★★ 車票轉場 Modal (Ticket Style) ★★★ --- */
+        /* --- 8. 車票轉場 Modal (Ticket Style) --- */
         .ticket-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 300; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); display: flex; justify-content: center; align-items: center; animation: fadeIn 0.3s; }
         .real-ticket {
             width: 85%; max-width: 320px;
@@ -130,9 +130,12 @@
         .stat-change { font-size: 24px; font-weight: bold; padding: 10px 20px; border-radius: 15px; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.2); margin: 5px; display: inline-block; }
         .modal-mask { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 100; display: flex; align-items: flex-end; }
         .order-panel { width: 100%; background: #222; border-radius: 20px 20px 0 0; padding: 20px; animation: slideUp 0.3s ease-out; max-height: 80%; overflow-y: auto; }
-        .bottom-nav { height: 60px; background: #111; border-top: 1px solid #333; display: flex; justify-content: space-around; align-items: center; z-index: 30; }
-        .nav-btn { color: #666; display: flex; flex-direction: column; align-items: center; font-size: 10px; padding: 10px; }
-        .nav-btn.active { color: var(--primary); }
+        
+        /* ★★★ 底部導航大圖示版 ★★★ */
+        .bottom-nav { height: 70px; background: #111; border-top: 1px solid #333; display: flex; justify-content: space-around; align-items: center; z-index: 30; }
+        .nav-btn { color: #666; display: flex; justify-content: center; align-items: center; font-size: 24px; padding: 15px; width: 33%; cursor: pointer; }
+        .nav-btn.active { color: var(--primary); transform: scale(1.1); transition: 0.2s; }
+        
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } } @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         @keyframes slideUpTicket { from { transform: translateY(100%) rotate(0deg); } to { transform: translateY(0) rotate(-2deg); } }
     </style>
@@ -298,16 +301,16 @@
         <div class="order-panel">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                 <h3 style="color: #e67e22; margin:0;">Mobile Order</h3>
-                <div style="color:gold;"><i class="fas fa-coins"></i> {{ money }}</div>
+                <div style="color:gold; font-size:18px; font-weight:bold;"><i class="fas fa-coins"></i> {{ money }}</div>
             </div>
             <p style="font-size: 12px; color: #666; margin-bottom: 20px;">⚠️ 消耗 <b>1小時</b>。<br>{{ orderCooldown > 0 ? `忙碌中 (剩${orderCooldown}回)` : '目前可下單' }}</p>
             <div v-for="food in currentMenu" :key="food.id" style="display: flex; align-items: center; padding: 15px 0; border-bottom: 1px solid #333;">
-                <div style="font-size: 30px; margin-right: 15px;">{{ food.icon }}</div>
+                <div style="font-size: 40px; margin-right: 15px;">{{ food.icon }}</div>
                 <div style="flex: 1;">
-                    <div style="font-weight: bold;">{{ food.name }}</div>
-                    <div style="color: #2ED573; font-size: 12px;">❤️ {{ food.effect }}</div>
+                    <div style="font-weight: bold; font-size:16px;">{{ food.name }}</div>
+                    <div style="color: #2ED573; font-size: 13px;">❤️ {{ food.effect }}</div>
                 </div>
-                <button @click="buyFood(food)" :disabled="money < food.price || time < 1 || orderCooldown > 0" style="background: #e67e22; border: none; color: white; padding: 6px 15px; border-radius: 20px;">${{ food.price }}</button>
+                <button @click="buyFood(food)" :disabled="money < food.price || time < 1 || orderCooldown > 0" style="background: #e67e22; border: none; color: white; padding: 8px 20px; border-radius: 20px; font-size:14px; font-weight:bold;">${{ food.price }}</button>
             </div>
             <button class="btn-play" style="margin-top: 20px; background: #333; padding: 10px;" @click="showOrder = false">關閉</button>
         </div>
@@ -318,24 +321,39 @@
 
     createApp({
         setup() {
+            // --- 核心變數 ---
             const phase = ref('prologue');
-            const money = ref(0); const hp = ref(100); const time = ref(6);
-            const windLv = ref(0); const orderCooldown = ref(0); const effects = ref([]);
+            const money = ref(0); 
+            const hp = ref(100); 
+            const time = ref(6);
+            const windLv = ref(0); 
+            const orderCooldown = ref(0); 
+            const effects = ref([]);
             
-            const selectedCard = ref(null); const stageMessage = ref(""); const stageResult = ref(false);
-            const showOrder = ref(false); const showResultModal = ref(false);
+            // UI 控制
+            const selectedCard = ref(null); 
+            const stageMessage = ref(""); 
+            const stageResult = ref(false);
+            const showOrder = ref(false); 
+            const showResultModal = ref(false);
             const resultInfo = ref({ title:'', desc:'', changes:[], bg:'', isLucky:false });
             
-            const isHurt = ref(false); const screenEffectClass = ref(""); 
-            const moneyBox = ref(null); const hpBox = ref(null);
+            // 特效與狀態
+            const isHurt = ref(false); 
+            const screenEffectClass = ref(""); 
+            const moneyBox = ref(null); 
+            const hpBox = ref(null);
 
-            // 轉場變數
+            // 轉場與載入控制
             const showTransition = ref(false);
             const transitionData = ref({ nextPhase:'', title:'' });
-            const isLoading = ref(true); const loadingProgress = ref(0);
+            const isLoading = ref(true); 
+            const loadingProgress = ref(0);
 
-            // 資料路徑
+            // ★★★ 資料路徑 (使用您的檔案名稱) ★★★
             const imgPath = 'images/';
+            
+            // 📍 Disney Land 設施
             const landRides = ref([
                 { id:'beauty', name:'美女與野獸', icon:'fas fa-chess-rook', cost:2, played:false, bg:imgPath+'beauty-beast.png', desc:'賭運氣：抽到DPA賺大錢！' },
                 { id:'splash', name:'飛濺山', icon:'fas fa-water', cost:2, played:false, bg:imgPath+'splash-mountain.png', desc:'刺激！小心濕透。' },
@@ -343,19 +361,26 @@
                 { id:'shoot', name:'西部射擊', icon:'fas fa-crosshairs', cost:1, played:false, moneyCost:100, bg:imgPath+'westernland-shootin.png', desc:'花錢買子彈賭獎金。' },
                 { id:'monsters', name:'怪獸電力', icon:'fas fa-flashlight', cost:2, played:false, bg:imgPath+'monsters.png', desc:'找阿布賺積分。' }
             ]);
+
+            // 📍 Disney Sea 設施 (完整 6 項)
             const seaRides = ref([
-                { id:'rapunzel', name:'樂佩天燈', icon:'fas fa-lightbulb', cost:3, played:false, bg:imgPath+'rapunzel-lantern.png', desc:'(3hr) 絕美場景，必去。' },
-                { id:'20k', name:'海底兩萬哩', icon:'fas fa-subway', cost:1, played:false, bg:imgPath+'under-the-sea.png', desc:'躲避海風。' },
-                { id:'arendelle', name:'皇家宴會', icon:'fas fa-utensils', cost:2, played:false, moneyCost:500, bg:imgPath+'frozen.png', desc:'花錢補滿狀態。' }
+                { id:'rapunzel', name:'樂佩天燈', icon:'fas fa-lightbulb', cost:3, played:false, bg:imgPath+'rapunzel-lantern.png', desc:'(3hr) 絕美場景，高分必去。' },
+                { id:'peter', name:'小彼得潘', icon:'fas fa-hat-wizard', cost:2, played:false, bg:imgPath+'peter-pan.png', desc:'夢幻泉鄉，療癒身心 (回血)。' },
+                { id:'journey', name:'地心探險', icon:'fas fa-mountain', cost:2, played:false, bg:imgPath+'journey-to-earth.png', desc:'遭遇怪獸！高風險高報酬。' },
+                { id:'sindbad', name:'辛巴達', icon:'fas fa-ship', cost:1, played:false, bg:imgPath+'sindbad.png', desc:'(1hr) 心靈指南針，絕對安全。' },
+                { id:'20k', name:'海底兩萬哩', icon:'fas fa-subway', cost:1, played:false, bg:imgPath+'under-the-sea.png', desc:'(1hr) 躲避強風專用。' },
+                { id:'arendelle', name:'皇家宴會', icon:'fas fa-utensils', cost:2, played:false, moneyCost:500, bg:imgPath+'frozen.png', desc:'花錢吃大餐，補滿狀態。' }
             ]);
+
+            // ♨️ 溫泉選項
             const onsenOptions = ref([
-                { id:'maka', name:'摩訶溫泉', icon:'fas fa-hot-tub', cost:0, bg:imgPath+'hot-spring.png', desc:'機率金錢' },
-                { id:'hannya', name:'般若溫泉', icon:'fas fa-brain', cost:0, bg:imgPath+'hot-spring.png', desc:'幸運UP' },
-                { id:'child', name:'子寶溫泉', icon:'fas fa-gem', cost:0, bg:imgPath+'hot-spring.png', desc:'機率大獎' },
-                { id:'maya', name:'麻耶溫泉', icon:'fas fa-spa', cost:0, bg:imgPath+'hot-spring.png', desc:'絕對放鬆' }
+                { id:'maka', name:'摩訶溫泉', icon:'fas fa-hot-tub', cost:0, bg:imgPath+'hot-spring.png', desc:'機率撿到錢？' },
+                { id:'hannya', name:'般若溫泉', icon:'fas fa-brain', cost:0, bg:imgPath+'hot-spring.png', desc:'思考人生 (幸運UP)' },
+                { id:'child', name:'子寶溫泉', icon:'fas fa-gem', cost:0, bg:imgPath+'hot-spring.png', desc:'高風險高報酬' },
+                { id:'maya', name:'麻耶溫泉', icon:'fas fa-spa', cost:0, bg:imgPath+'hot-spring.png', desc:'絕對放鬆 (回血)' }
             ]);
             
-            // ★★★ 新菜單 (Emoji 版) ★★★
+            // 🍔 Mobile Order 菜單 (Emoji 版)
             const menus = { 
                 chapter1: [
                     {id:'waffle', name:'米奇鬆餅', icon:'🧇', price:150, hp:20, effect:'+20 HP'},
@@ -369,11 +394,12 @@
                 ] 
             };
             const dinnerDishes = [{ name:'熊肉火鍋', icon:'🥘', effect:{hp:100}, effectText:'溫暖值 MAX!'},{ name:'鹽烤岩魚', icon:'🐟', effect:{luck:30}, effectText:'幸運 +30'},{ name:'山菜天婦羅', icon:'🍄', effect:{hp:30,luck:10}, effectText:'溫暖+30'}];
-            
             const showDinner = ref(false); const dinnerResult = ref({});
-            // 滑冰變數 (省略部分細節以節省空間，與前版相同)
+
+            // ⛸️ 滑冰變數
             const gameRunning = ref(false); const gameScore = ref(0); const playerX = ref(50); const trackOffset = ref(0); const gameObjects = ref([]); const isFever = ref(false); const isHit = ref(false); const skatingSpeed = ref(0.8); const skatingDistance = ref(0); const maxDistance = 3000; const skatingLife = ref(5); let gameLoopId = null; let lastSpawnTime = 0;
 
+            // --- Computed ---
             const currentCards = computed(() => {
                 if(phase.value==='chapter1') return landRides.value.filter(r=>!r.played);
                 if(phase.value==='chapter2') return seaRides.value.filter(r=>!r.played);
@@ -383,6 +409,8 @@
             const currentMenu = computed(() => menus[phase.value] || []);
             const windColor = computed(()=>['#2ecc71','#f39c12','#ff4757'][windLv.value]);
             const windLabel = computed(()=>['微風 Lv.0','強風 Lv.1','暴風 Lv.2'][windLv.value]);
+            
+            // 背景圖判斷
             const currentBg = computed(() => {
                 if (selectedCard.value) return selectedCard.value.bg;
                 if (phase.value === 'chapter1') return imgPath+'land-castle.png';
@@ -391,21 +419,38 @@
                 return '';
             });
 
-            // 預載邏輯
-            const loadList = async (list) => { let loaded = 0; return Promise.all(list.map(src => new Promise(resolve => { const img = new Image(); img.src = src; img.onload = () => { loaded++; loadingProgress.value = (loaded/list.length)*100; resolve(); }; img.onerror = resolve; }))); };
+            // --- 漸進式載入邏輯 ---
+            const loadList = async (list) => {
+                let loaded = 0;
+                return Promise.all(list.map(src => new Promise(resolve => {
+                    const img = new Image(); img.src = src;
+                    img.onload = () => { loaded++; loadingProgress.value = (loaded/list.length)*100; resolve(); };
+                    img.onerror = resolve; // 即使失敗也繼續
+                })));
+            };
+
             const preloadImages = async () => {
+                // 1. 核心載入 (Critical): 序章 + Land 所有圖
                 const critical = [imgPath+'prologue-bg.png', imgPath+'land-castle.png'];
                 landRides.value.forEach(r => critical.push(r.bg));
-                await loadList(critical); setTimeout(() => { isLoading.value = false; loadBackgroundImages(); }, 500);
+                
+                await loadList(critical);
+                setTimeout(() => { 
+                    isLoading.value = false; 
+                    loadBackgroundImages(); // 進入遊戲後再偷偷載入後面章節
+                }, 500);
             };
+
             const loadBackgroundImages = () => {
+                // 2. 背景載入 (Background): Sea + Onsen + Skating
                 const background = [imgPath+'disney-sea.png', imgPath+'hot-spring.png', imgPath+'ice-skating.png'];
                 seaRides.value.forEach(r => background.push(r.bg));
                 background.forEach(src => { const img = new Image(); img.src = src; });
             };
+
             onMounted(() => { preloadImages(); });
 
-            // ★★★ 飄字特效 (支援金錢與HP) ★★★
+            // --- 特效 Helper ---
             const spawnText = (t,c,tag) => { 
                 const el=tag==='money'?moneyBox.value:hpBox.value; if(!el)return; 
                 const r=el.getBoundingClientRect(); 
@@ -413,7 +458,7 @@
                 setTimeout(()=>effects.value.shift(),1500); 
             };
 
-            // ★★★ 設施邏輯恢復 (RNG) ★★★
+            // --- 核心遊戲邏輯 (恢復 RNG) ---
             const executeAction = () => {
                 const c = selectedCard.value;
                 let title='', desc='', changes=[], lucky=true;
@@ -423,61 +468,61 @@
                 if(c.moneyCost) money.value -= c.moneyCost;
 
                 if(phase.value === 'onsen') {
-                    // 溫泉邏輯 (保持簡單)
                     hp.value=100; title='極致放鬆'; desc='溫泉太舒服了！'; changes.push({text:'溫暖 MAX', color:'#2ED573'});
                 } else {
-                    // 遊樂設施個別邏輯
+                    // ★★★ Disney Land 邏輯 ★★★
                     if(c.id === 'beauty') {
-                        if(Math.random() > 0.6) { // 失敗
+                        if(Math.random() > 0.6) { // 60% 失敗
                             money.value += 150; hp.value -= 10;
-                            title='排隊地獄'; desc='腿好痠...只拿到一點安慰獎。';
+                            title='排隊地獄'; desc='腿好痠...只拿到安慰獎。';
                             changes.push({text:'+$150', color:'gold'}, {text:'-10 HP', color:'red'}); lucky=false;
                             spawnText('+$150','ft-money','money'); spawnText('-10 HP','ft-dmg','hp');
-                        } else { // 成功
-                            money.value += 600;
-                            title='抽中 DPA!'; desc='完全不用排隊，太爽了！';
-                            changes.push({text:'+$600', color:'gold'});
-                            spawnText('+$600','ft-money','money');
+                        } else {
+                            money.value += 600; title='抽中 DPA!'; desc='完全不用排隊，太爽了！'; changes.push({text:'+$600', color:'gold'}); spawnText('+$600','ft-money','money');
                         }
                     } else if(c.id === 'splash') {
-                        if(Math.random() > 0.5) { // 濕身
-                            hp.value -= 30;
-                            title='全濕了！'; desc='沒有躲過水花...好冷。';
-                            changes.push({text:'-30 HP', color:'red'}); lucky=false;
-                            spawnText('-30 HP','ft-dmg','hp');
+                        if(Math.random() > 0.5) { // 50% 濕身
+                            hp.value -= 30; title='全濕了！'; desc='沒有躲過水花...好冷。';
+                            changes.push({text:'-30 HP', color:'red'}); lucky=false; spawnText('-30 HP','ft-dmg','hp');
                         } else {
-                            money.value += 300;
-                            title='完美閃避'; desc='刺激又好玩！';
-                            changes.push({text:'+$300', color:'gold'});
-                            spawnText('+$300','ft-money','money');
+                            money.value += 300; title='完美閃避'; desc='刺激又好玩！'; changes.push({text:'+$300', color:'gold'}); spawnText('+$300','ft-money','money');
                         }
-                    } else if(c.id === 'shoot') {
-                        if(Math.random() > 0.7) { // 神射手 (30%)
-                            money.value += 600;
-                            title='百發百中'; desc='拿到了警長徽章！';
-                            changes.push({text:'+$600', color:'gold'});
-                            spawnText('+$600','ft-money','money');
+                    } else if(c.id === 'shoot') { // 射擊館
+                        if(Math.random() > 0.7) { 
+                            money.value += 600; title='百發百中'; desc='拿到了警長徽章！'; changes.push({text:'+$600', color:'gold'}); spawnText('+$600','ft-money','money');
                         } else {
-                            title='槓龜'; desc='一發都沒中...錢飛了。';
-                            changes.push({text:'$0', color:'#ccc'}); lucky=false;
+                            title='槓龜'; desc='一發都沒中...錢飛了。'; changes.push({text:'$0', color:'#ccc'}); lucky=false;
                         }
-                    } else if(c.id === 'arendelle') {
-                        hp.value = 100;
-                        title='皇家盛宴'; desc='吃飽喝足，體力全滿！';
-                        changes.push({text:'HP MAX', color:'#2ED573'});
-                        spawnText('HP MAX','ft-hp','hp');
-                    } else if(c.id === 'rapunzel') {
-                        money.value += 400;
-                        title='絕美天燈'; desc='浪漫的夜晚，拍了好多美照。';
-                        changes.push({text:'+$400', color:'gold'});
-                        spawnText('+$400','ft-money','money');
+                    } 
+                    // ★★★ Disney Sea 邏輯 ★★★
+                    else if(c.id === 'rapunzel') { // 樂佩 (3hr)
+                        money.value += 400; title='絕美天燈'; desc='浪漫的夜晚，拍了好多美照。';
+                        changes.push({text:'+$400', color:'gold'}); spawnText('+$400','ft-money','money');
+                    } else if(c.id === 'peter') { // 彼得潘 (回血)
+                        money.value += 150; hp.value = Math.min(100, hp.value + 30);
+                        title='夢幻島飛行'; desc='跟著 Tinker Bell 飛行，超療癒！';
+                        changes.push({text:'+30 HP', color:'#2ED573'}); spawnText('+30 HP','ft-hp','hp');
+                    } else if(c.id === 'journey') { // 地心探險 (賭博)
+                        if(Math.random() > 0.5) {
+                            money.value += 500; title='岩漿絕景'; desc='看到了壯觀的地底世界！';
+                            changes.push({text:'+$500', color:'gold'}); spawnText('+$500','ft-money','money');
+                        } else {
+                            hp.value -= 20; title='怪獸突襲'; desc='被地底怪獸嚇得半死...';
+                            changes.push({text:'-20 HP', color:'red'}); lucky=false; spawnText('-20 HP','ft-dmg','hp');
+                        }
+                    } else if(c.id === 'sindbad') { // 辛巴達 (安全)
+                        money.value += 100; hp.value = Math.min(100, hp.value + 10);
+                        title='心靈指南針'; desc='人生就是一場冒險~';
+                        changes.push({text:'+$100', color:'gold'}, {text:'+10 HP', color:'#2ED573'});
+                    } else if(c.id === 'arendelle') { // 艾倫戴爾 (課金全補)
+                        hp.value = 100; title='皇家盛宴'; desc='吃飽喝足，體力全滿！';
+                        changes.push({text:'HP MAX', color:'#2ED573'}); spawnText('HP MAX','ft-hp','hp');
                     } else {
-                        // 通用
-                        money.value += 200;
-                        title='美好回憶'; desc='玩得很開心！';
-                        changes.push({text:'+$200', color:'gold'});
-                        spawnText('+$200','ft-money','money');
+                        // 通用 (海底兩萬哩, 鐵路, 怪獸)
+                        money.value += 200; title='美好回憶'; desc='玩得很開心！';
+                        changes.push({text:'+$200', color:'gold'}); spawnText('+$200','ft-money','money');
                     }
+                    
                     if(orderCooldown.value>0) orderCooldown.value--;
                 }
 
@@ -495,18 +540,25 @@
                 hp.value = Math.min(100, hp.value + f.hp); 
                 showOrder.value = false; 
                 orderCooldown.value = 1; 
-                spawnText(`-${f.price}`,'ft-dmg','money'); // 扣錢飄字
-                spawnText(`+${f.hp} HP`,'ft-hp','hp');    // 補血飄字
+                spawnText(`-${f.price}`,'ft-dmg','money'); 
+                spawnText(`+${f.hp} HP`,'ft-hp','hp');    
                 endTurnCheck(); 
             };
 
             const endTurnCheck = () => {
                 if(phase.value==='chapter2' && windLv.value>0){ const d=windLv.value*10; hp.value-=d; isHurt.value=true; setTimeout(()=>isHurt.value=false,400); spawnText(`-${d} 風`,'ft-dmg','hp'); windLv.value=Math.floor(Math.random()*2)+1; }
                 if(currentCards.value.length === 0 && time.value > 0) { spawnText("設施全制霸！", 'ft-money', 'money'); setTimeout(() => { time.value = 0; endTurnCheck(); }, 1500); return; }
+                
+                // ★★★ 觸發車票轉場 ★★★
                 if(time.value<=0){ 
                     setTimeout(()=>{ 
-                        if(phase.value==='chapter1'){ transitionData.value = { nextPhase:'chapter2', title:'Disney Sea' }; showTransition.value = true; } 
-                        else if(phase.value==='chapter2') { transitionData.value = { nextPhase:'onsen', title:'Healing Onsen' }; showTransition.value = true; }
+                        if(phase.value==='chapter1'){ 
+                            transitionData.value = { nextPhase:'chapter2', title:'Disney Sea' };
+                            showTransition.value = true; 
+                        } else if(phase.value==='chapter2') {
+                            transitionData.value = { nextPhase:'onsen', title:'Healing Onsen' };
+                            showTransition.value = true;
+                        }
                     }, 500); 
                 }
             };
@@ -518,7 +570,6 @@
                 else if(next === 'onsen') { phase.value='onsen'; }
             };
 
-            // 遊戲與其他 Helper
             const jumpTo = (p) => { phase.value = p; time.value = 6; money.value = 1000; if(p === 'karuizawa') { skatingLife.value=5; skatingDistance.value=0; gameScore.value=0; gameRunning.value=false; } };
             const startGame = () => { money.value = 600; phase.value = 'chapter1'; time.value = 6; };
             const selectCard = (c) => { selectedCard.value = c; stageMessage.value = ""; stageResult.value = false; };
