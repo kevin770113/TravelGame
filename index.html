@@ -118,11 +118,11 @@
         .life-container .fa-heart { color: #ff4757; font-size: 24px; filter: drop-shadow(0 0 5px rgba(255, 71, 87, 0.5)); transition: 0.3s; }
         .life-container .fa-heart.lost { color: #2d3436; transform: scale(0.8); opacity: 0.3; }
         
-        /* ★★★ 垂直進度條 (全高樣式) ★★★ */
+        /* ★★★ 垂直進度條 (層級修復 z-index: 10000) ★★★ */
         .vertical-progress { 
             position: absolute; right: 0; top: 70px; bottom: 70px; width: 15px; 
             background: rgba(0,0,0,0.8); border-left: 2px solid rgba(255,255,255,0.3);
-            overflow: visible; z-index: 1000;
+            overflow: visible; z-index: 10000;
         }
         .v-prog-fill { position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(to top, #2ecc71, #f1c40f); transition: height 0.1s linear; }
         .v-prog-icon { position: absolute; left: -30px; font-size: 26px; transition: bottom 0.1s linear; filter: drop-shadow(0 0 5px black); }
@@ -135,24 +135,30 @@
         .lane-hint.warn { background: rgba(255, 0, 0, 0.2); opacity: 1; box-shadow: 0 0 20px rgba(255, 0, 0, 0.2); }
         .lane-hint.gold { background: rgba(255, 215, 0, 0.2); opacity: 1; box-shadow: 0 0 20px rgba(255, 215, 0, 0.2); }
 
-        /* ★★★ 主角 (零延遲 + 20%加大 + 置中修正) ★★★ */
-        .sprite { 
-            position: absolute; bottom: 15%; width: 100px; height: 100px; 
+        /* ★★★ 主角結構重寫 (Wrapper 方法解決偏右) ★★★ */
+        /* 外層：負責定位 (translateX -50% 置中) 和跟隨手指，不負責動畫 */
+        .sprite-wrapper { 
+            position: absolute; bottom: 15%; 
             z-index: 20; display:flex; justify-content:center; align-items:center;
-            /* ★ 置中修正：往左偏移 50% ★ */
-            transform: translateX(-50%);
-            /* ★ 零延遲：移除 left transition ★ */
-            transition: width 0.3s, height 0.3s; 
+            transform: translateX(-50%); /* 關鍵修正 */
+            pointer-events: none;
         }
         
-        /* 暴走巨型羊 (200% 加大) */
-        .sprite.fever { width: 200px; height: 200px; }
+        /* 內層：負責動畫和尺寸 */
+        .sheep-img { 
+            width: 100px; height: 100px; 
+            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.5)); 
+            transition: width 0.3s, height 0.3s;
+        }
+        
+        /* 暴走 500% 巨大化 */
+        .sheep-img.fever { width: 500px; height: 500px; }
 
+        /* 搖擺動畫 (內層執行) */
         .player { animation: waddle 0.3s infinite alternate; }
-        .sheep-img { width: 100%; height: auto; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.5)); }
 
-        /* 彩虹光特效 (增強) */
-        .rainbow-glow .sheep-img { animation: rainbow 0.3s linear infinite; }
+        /* 彩虹光特效 */
+        .rainbow-glow { animation: rainbow 0.3s linear infinite; }
         @keyframes rainbow { 
             0% { filter: drop-shadow(0 0 15px red) hue-rotate(0deg); } 
             100% { filter: drop-shadow(0 0 35px red) hue-rotate(360deg); } 
@@ -164,7 +170,7 @@
         }
 
         .player.hit { animation: blinkRed 0.5s infinite; }
-        .hit-effect { position: absolute; top: -40px; left: 50%; transform: translateX(-50%); font-size: 60px; animation: popUp 0.3s forwards; z-index: 30; pointer-events: none; }
+        .hit-effect { position: absolute; top: -60px; left: 50%; transform: translateX(-50%); font-size: 60px; animation: popUp 0.3s forwards; z-index: 30; pointer-events: none; }
         
         /* 吃到寶物飄字 */
         .feedback-item { position: absolute; font-weight: 900; font-size: 28px; color: gold; z-index: 40; animation: floatUpText 0.8s forwards; text-shadow: 0 0 5px black; pointer-events: none; white-space: nowrap; }
@@ -183,13 +189,17 @@
         .stampede-item { position: absolute; font-size: 40px; opacity: 0.9; z-index: 15; animation: rushUp 2s linear forwards; }
         @keyframes rushUp { from { top: 110%; } to { top: -20%; } }
 
-        /* ★★★ 羊皮紙公告 (美化版) ★★★ */
+        /* ★★★ 羊皮紙公告 (背景修復) ★★★ */
         .scroll-modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 250; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; animation: fadeIn 0.3s; }
         .scroll-paper { 
             width: 90%; max-width: 360px; height: 75%; 
-            background: url('./images/scroll-bg.png') no-repeat center center; 
+            /* 分離屬性確保兼容性 */
+            background-color: #f4e4bc; /* 保底色 */
+            background-image: url('./images/scroll-bg.png');
             background-size: 100% 100%;
-            padding: 80px 40px; /* 留出卷軸上下空間 */
+            background-repeat: no-repeat;
+            
+            padding: 80px 40px; 
             overflow-y: auto; text-align: center; color: #4a3b2a; 
             font-family: 'Courier New', serif; font-weight: bold;
             display: flex; flex-direction: column; align-items: center;
@@ -376,8 +386,9 @@
         <div class="game-canvas">
             <div class="track" :style="{transform: 'translateY(' + trackOffset + 'px)'}"></div>
             
-            <div class="sprite player" :class="{fever: isFever, 'rainbow-glow': isFever}" :style="{left: playerX + '%'}">
-                <img src="./images/sheep-top.png" class="sheep-img">
+            <div class="sprite-wrapper" :style="{left: playerX + '%'}">
+                <img src="./images/sheep-top.png" class="sheep-img player" 
+                     :class="{fever: isFever, 'rainbow-glow': isFever}">
                 <div v-if="isHit" class="hit-effect">💥</div>
             </div>
             
@@ -605,7 +616,7 @@
             const proceedToNextChapter = () => { showTransition.value = false; const next = transitionData.value.nextPhase; if(next === 'chapter2') { phase.value='chapter2'; time.value=8; windLv.value=1; } else if(next === 'onsen') { phase.value='onsen'; } };
             const jumpTo = (p) => { phase.value = p; if(p === 'chapter2') time.value = 8; else time.value = 8; money.value = 1000; if(p === 'karuizawa') { showGameIntro.value = true; gameRunning.value=false; } };
 
-            // ★★★ 滑冰遊戲邏輯 ★★★
+            // ★★★ 滑冰遊戲邏輯 (最終強化) ★★★
             const enterGame = () => { showGameIntro.value = false; initGame(); };
             const initGame = () => { skatingLife.value=5; skatingDistance.value=0; gameScore.value=0; collectedHearts.value=0; isFever.value=false; playerX.value=50; gameObjects.value=[]; stampedeSheep.value=[]; feedbackEffects.value=[]; consecutiveObstacles.value=0; gameRunning.value=true; lastSpawnTime=Date.now(); requestAnimationFrame(gameLoop); };
             const toggleGame = () => { if(!gameRunning.value) { money.value+=gameScore.value*10; spawnText(`+$${gameScore.value*10}`,'ft-money','money'); alert("前往明治神宮(待續)"); return; } }; 
@@ -687,8 +698,8 @@
                          o.x += dx * 0.6; // 每幀靠近 60%，幾乎瞬間吸入
                     }
 
-                    // 碰撞判定
-                    const hitRange = isFever.value ? 40 : 15; // 暴走判定範圍加大
+                    // 碰撞判定 (暴走時範圍加大至40)
+                    const hitRange = isFever.value ? 40 : 15; 
                     
                     if(!o.hit && o.y>75 && o.y<90 && Math.abs(o.x-playerX.value) < hitRange){
                         o.hit=true;
