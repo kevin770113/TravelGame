@@ -38,6 +38,8 @@
         .ft-money { color: var(--accent); } .ft-hp { color: var(--safe); } .ft-dmg { color: var(--danger); }
         .damage-flash { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 50, 50, 0.3); pointer-events: none; z-index: 100; animation: flashFade 0.3s ease-out forwards; }
         @keyframes flashFade { 0% { opacity: 1; } 100% { opacity: 0; } }
+        .shake-effect { animation: shake 0.4s ease-in-out; }
+        @keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-5px);color:var(--danger)} 40%,80%{transform:translateX(5px)} }
 
         /* --- 4. 舞台區 --- */
         .stage-area { flex: 7; position: relative; background: #222; overflow: hidden; display: flex; flex-direction: column; }
@@ -66,19 +68,26 @@
         .loading-bar-fill { height: 100%; background: var(--primary); transition: width 0.3s; box-shadow: 0 0 10px var(--primary); }
         @keyframes spinSlow { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* --- 7. ★★★ 影片播放層 (Video Overlay) ★★★ --- */
+        /* --- 7. ★★★ 影片播放層 (優化按鈕動畫) ★★★ --- */
         .video-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 2000;
             background: #000; display: flex; justify-content: center; align-items: center;
         }
         .fullscreen-video { width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 2s ease-in; }
+        
         .video-start-btn {
             position: absolute; z-index: 2010; color: #fff; font-size: 20px; cursor: pointer;
             border: 1px solid rgba(255,255,255,0.3); padding: 15px 30px; border-radius: 30px;
-            background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); animation: pulse 2s infinite;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);
+            /* 淡入動畫：等待 2.5 秒後才顯示的關鍵 */
+            animation: fadeInBtn 1s ease-out forwards;
         }
+        @keyframes fadeInBtn { 
+            0% { opacity: 0; transform: scale(0.9); } 
+            100% { opacity: 1; transform: scale(1); } 
+        }
+
         .video-visible { opacity: 1 !important; }
-        @keyframes pulse { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,255,255,0.7); } 70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(255,255,255,0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,255,255,0); } }
 
         /* --- 8. 車票轉場 --- */
         .ticket-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 300; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); display: flex; justify-content: center; align-items: center; animation: fadeIn 0.3s; }
@@ -108,7 +117,7 @@
         .nav-btn { color: #666; display: flex; justify-content: center; align-items: center; font-size: 24px; padding: 15px; width: 33%; cursor: pointer; }
         .nav-btn.active { color: var(--primary); transform: scale(1.1); transition: 0.2s; }
         
-        /* 滑冰小遊戲樣式 (保持簡化，不佔篇幅) */
+        /* 滑冰小遊戲樣式 */
         .game-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; background: url('images/ice-skating.png') no-repeat center center; background-size: cover; overflow: hidden; z-index: 50; }
         .game-hud { position: absolute; top: 70px; left: 15px; right: 15px; z-index: 60; display: flex; justify-content: space-between; align-items: flex-start; }
         .progress-bar-container { flex-grow: 1; height: 16px; background: rgba(0,0,0,0.8); border-radius: 8px; margin-right: 15px; position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); }
@@ -152,9 +161,10 @@
     </div>
 
     <div v-if="showVideoModal" class="video-overlay">
-        <div v-if="!videoPlaying" class="video-start-btn" @click="playVideo">
+        <div v-if="showManualBtn" class="video-start-btn" @click="playVideo">
             <i class="fas fa-play-circle"></i> 點擊觀賞 城堡投影秀
         </div>
+        
         <video ref="projectionVideo" class="fullscreen-video" :class="{ 'video-visible': videoVisible }" 
                src="images/castle-show.mp4" @ended="onVideoEnded" playsinline webkit-playsinline>
         </video>
@@ -326,11 +336,11 @@
     </div>
 </div>
 <script>
-    const { createApp, ref, computed, onMounted } = Vue;
+    const { createApp, ref, computed, onMounted, nextTick } = Vue;
 
     createApp({
         setup() {
-            // --- 核心變數 ---
+            // --- 1. 核心變數設定 ---
             const phase = ref('prologue');
             const money = ref(0); 
             const hp = ref(100); 
@@ -339,7 +349,7 @@
             const orderCooldown = ref(0); 
             const effects = ref([]);
             
-            // UI 控制
+            // UI 狀態
             const selectedCard = ref(null); 
             const stageMessage = ref(""); 
             const stageResult = ref(false);
@@ -347,29 +357,30 @@
             const showResultModal = ref(false);
             const resultInfo = ref({ title:'', desc:'', changes:[], bg:'', isLucky:false });
             
-            // 特效與狀態
+            // 特效變數
             const isHurt = ref(false); 
             const screenEffectClass = ref(""); 
             const moneyBox = ref(null); 
             const hpBox = ref(null);
 
-            // 轉場、影片與載入控制
+            // 轉場與載入
             const showTransition = ref(false);
             const transitionData = ref({ nextPhase:'', title:'' });
             const isLoading = ref(true); 
             const loadingProgress = ref(0);
             
-            // 影片變數
+            // ★★★ 影片控制變數 ★★★
             const showVideoModal = ref(false);
             const videoPlaying = ref(false);
             const videoVisible = ref(false);
             const projectionVideo = ref(null);
+            const showManualBtn = ref(false); // 預設隱藏，解決閃爍問題
 
-            // ★★★ 資料路徑 (使用您的檔案名稱) ★★★
-            // 請確認 GitHub 上真的有 'images' 這個資料夾 (全小寫)
+            // ★★★ 路徑修正 (解決圖片 404 問題) ★★★
             const imgPath = './images/';
-
-            // 📍 Disney Land 設施
+            
+            // --- 2. 設施資料定義 ---
+            // 📍 Disney Land (7項，含杯麵與旋轉木馬)
             const landRides = ref([
                 { id:'beauty', name:'美女與野獸', icon:'fas fa-chess-rook', cost:2, played:false, bg:imgPath+'beauty-beast.png', desc:'賭運氣：抽到DPA賺大錢！' },
                 { id:'baymax', name:'杯麵歡樂搭乘', icon:'fas fa-robot', cost:1, played:false, bg:imgPath+'baymax.png', desc:'快樂搖擺！心情大好。' },
@@ -380,7 +391,7 @@
                 { id:'carrousel', name:'城堡旋轉木馬', icon:'fas fa-horse-head', cost:1, played:false, bg:imgPath+'castle-carrousel.png', desc:'浪漫夜晚，拍照聖地。' }
             ]);
 
-            // 📍 Disney Sea 設施
+            // 📍 Disney Sea (6項，含彼得潘、地心探險、辛巴達)
             const seaRides = ref([
                 { id:'rapunzel', name:'樂佩天燈', icon:'fas fa-lightbulb', cost:3, played:false, bg:imgPath+'rapunzel-lantern.png', desc:'(3hr) 絕美場景，高分必去。' },
                 { id:'peter', name:'小彼得潘', icon:'fas fa-hat-wizard', cost:2, played:false, bg:imgPath+'peter-pan.png', desc:'夢幻泉鄉，療癒身心 (回血)。' },
@@ -398,7 +409,7 @@
                 { id:'maya', name:'麻耶溫泉', icon:'fas fa-spa', cost:0, bg:imgPath+'hot-spring.png', desc:'絕對放鬆 (回血)' }
             ]);
             
-            // 🍔 Mobile Order
+            // 🍔 Mobile Order 菜單
             const menus = { 
                 chapter1: [
                     {id:'waffle', name:'米奇鬆餅', icon:'🧇', price:150, hp:20, effect:'+20 HP'},
@@ -412,10 +423,12 @@
                 ] 
             };
             const dinnerDishes = [{ name:'熊肉火鍋', icon:'🥘', effect:{hp:100}, effectText:'溫暖值 MAX!'},{ name:'鹽烤岩魚', icon:'🐟', effect:{luck:30}, effectText:'幸運 +30'},{ name:'山菜天婦羅', icon:'🍄', effect:{hp:30,luck:10}, effectText:'溫暖+30'}];
+            
+            // 遊戲變數
             const showDinner = ref(false); const dinnerResult = ref({});
             const gameRunning = ref(false); const gameScore = ref(0); const playerX = ref(50); const trackOffset = ref(0); const gameObjects = ref([]); const isFever = ref(false); const isHit = ref(false); const skatingSpeed = ref(0.8); const skatingDistance = ref(0); const maxDistance = 3000; const skatingLife = ref(5); let gameLoopId = null; let lastSpawnTime = 0;
 
-            // --- Computed ---
+            // --- 3. Computed & 載入邏輯 ---
             const currentCards = computed(() => {
                 if(phase.value==='chapter1') return landRides.value.filter(r=>!r.played);
                 if(phase.value==='chapter2') return seaRides.value.filter(r=>!r.played);
@@ -433,33 +446,19 @@
                 return '';
             });
 
-            // --- 載入邏輯 (修正版) ---
+            // 修正版載入邏輯：移除 mp4，加入錯誤路徑提示
             const loadList = async (list) => {
                 let loaded = 0;
                 return Promise.all(list.map(src => new Promise(resolve => {
-                    const img = new Image();
-                    img.src = src;
-                    img.onload = () => { 
-                        loaded++; 
-                        loadingProgress.value = (loaded/list.length)*100; 
-                        resolve(); 
-                    };
-                    // 找到原本的 img.onerror = ... 改成下面這樣：
-img.onerror = () => { 
-    // 這行會印出瀏覽器到底試圖去哪個網址抓圖片
-    console.error('找不到圖片:', src, '❌ 完整路徑:', img.src); 
-    loaded++; 
-    resolve(); 
-};
-
+                    const img = new Image(); img.src = src;
+                    img.onload = () => { loaded++; loadingProgress.value = (loaded/list.length)*100; resolve(); };
+                    img.onerror = () => { console.error('❌ 圖片載入失敗 (Load Failed):', src); loaded++; resolve(); };
                 })));
             };
 
             const preloadImages = async () => {
-                // ★★★ 修正：移除 .mp4，只載圖片 ★★★
                 const critical = [imgPath+'prologue-bg.png', imgPath+'land-castle.png'];
                 landRides.value.forEach(r => critical.push(r.bg));
-                
                 await loadList(critical);
                 setTimeout(() => { isLoading.value = false; loadBackgroundImages(); }, 500);
             };
@@ -469,50 +468,31 @@ img.onerror = () => {
                 seaRides.value.forEach(r => background.push(r.bg));
                 background.forEach(src => { const img = new Image(); img.src = src; });
             };
-
+            
             onMounted(() => { preloadImages(); });
+                        // --- 4. 遊戲核心邏輯 ---
+            const spawnText = (t,c,tag) => { const el=tag==='money'?moneyBox.value:hpBox.value; if(!el)return; const r=el.getBoundingClientRect(); effects.value.push({id:Date.now(),txt:t,cls:c,x:r.left+10,y:r.top+30}); setTimeout(()=>effects.value.shift(),1500); };
 
-            // --- Helper ---
-            const spawnText = (t,c,tag) => { 
-                const el=tag==='money'?moneyBox.value:hpBox.value; if(!el)return; 
-                const r=el.getBoundingClientRect(); 
-                effects.value.push({id:Date.now(),txt:t,cls:c,x:r.left+10,y:r.top+30}); 
-                setTimeout(()=>effects.value.shift(),1500); 
-            };
-
-            // --- 核心遊戲邏輯 ---
             const executeAction = () => {
                 const c = selectedCard.value;
                 let title='', desc='', changes=[], lucky=true;
-                
                 time.value -= c.cost;
                 if(c.moneyCost) money.value -= c.moneyCost;
 
                 if(phase.value === 'onsen') {
                     hp.value=100; title='極致放鬆'; desc='溫泉太舒服了！'; changes.push({text:'溫暖 MAX', color:'#2ED573'});
                 } else {
-                    // Land
-                    if(c.id === 'beauty') {
-                        if(Math.random() > 0.6) { money.value += 150; hp.value -= 10; title='排隊地獄'; desc='只拿到安慰獎。'; changes.push({text:'+$150', color:'gold'}, {text:'-10 HP', color:'red'}); lucky=false; spawnText('+$150','ft-money','money'); spawnText('-10 HP','ft-dmg','hp'); } 
-                        else { money.value += 600; title='抽中 DPA!'; desc='不用排隊太爽了！'; changes.push({text:'+$600', color:'gold'}); spawnText('+$600','ft-money','money'); }
-                    } else if(c.id === 'splash') {
-                        if(Math.random() > 0.5) { hp.value -= 30; title='全濕了！'; desc='好冷...'; changes.push({text:'-30 HP', color:'red'}); lucky=false; spawnText('-30 HP','ft-dmg','hp'); } 
-                        else { money.value += 300; title='完美閃避'; desc='刺激又好玩！'; changes.push({text:'+$300', color:'gold'}); spawnText('+$300','ft-money','money'); }
-                    } else if(c.id === 'shoot') { 
-                        if(Math.random() > 0.7) { money.value += 600; title='百發百中'; desc='拿到警長徽章！'; changes.push({text:'+$600', color:'gold'}); spawnText('+$600','ft-money','money'); } 
-                        else { title='槓龜'; desc='錢飛了。'; changes.push({text:'$0', color:'#ccc'}); lucky=false; }
-                    } else if(c.id === 'baymax') {
-                        hp.value = Math.min(100, hp.value + 40); title='杯麵電音趴'; desc='Bala-lala~ 心情大好！'; changes.push({text:'+40 HP', color:'#2ED573'}); spawnText('+40 HP','ft-hp','hp');
-                    } else if(c.id === 'carrousel') {
-                        hp.value = Math.min(100, hp.value + 15); money.value+=100; title='浪漫旋轉'; desc='燈光美氣氛佳。'; changes.push({text:'+15 HP', color:'#2ED573'}); spawnText('+15 HP','ft-hp','hp');
-                    }
-                    // Sea
+                    // Land Logic
+                    if(c.id === 'beauty') { if(Math.random() > 0.6) { money.value += 150; hp.value -= 10; title='排隊地獄'; desc='只拿到安慰獎。'; changes.push({text:'+$150', color:'gold'}, {text:'-10 HP', color:'red'}); lucky=false; spawnText('+$150','ft-money','money'); spawnText('-10 HP','ft-dmg','hp'); } else { money.value += 600; title='抽中 DPA!'; desc='不用排隊太爽了！'; changes.push({text:'+$600', color:'gold'}); spawnText('+$600','ft-money','money'); }} 
+                    else if(c.id === 'splash') { if(Math.random() > 0.5) { hp.value -= 30; title='全濕了！'; desc='好冷...'; changes.push({text:'-30 HP', color:'red'}); lucky=false; spawnText('-30 HP','ft-dmg','hp'); } else { money.value += 300; title='完美閃避'; desc='刺激又好玩！'; changes.push({text:'+$300', color:'gold'}); spawnText('+$300','ft-money','money'); }} 
+                    else if(c.id === 'shoot') { if(Math.random() > 0.7) { money.value += 600; title='百發百中'; desc='拿到警長徽章！'; changes.push({text:'+$600', color:'gold'}); spawnText('+$600','ft-money','money'); } else { title='槓龜'; desc='錢飛了。'; changes.push({text:'$0', color:'#ccc'}); lucky=false; }} 
+                    else if(c.id === 'baymax') { hp.value = Math.min(100, hp.value + 40); title='杯麵電音趴'; desc='Bala-lala~ 心情大好！'; changes.push({text:'+40 HP', color:'#2ED573'}); spawnText('+40 HP','ft-hp','hp'); } 
+                    else if(c.id === 'carrousel') { hp.value = Math.min(100, hp.value + 15); money.value+=100; title='浪漫旋轉'; desc='燈光美氣氛佳。'; changes.push({text:'+15 HP', color:'#2ED573'}); spawnText('+15 HP','ft-hp','hp'); }
+                    // Sea Logic
                     else if(c.id === 'rapunzel') { money.value += 400; title='絕美天燈'; desc='浪漫夜晚。'; changes.push({text:'+$400', color:'gold'}); spawnText('+$400','ft-money','money'); } 
                     else if(c.id === 'peter') { money.value += 150; hp.value = Math.min(100, hp.value + 30); title='夢幻島飛行'; desc='Tinker Bell 超療癒！'; changes.push({text:'+30 HP', color:'#2ED573'}); spawnText('+30 HP','ft-hp','hp'); } 
-                    else if(c.id === 'journey') { 
-                        if(Math.random() > 0.5) { money.value += 500; title='岩漿絕景'; desc='壯觀！'; changes.push({text:'+$500', color:'gold'}); spawnText('+$500','ft-money','money'); } 
-                        else { hp.value -= 20; title='怪獸突襲'; desc='被嚇死...'; changes.push({text:'-20 HP', color:'red'}); lucky=false; spawnText('-20 HP','ft-dmg','hp'); }
-                    } else if(c.id === 'sindbad') { money.value += 100; hp.value = Math.min(100, hp.value + 10); title='心靈指南針'; desc='絕對安全。'; changes.push({text:'+$100', color:'gold'}); } 
+                    else if(c.id === 'journey') { if(Math.random() > 0.5) { money.value += 500; title='岩漿絕景'; desc='壯觀！'; changes.push({text:'+$500', color:'gold'}); spawnText('+$500','ft-money','money'); } else { hp.value -= 20; title='怪獸突襲'; desc='被嚇死...'; changes.push({text:'-20 HP', color:'red'}); lucky=false; spawnText('-20 HP','ft-dmg','hp'); }} 
+                    else if(c.id === 'sindbad') { money.value += 100; hp.value = Math.min(100, hp.value + 10); title='心靈指南針'; desc='絕對安全。'; changes.push({text:'+$100', color:'gold'}); } 
                     else if(c.id === 'arendelle') { hp.value = 100; title='皇家盛宴'; desc='體力全滿！'; changes.push({text:'HP MAX', color:'#2ED573'}); spawnText('HP MAX','ft-hp','hp'); } 
                     else { money.value += 200; title='美好回憶'; desc='開心！'; changes.push({text:'+$200', color:'gold'}); spawnText('+$200','ft-money','money'); }
                     
@@ -527,33 +507,63 @@ img.onerror = () => {
             const finishDinner = () => { showDinner.value=false; phase.value='karuizawa'; skatingLife.value=5; skatingDistance.value=0; gameScore.value=0; gameRunning.value=false; };
             const buyFood = (f) => { money.value -= f.price; hp.value = Math.min(100, hp.value + f.hp); showOrder.value = false; orderCooldown.value = 1; spawnText(`-${f.price}`,'ft-dmg','money'); spawnText(`+${f.hp} HP`,'ft-hp','hp'); endTurnCheck(); };
 
-            // 影片與轉場邏輯
-            const startProjectionShow = () => { showVideoModal.value = true; };
+            // ★★★ 5. 影片觸發與播放邏輯 (Auto Play Optimizations) ★★★
+            const startProjectionShow = async () => {
+                showVideoModal.value = true;
+                showManualBtn.value = false; // 強制隱藏按鈕
+                await nextTick();
+                playVideo();
+            };
+
             const playVideo = () => {
                 const v = projectionVideo.value;
-                if(v) {
-                    v.volume = 0; v.play(); videoPlaying.value = true; videoVisible.value = true;
-                    let vol = 0;
-                    const fadeAudio = setInterval(() => { vol += 0.05; if(vol >= 1) { vol = 1; clearInterval(fadeAudio); } v.volume = vol; }, 100);
+                if(!v) return;
+
+                v.volume = 0; 
+                const playPromise = v.play();
+
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        // 成功：自動播放
+                        videoPlaying.value = true;
+                        videoVisible.value = true;
+                        // 淡入音效
+                        let vol = 0;
+                        const fadeAudio = setInterval(() => { vol += 0.05; if(vol >= 1) { vol = 1; clearInterval(fadeAudio); } v.volume = vol; }, 100);
+                    }).catch(error => {
+                        // 失敗：瀏覽器阻擋
+                        console.log("Autoplay blocked. Button will appear shortly.");
+                        videoPlaying.value = false;
+                        
+                        // ★ 延遲 2.5 秒才顯示按鈕，避免閃爍
+                        setTimeout(() => {
+                            if (!videoPlaying.value) { 
+                                showManualBtn.value = true;
+                            }
+                        }, 2500);
+                    });
                 }
             };
+
             const onVideoEnded = () => {
                 videoVisible.value = false;
                 setTimeout(() => { showVideoModal.value = false; transitionData.value = { nextPhase:'chapter2', title:'Disney Sea' }; showTransition.value = true; }, 2000);
             };
 
+            // --- 6. 回合結束檢查 ---
             const endTurnCheck = () => {
                 if(phase.value==='chapter2' && windLv.value>0){ const d=windLv.value*10; hp.value-=d; isHurt.value=true; setTimeout(()=>isHurt.value=false,400); spawnText(`-${d} 風`,'ft-dmg','hp'); windLv.value=Math.floor(Math.random()*2)+1; }
                 if(currentCards.value.length === 0 && time.value > 0) { spawnText("設施全制霸！", 'ft-money', 'money'); setTimeout(() => { time.value = 0; endTurnCheck(); }, 1500); return; }
                 
                 if(time.value<=0){ 
                     setTimeout(()=>{ 
-                        if(phase.value==='chapter1'){ startProjectionShow(); } 
-                        else if(phase.value==='chapter2') { transitionData.value = { nextPhase:'onsen', title:'Healing Onsen' }; showTransition.value = true; }
+                        if(phase.value==='chapter1'){ startProjectionShow(); } // Land 結束 -> 影片
+                        else if(phase.value==='chapter2') { transitionData.value = { nextPhase:'onsen', title:'Healing Onsen' }; showTransition.value = true; } // Sea 結束 -> 溫泉
                     }, 500); 
                 }
             };
 
+            // --- 7. 其他 Helper & 滑冰遊戲 ---
             const proceedToNextChapter = () => { showTransition.value = false; const next = transitionData.value.nextPhase; if(next === 'chapter2') { phase.value='chapter2'; time.value=6; windLv.value=1; } else if(next === 'onsen') { phase.value='onsen'; } };
             const jumpTo = (p) => { phase.value = p; time.value = 6; money.value = 1000; if(p === 'karuizawa') { skatingLife.value=5; skatingDistance.value=0; gameScore.value=0; gameRunning.value=false; } };
             const startGame = () => { money.value = 600; phase.value = 'chapter1'; time.value = 6; };
@@ -570,7 +580,7 @@ img.onerror = () => {
                 landRides, seaRides, onsenOptions, currentCards, currentMenu, moneyBox, hpBox, isHurt, screenEffectClass,
                 currentBg, isLoading, loadingProgress,
                 showTransition, transitionData, proceedToNextChapter,
-                showVideoModal, videoPlaying, videoVisible, projectionVideo, playVideo, onVideoEnded,
+                showVideoModal, videoPlaying, videoVisible, projectionVideo, playVideo, onVideoEnded, showManualBtn,
                 startGame, selectCard, canAfford, executeAction, confirmResult, buyFood, finishDinner,
                 gameRunning, gameScore, playerX, trackOffset, gameObjects, isFever, isHit,
                 skatingSpeed, skatingDistance, maxDistance, skatingLife, toggleGame, movePlayer
@@ -578,5 +588,3 @@ img.onerror = () => {
         }
     }).mount('#app');
 </script>
-</body>
-</html>
