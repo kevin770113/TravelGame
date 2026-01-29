@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>冬日時空冒險 (Ultimate Deluxe)</title>
+    <title>冬日時空冒險 (Memories Edition)</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -12,43 +12,36 @@
         :root {
             --primary: #FF6B8B; --secondary: #00B4D8; --accent: #FFD700;
             --bg-dark: #121212; --card-bg: #1E1E1E; --text-main: #ECEFF4;
-            --danger: #FF4757; --safe: #2ED573;
+            --danger: #FF4757; --safe: #2ED573; --fatigue: #a55eea;
         }
         * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; padding: 0; font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #000; color: var(--text-main); height: 100vh; width: 100vw; overflow: hidden; display: flex; justify-content: center; }
         #app { width: 100%; max-width: 430px; height: 100%; position: relative; background: #1a1a1a; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
 
         /* --- 2. 測試面板 --- */
-        .debug-panel { position: fixed; top: 70px; left: 10px; z-index: 999; display: flex; flex-direction: column; gap: 5px; opacity: 0.3; transition: 0.3s; }
+        .debug-panel { position: fixed; top: 80px; left: 10px; z-index: 9999; display: flex; flex-direction: column; gap: 5px; opacity: 0.3; transition: 0.3s; pointer-events: auto; }
         .debug-panel:hover { opacity: 1; }
-        .debug-btn { background: rgba(0, 0, 0, 0.8); border: 1px solid #555; color: #ccc; padding: 5px 8px; font-size: 10px; border-radius: 4px; cursor: pointer; }
+        .debug-btn { background: rgba(0, 0, 0, 0.8); border: 1px solid #ff4757; color: #fff; padding: 5px 8px; font-size: 10px; border-radius: 4px; cursor: pointer; font-weight: bold; }
 
-        /* --- 3. 狀態列與大飄字 --- */
+        /* --- 3. 狀態列 --- */
         .status-bar { height: 60px; background: rgba(0,0,0,0.9); backdrop-filter: blur(5px); display: flex; justify-content: space-between; align-items: center; padding: 0 15px; z-index: 20; border-bottom: 1px solid rgba(255,255,255,0.1); flex-shrink: 0; }
-        .stat-box { display: flex; flex-direction: column; align-items: center; width: 60px; position: relative; }
+        .stat-box { display: flex; flex-direction: column; align-items: center; width: 70px; position: relative; }
         .stat-val { font-size: 14px; font-weight: bold; }
-        .wind-badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-top: 2px; }
         
         .float-text { 
-            position: absolute; font-weight: 900; font-size: 32px; z-index: 999; 
+            position: absolute; font-weight: 900; font-size: 32px; z-index: 9999; 
             animation: floatUp 1.5s cubic-bezier(0.19, 1, 0.22, 1) forwards; pointer-events: none; 
             -webkit-text-stroke: 1.2px #000; text-shadow: 0 0 15px rgba(255,255,255,0.8);
         }
         @keyframes floatUp { 0% { opacity: 0; transform: translateY(10px) scale(0.5); } 15% { opacity: 1; transform: translateY(0) scale(1.2); } 100% { opacity: 0; transform: translateY(-120px) scale(1); } }
-        .ft-money { color: var(--accent); } .ft-hp { color: var(--safe); } .ft-dmg { color: var(--danger); }
-        .damage-flash { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 50, 50, 0.3); pointer-events: none; z-index: 100; animation: flashFade 0.3s ease-out forwards; }
+        .ft-money { color: var(--accent); } .ft-bad { color: var(--danger); } .ft-good { color: var(--safe); }
+        
+        .damage-flash { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(165, 94, 234, 0.3); pointer-events: none; z-index: 100; animation: flashFade 0.3s ease-out forwards; }
         @keyframes flashFade { 0% { opacity: 1; } 100% { opacity: 0; } }
+        
         .shake-effect { animation: shake 0.4s ease-in-out; }
         @keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-5px);color:var(--danger)} 40%,80%{transform:translateX(5px)} }
         
-        /* 撞擊震動 (短) */
-        .screen-shake { animation: bigShake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
-        @keyframes bigShake { 10%, 90% { transform: translate3d(-2px, 0, 0); } 20%, 80% { transform: translate3d(4px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-8px, 0, 0); } 40%, 60% { transform: translate3d(8px, 0, 0); } }
-        
-        /* 暴走持續震動 (長) */
-        .shake-hard { animation: vibrate 0.1s infinite; }
-        @keyframes vibrate { 0% { transform: translate(0, 0); } 25% { transform: translate(-2px, 2px); } 50% { transform: translate(2px, -2px); } 75% { transform: translate(-2px, -2px); } 100% { transform: translate(2px, 2px); } }
-
         /* --- 4. 舞台區 --- */
         .stage-area { flex: 7; position: relative; background: #222; overflow: hidden; display: flex; flex-direction: column; }
         .stage-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; background-position: center; opacity: 0.6; transition: all 0.5s ease; }
@@ -59,45 +52,72 @@
         .stage-tags { display: flex; gap: 10px; margin-bottom: 15px; }
         .tag { background: rgba(255,255,255,0.15); padding: 5px 10px; border-radius: 15px; font-size: 12px; display: flex; align-items: center; }
         .btn-play { width: 100%; padding: 16px; border-radius: 30px; border: none; font-size: 18px; font-weight: bold; color: white; background: linear-gradient(45deg, var(--primary), #e66767); box-shadow: 0 5px 20px rgba(255, 107, 139, 0.4); cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; }
-        .btn-play:disabled { filter: grayscale(1); opacity: 0.5; cursor: not-allowed; }
+        .btn-play:disabled { filter: grayscale(1); opacity: 0.5; cursor: not-allowed; background: #555; box-shadow: none; }
 
         /* --- 5. 手牌區 --- */
         .deck-area { flex: 3; background: #151515; border-top: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; padding: 10px 0; z-index: 10; }
         .deck-label { padding: 0 20px; font-size: 12px; color: #666; margin-bottom: 5px; }
         .card-scroller { flex-grow: 1; display: flex; overflow-x: auto; padding: 0 20px; gap: 15px; align-items: center; scrollbar-width: none; }
-        .mini-card { flex: 0 0 140px; height: 160px; background: var(--card-bg); border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.2s; cursor: pointer; }
+        .mini-card { flex: 0 0 140px; height: 160px; background: var(--card-bg); border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.2s; cursor: pointer; overflow: hidden; position: relative; }
+        .mini-card img { position: absolute; top:0; left:0; width:100%; height:100%; object-fit: cover; opacity: 0.4; z-index: 0; }
+        .mini-card i, .mini-card div { position: relative; z-index: 1; }
         .mini-card.active { border-color: var(--primary); transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        .mini-card.active img { opacity: 0.6; }
 
-        /* --- 6. Loading Screen --- */
+        /* --- 6. Loading & Video & Ticket --- */
         .loading-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #09090b; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.8s ease-out; }
         .loading-content { text-align: center; color: #ECEFF4; }
-        .loading-icon { font-size: 40px; color: var(--primary); margin-bottom: 20px; filter: drop-shadow(0 0 10px rgba(255, 107, 139, 0.6)); animation: spinSlow 4s linear infinite; }
+        .loading-icon { font-size: 40px; color: var(--primary); margin-bottom: 20px; animation: spinSlow 4s linear infinite; }
         .loading-bar-bg { width: 200px; height: 2px; background: #333; margin-top: 15px; border-radius: 2px; overflow: hidden; }
-        .loading-bar-fill { height: 100%; background: var(--primary); transition: width 0.3s; box-shadow: 0 0 10px var(--primary); }
+        .loading-bar-fill { height: 100%; background: var(--primary); transition: width 0.3s; }
         @keyframes spinSlow { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* --- 7. 影片播放層 --- */
         .video-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 2000; background: #000; display: flex; justify-content: center; align-items: center; }
         .fullscreen-video { width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 2s ease-in; }
-        .video-start-btn { position: absolute; z-index: 2010; color: #fff; font-size: 20px; cursor: pointer; border: 1px solid rgba(255,255,255,0.3); padding: 15px 30px; border-radius: 30px; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); animation: fadeInBtn 1s ease-out forwards; }
-        @keyframes fadeInBtn { 0% { opacity: 0; transform: scale(0.9); } 100% { opacity: 1; transform: scale(1); } }
+        .video-start-btn { position: absolute; z-index: 2010; color: #fff; font-size: 20px; cursor: pointer; border: 1px solid rgba(255,255,255,0.3); padding: 15px 30px; border-radius: 30px; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); }
         .video-visible { opacity: 1 !important; }
 
-        /* --- 8. Modal Utils --- */
-        .ticket-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 300; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); display: flex; justify-content: center; align-items: center; animation: fadeIn 0.3s; }
-        .real-ticket { width: 85%; max-width: 320px; background: linear-gradient(135deg, #fff3cd 0%, #ffecb3 100%); border-radius: 12px; position: relative; box-shadow: 0 15px 35px rgba(0,0,0,0.6); overflow: hidden; color: #4a3b2a; font-family: "Courier New", Courier, monospace; transform: rotate(-2deg); animation: slideUpTicket 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .real-ticket::before, .real-ticket::after { content: ''; position: absolute; top: 65%; width: 20px; height: 20px; background: #111; border-radius: 50%; }
-        .real-ticket::before { left: -10px; } .real-ticket::after { right: -10px; }
-        .ticket-header { background: #2c3e50; color: #fff; padding: 15px; text-align: center; font-size: 14px; letter-spacing: 1px; font-weight: bold; border-bottom: 2px dashed #4a3b2a; }
-        .ticket-body { padding: 20px; text-align: center; }
-        .ticket-dest { font-size: 24px; font-weight: 900; margin: 10px 0; color: #d35400; text-transform: uppercase; }
-        .ticket-info { font-size: 12px; color: #666; margin-bottom: 20px; line-height: 1.6; }
-        .ticket-btn { width: 100%; padding: 12px; background: #2c3e50; color: white; border: none; font-weight: bold; font-size: 16px; border-radius: 5px; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; }
-        
+        /* Ticket Modal */
+        .ticket-modal { background: #fff; color: #333; width: 85%; max-width: 320px; border-radius: 10px; padding: 20px; text-align: center; border: 2px dashed #333; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5); animation: zoomIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .ticket-title { font-size: 24px; font-weight: 900; margin-bottom: 10px; border-bottom: 2px solid #eee; padding-bottom: 10px; letter-spacing: 1px; color: #e67e22; }
+        .ticket-info h2 { margin: 10px 0; color: #333; }
+        .ticket-info p { color: #666; font-size: 14px; margin-bottom: 20px; }
+        @keyframes zoomIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        /* ★★★ Countdown Overlay ★★★ */
+        .countdown-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        .countdown-text { font-size: 120px; font-weight: 900; color: #FFD700; text-shadow: 0 0 30px #FF4757; font-family: 'Arial Black', sans-serif; animation: popIn 0.9s infinite; }
+        @keyframes popIn { 0% { transform: scale(0.2); opacity: 0; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1); opacity: 0; } }
+
+        /* --- 7. 羊皮紙與結算 --- */
+        .scroll-modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 250; background: #000; display: flex; justify-content: center; align-items: center; animation: fadeIn 0.5s; }
+        .scroll-paper { 
+            width: 100%; height: 100%; 
+            background-image: url('./images/settlement-board.png'); 
+            background-size: cover; background-position: center;
+            padding: 180px 60px 100px 60px; 
+            overflow-y: auto; text-align: center; color: #4a3b2a; 
+            font-family: 'Courier New', serif; font-weight: bold;
+            display: flex; flex-direction: column; align-items: center; 
+        }
+        .scroll-title { font-size: 28px; font-weight: 900; margin-bottom: 20px; border-bottom: 3px solid #5c4b26; padding-bottom: 10px; color: #3e2723; }
+        .scroll-content { font-size: 15px; line-height: 1.6; color: #5d4037; width: 100%; }
+        .scroll-btn { margin-top: 30px; padding: 12px 30px; background: #5d4037; color: #f4e4bc; border: 2px solid #3e2723; font-weight: bold; font-size: 18px; border-radius: 8px; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+
         .result-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 200; background: #000; display: flex; flex-direction: column; justify-content: flex-end; animation: fadeIn 0.3s ease-out; }
-        .result-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; opacity: 0.6; filter: brightness(1.2); }
-        .result-content { position: relative; z-index: 210; padding: 40px 30px; background: linear-gradient(to top, #000 10%, transparent); text-align: center; }
-        .result-title { font-size: 32px; font-weight: 900; margin-bottom: 10px; text-shadow: 0 0 20px rgba(255,255,255,0.5); }
+        .result-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; opacity: 0.3; filter: blur(8px); }
+        .result-content { position: relative; z-index: 210; padding: 30px 20px; background: linear-gradient(to top, #000 30%, transparent); text-align: center; height: 100%; display:flex; flex-direction: column; justify-content: flex-end;}
+        .result-title { font-size: 28px; font-weight: 900; margin-bottom: 20px; text-shadow: 0 0 20px rgba(255,255,255,0.5); }
+        
+        .photo-polaroid { 
+            background: #fff; padding: 12px 12px 40px 12px; 
+            color: #333; font-family: 'Courier New', monospace; font-weight: bold; 
+            transform: rotate(-2deg); box-shadow: 0 15px 30px rgba(0,0,0,0.6); 
+            margin: auto; width: 280px; animation: slideUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+        }
+        .photo-img { width: 100%; aspect-ratio: 1/1; object-fit: cover; background: #eee; border: 1px solid #ddd; }
+        .photo-caption { margin-top: 15px; font-size: 16px; color: #222; letter-spacing: -0.5px; }
+        
         .stat-change { font-size: 24px; font-weight: bold; padding: 10px 20px; border-radius: 15px; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.2); margin: 5px; display: inline-block; }
         .modal-mask { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 100; display: flex; align-items: flex-end; }
         .order-panel { width: 100%; background: #222; border-radius: 20px 20px 0 0; padding: 20px; animation: slideUp 0.3s ease-out; max-height: 80%; overflow-y: auto; }
@@ -105,116 +125,56 @@
         .nav-btn { color: #666; display: flex; justify-content: center; align-items: center; font-size: 24px; padding: 15px; width: 33%; cursor: pointer; }
         .nav-btn.active { color: var(--primary); transform: scale(1.1); transition: 0.2s; }
 
-        /* --- 9. ★★★ 滑冰小遊戲 (最終視覺強化版) ★★★ --- */
-        .game-container { 
-            width: 100%; height: 100%; position: absolute; top: 0; left: 0; 
-            background: url('images/ice-skating.png') no-repeat center center; background-size: cover; 
-            overflow: hidden; z-index: 50;
-            touch-action: none; 
-        }
-        
+        /* --- 8. 滑冰遊戲 (UI修正) --- */
+        .game-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; background: url('images/ice-skating.png') no-repeat center center; background-size: cover; overflow: hidden; z-index: 50; touch-action: none; }
         .game-hud { position: absolute; top: 70px; left: 15px; right: 15px; z-index: 60; pointer-events: none; }
+        
+        .game-score-board {
+            position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.6); border: 2px solid #ffd700; border-radius: 20px;
+            padding: 8px 25px; color: #fff; font-size: 22px; font-weight: 900;
+            text-shadow: 0 0 5px #000; z-index: 1000;
+            display: flex; align-items: center; gap: 10px; white-space: nowrap;
+        }
+
         .life-container { display: flex; gap: 5px; }
         .life-container .fa-heart { color: #ff4757; font-size: 24px; filter: drop-shadow(0 0 5px rgba(255, 71, 87, 0.5)); transition: 0.3s; }
         .life-container .fa-heart.lost { color: #2d3436; transform: scale(0.8); opacity: 0.3; }
-        
-        /* ★★★ 垂直進度條 (層級修復 z-index: 10000) ★★★ */
-        .vertical-progress { 
-            position: absolute; right: 0; top: 70px; bottom: 70px; width: 15px; 
-            background: rgba(0,0,0,0.8); border-left: 2px solid rgba(255,255,255,0.3);
-            overflow: visible; z-index: 10000;
-        }
-        .v-prog-fill { position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(to top, #2ecc71, #f1c40f); transition: height 0.1s linear; }
-        .v-prog-icon { position: absolute; left: -30px; font-size: 26px; transition: bottom 0.1s linear; filter: drop-shadow(0 0 5px black); }
-        .v-prog-flag { position: absolute; top: -20px; right: 0; font-size: 24px; filter: drop-shadow(0 0 5px white); }
 
         .game-canvas { width: 100%; height: 100%; position: relative; perspective: 600px; overflow: hidden; z-index: 10; }
         .track { width: 100%; height: 200%; position: absolute; top: -100%; left: 0; background-image: radial-gradient(rgba(255,255,255,0.3) 1px, transparent 1px); background-size: 50px 50px; opacity: 0.3; }
-        
         .lane-hint { position: absolute; top: 0; height: 100%; width: 20%; background: rgba(255, 255, 255, 0.1); pointer-events: none; transition: opacity 0.2s; opacity: 0; z-index: 5; }
         .lane-hint.warn { background: rgba(255, 0, 0, 0.2); opacity: 1; box-shadow: 0 0 20px rgba(255, 0, 0, 0.2); }
         .lane-hint.gold { background: rgba(255, 215, 0, 0.2); opacity: 1; box-shadow: 0 0 20px rgba(255, 215, 0, 0.2); }
 
-        /* ★★★ 主角結構重寫 (Wrapper 方法解決偏右) ★★★ */
-        /* 外層：負責定位 (translateX -50% 置中) 和跟隨手指，不負責動畫 */
-        .sprite-wrapper { 
-            position: absolute; bottom: 15%; 
-            z-index: 20; display:flex; justify-content:center; align-items:center;
-            transform: translateX(-50%); /* 關鍵修正 */
-            pointer-events: none;
-        }
-        
-        /* 內層：負責動畫和尺寸 */
-        .sheep-img { 
-            width: 100px; height: 100px; 
-            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.5)); 
-            transition: width 0.3s, height 0.3s;
-        }
-        
-        /* 暴走 500% 巨大化 */
-        .sheep-img.fever { width: 500px; height: 500px; }
-
-        /* 搖擺動畫 (內層執行) */
+        .sprite-wrapper { position: absolute; bottom: 15%; z-index: 20; display:flex; justify-content:center; align-items:center; transform: translateX(-50%); pointer-events: none; }
+        .sheep-img { width: 100px; height: 100px; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.5)); transition: width 0.3s, height 0.3s; }
+        .sheep-img.fever { width: 500px; height: 500px; } 
         .player { animation: waddle 0.3s infinite alternate; }
-
-        /* 彩虹光特效 */
         .rainbow-glow { animation: rainbow 0.3s linear infinite; }
-        @keyframes rainbow { 
-            0% { filter: drop-shadow(0 0 15px red) hue-rotate(0deg); } 
-            100% { filter: drop-shadow(0 0 35px red) hue-rotate(360deg); } 
-        }
-
-        @keyframes waddle {
-            0% { transform: translateY(0) rotate(5deg); }
-            100% { transform: translateY(-5px) rotate(-5deg); }
-        }
+        @keyframes rainbow { 0% { filter: drop-shadow(0 0 15px red) hue-rotate(0deg); } 100% { filter: drop-shadow(0 0 35px red) hue-rotate(360deg); } }
+        @keyframes waddle { 0% { transform: translateY(0) rotate(5deg); } 100% { transform: translateY(-5px) rotate(-5deg); } }
 
         .player.hit { animation: blinkRed 0.5s infinite; }
         .hit-effect { position: absolute; top: -60px; left: 50%; transform: translateX(-50%); font-size: 60px; animation: popUp 0.3s forwards; z-index: 30; pointer-events: none; }
-        
-        /* 吃到寶物飄字 */
         .feedback-item { position: absolute; font-weight: 900; font-size: 28px; color: gold; z-index: 40; animation: floatUpText 0.8s forwards; text-shadow: 0 0 5px black; pointer-events: none; white-space: nowrap; }
         @keyframes floatUpText { 0% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-80px) scale(1.5); } }
-
         @keyframes popUp { 0% { transform: translate(-50%, 0) scale(0.5); opacity: 1; } 100% { transform: translate(-50%, -50px) scale(1.5); opacity: 0; } }
 
         .game-obj { position: absolute; width: 70px; height: 70px; display: flex; align-items: center; justify-content: center; font-size: 45px; transition: top 0.1s linear; z-index: 9; }
         .obstacle { filter: drop-shadow(0 5px 5px rgba(0,0,0,0.5)); } 
         .item-coin { text-shadow: 0 0 15px gold; animation: spin 1s infinite linear; }
         .item-heart { animation: pulse 0.5s infinite; color: #ff4757; text-shadow: 0 0 10px red; }
-
         .fever-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, transparent 50%, rgba(255, 215, 0, 0.3) 100%); pointer-events: none; z-index: 8; animation: pulse 0.5s infinite; display: none; }
         .fever-mode .fever-overlay { display: block; }
-        
         .stampede-item { position: absolute; font-size: 40px; opacity: 0.9; z-index: 15; animation: rushUp 2s linear forwards; }
         @keyframes rushUp { from { top: 110%; } to { top: -20%; } }
-
-        /* ★★★ 羊皮紙公告 (背景修復) ★★★ */
-        .scroll-modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 250; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; animation: fadeIn 0.3s; }
-        .scroll-paper { 
-            width: 90%; max-width: 360px; height: 75%; 
-            /* 分離屬性確保兼容性 */
-            background-color: #f4e4bc; /* 保底色 */
-            background-image: url('./images/scroll-bg.png');
-            background-size: 100% 100%;
-            background-repeat: no-repeat;
-            
-            padding: 80px 40px; 
-            overflow-y: auto; text-align: center; color: #4a3b2a; 
-            font-family: 'Courier New', serif; font-weight: bold;
-            display: flex; flex-direction: column; align-items: center;
-        }
-        .scroll-title { font-size: 24px; font-weight: 900; margin-bottom: 15px; border-bottom: 2px dashed #8c7b50; padding-bottom: 10px; color: #5c4b26; }
-        .scroll-row { display: flex; justify-content: space-around; margin: 15px 0; font-size: 14px; width: 100%; }
-        .scroll-item { display: flex; flex-direction: column; align-items: center; gap: 5px; }
-        .scroll-icon { font-size: 30px; }
 
         @keyframes blinkRed { 0%, 100% { filter: drop-shadow(0 0 5px red) brightness(2) sepia(1) hue-rotate(-50deg) saturate(5); } 50% { filter: none; } }
         @keyframes spin { 0% { transform: rotateY(0deg); } 100% { transform: rotateY(360deg); } }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
-        
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } } @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        @keyframes slideUpTicket { from { transform: translateY(100%) rotate(0deg); } to { transform: translateY(0) rotate(-2deg); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } } 
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
     </style>
 </head>
 <body>
@@ -237,52 +197,18 @@
         </video>
     </div>
 
-    <div v-if="showGameIntro" class="scroll-modal">
-        <div class="scroll-paper">
-            <div class="scroll-title">📜 輕井澤牧場</div>
-            <p style="font-size:14px; margin:0;">Welcome to Ice World!<br>Drag to Move</p>
-            
-            <div style="background:rgba(255,255,255,0.4); padding:10px; border-radius:5px; margin:10px 0; width:100%;">
-                <div style="font-weight:bold; margin-bottom:5px; color:#c0392b;">⚠️ Obstacles</div>
-                <div class="scroll-row">
-                    <div class="scroll-item"><span class="scroll-icon">🪨</span>Rock</div>
-                    <div class="scroll-item"><span class="scroll-icon">🪵</span>Log</div>
-                    <div class="scroll-item"><span class="scroll-icon">🐦‍⬛</span>Crow</div>
-                </div>
-            </div>
-
-            <div style="background:rgba(255,255,255,0.4); padding:10px; border-radius:5px; margin:10px 0; width:100%;">
-                <div style="font-weight:bold; margin-bottom:5px; color:#27ae60;">🎁 Rewards</div>
-                <div class="scroll-row">
-                    <div class="scroll-item"><span class="scroll-icon">💰</span>Coin</div>
-                    <div class="scroll-item"><span class="scroll-icon">❤️</span>Fever</div>
-                </div>
-                <div style="font-size:12px; color:#d35400; margin-top:5px;">
-                    Collect 3 Hearts ❤️❤️❤️<br>to start <b>SHEEP STAMPEDE</b>!
-                </div>
-            </div>
-
-            <button class="ticket-btn" style="margin-top:10px; background:#8c7b50; border:2px solid #5c4b26;" @click="enterGame">
-                <i class="fas fa-skating"></i> START
-            </button>
-        </div>
+    <div v-if="showCountdown" class="countdown-overlay">
+        <div class="countdown-text">{{ countdownNum > 0 ? countdownNum : 'GO!' }}</div>
     </div>
 
-    <div v-if="showTransition" class="ticket-modal">
-        <div class="real-ticket">
-            <div class="ticket-header">TOKYO DISNEY RESORT</div>
-            <div class="ticket-body">
-                <div style="font-size:12px; color:#888;">ONE DAY PASS</div>
-                <div class="ticket-dest">{{ transitionData.title }}</div>
-                <div class="ticket-info">
-                    DATE: 2026.01.10<br>
-                    PASSENGER: YOU & HER<br>
-                    <i class="fas fa-qrcode qr-mock"></i>
-                </div>
-                <button class="ticket-btn" @click="proceedToNextChapter">
-                    前往下一站 <i class="fas fa-arrow-right"></i>
-                </button>
+    <div v-if="showTransition" class="modal-mask" style="align-items: center; justify-content: center;">
+        <div class="ticket-modal">
+            <div class="ticket-title"><i class="fas fa-ticket-alt"></i> NEXT STOP</div>
+            <div class="ticket-info">
+                <h2>{{ transitionData.title }}</h2>
+                <p>One Day Pass</p>
             </div>
+            <button class="btn-play" @click="proceedToNextChapter">出發 <i class="fas fa-arrow-right"></i></button>
         </div>
     </div>
 
@@ -293,13 +219,37 @@
         <button class="debug-btn" @click="jumpTo('karuizawa')">跳轉: 滑冰</button>
     </div>
 
-    <div v-if="isHurt" class="damage-flash"></div>
+    <div v-if="showParchmentPhase" class="scroll-modal">
+        <div class="scroll-paper">
+            <div class="scroll-title">📜 {{ parchmentData.title }}</div>
+            
+            <div class="scroll-content">
+                <div v-if="parchmentMode === 'settlement'">
+                    <p>旅程結束</p>
+                    <div style="font-size:36px; color:#c0392b; margin:10px 0;"><i class="fas fa-camera"></i> {{ money }}</div>
+                    <p style="font-size:14px; color:#5d4037;">獲得總分</p>
+                    <div style="display:flex; justify-content:center; gap:20px; margin-top:20px; font-size:14px;">
+                        <div><i class="fas fa-dizzy"></i> 最終疲勞: <b>{{ fatigue }}%</b></div>
+                        <div v-if="phase==='chapter1'"><i class="fas fa-bed"></i> 恢復後: <b>{{ Math.floor(fatigue * 0.4) }}%</b></div>
+                        <div v-if="phase==='karuizawa'"><i class="fas fa-heart"></i> 剩餘愛心: <b>{{ skatingLife }}</b></div>
+                    </div>
+                </div>
+
+                <div v-else>
+                    <p v-html="parchmentData.desc"></p>
+                    </div>
+            </div>
+
+            <button class="scroll-btn" @click="handleParchmentAction">
+                {{ parchmentMode === 'settlement' ? (phase==='karuizawa'?'前往明治神宮 (To Be Continued)':'前往下一站') : (phase==='karuizawa' ? '開始挑戰' : '開始探索') }} <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+    </div>
 
     <div class="status-bar">
-        <div class="stat-box" ref="moneyBox"><i class="fas fa-coins" style="color: gold;"></i><div class="stat-val">{{ money }}</div></div>
-        <div class="stat-box" ref="hpBox"><i class="fas fa-heart" :class="{'shake-effect': isHurt}" style="color: #ff4757;"></i><div class="stat-val">{{ hp }}%</div></div>
-        <div class="stat-box"><i class="fas fa-clock"></i><div class="stat-val">{{ time }}h</div></div>
-        <div class="stat-box" v-if="phase === 'chapter2'"><i class="fas fa-wind" :style="{color: windColor}"></i><div class="wind-badge" :style="{background: windColor, color: '#000'}">{{ windLabel }}</div></div>
+        <div class="stat-box" ref="moneyBox"><i class="fas fa-camera" style="color: gold;"></i><div class="stat-val">{{ money }}</div></div>
+        <div class="stat-box" ref="hpBox"><i class="fas fa-dizzy" :class="{'shake-effect': isHurt}" style="color: var(--fatigue);"></i><div class="stat-val">{{ fatigue }}%</div></div>
+        <div class="stat-box" v-if="phase !== 'onsen'"><i class="fas fa-clock"></i><div class="stat-val">{{ time }}h</div></div>
         <div class="stat-box" v-if="phase === 'karuizawa'"><i class="fas fa-star" style="color: #e67e22;"></i><div class="stat-val">{{ gameScore }}</div></div>
     </div>
 
@@ -310,7 +260,7 @@
         <div class="stage-overlay" style="height: 100%; background: rgba(0,0,0,0.4);"></div>
         <div style="position: relative; z-index: 10;">
             <h1 style="color: var(--primary); text-shadow: 0 2px 10px black; font-size: 32px;">冬日時空冒險</h1>
-            <p style="color: #ECEFF4; margin-bottom: 30px; text-shadow: 0 1px 5px black;">一段尋找溫度與回憶的旅程</p>
+            <p style="color: #ECEFF4; margin-bottom: 30px; text-shadow: 0 1px 5px black;">一段收集回憶的旅程</p>
             <button class="btn-play" style="width: 80%; margin: 0 auto;" @click="startGame">開始旅程</button>
         </div>
     </div>
@@ -322,33 +272,34 @@
             <div class="stage-content" v-if="selectedCard">
                 <div class="stage-title">{{ selectedCard.name }}</div>
                 <div class="stage-tags">
-                    <span class="tag" v-if="selectedCard.cost > 0"><i class="far fa-clock"></i> {{ selectedCard.cost }}h</span>
+                    <span class="tag" v-if="selectedCard.cost > 0 && phase !== 'onsen'"><i class="far fa-clock"></i> {{ selectedCard.cost }}h</span>
                     <span class="tag" v-if="selectedCard.moneyCost"><i class="fas fa-coins"></i> ${{ selectedCard.moneyCost }}</span>
-                    <span class="tag" v-if="phase === 'onsen'" style="background: #2ecc71;">♨️ 溫泉</span>
+                    <span class="tag" v-if="selectedCard.fatigueCost"><i class="fas fa-dizzy"></i> +{{ selectedCard.fatigueCost }}%</span>
                 </div>
                 <div class="stage-desc" v-html="stageMessage || selectedCard.desc"></div>
                 
                 <button v-if="!stageResult" class="btn-play" @click="executeAction" :disabled="!canAfford(selectedCard)">
-                    <span v-if="canAfford(selectedCard)"><i class="fas fa-play"></i> {{ phase === 'onsen' ? '進入溫泉' : '開始體驗' }}</span>
+                    <span v-if="fatigue >= 100 && !selectedCard.isRest"><i class="fas fa-bed"></i> 太累了...</span>
+                    <span v-else-if="canAfford(selectedCard)"><i class="fas fa-play"></i> {{ phase === 'onsen' ? '進入溫泉' : '開始體驗' }}</span>
                     <span v-else><i class="fas fa-ban"></i> 資源不足</span>
                 </button>
                 <button v-else class="btn-play" style="background: #444;" @click="confirmResult">
-                    <i class="fas fa-check"></i> {{ phase === 'onsen' ? '享用晚餐' : '繼續旅程' }}
+                    <i class="fas fa-check"></i> {{ phase === 'onsen' ? '享用晚餐' : '收下照片' }}
                 </button>
             </div>
             <div v-else style="margin: auto; color: #fff; display: flex; flex-direction: column; align-items: center; z-index: 5; text-shadow: 0 2px 5px black;">
                 <i class="fas fa-hand-pointer" style="font-size: 40px; margin-bottom: 10px; animation: bounce 1s infinite;"></i>
-                <div>{{ phase === 'onsen' ? '請選擇一種溫泉' : '請從下方選擇設施' }}</div>
+                <div>{{ phase === 'onsen' ? '請進入溫泉' : '請選擇設施' }}</div>
             </div>
         </div>
+        
         <div class="deck-area">
-            <div class="deck-label">{{ phase === 'onsen' ? '♨️ 汪泉閣：四湯巡禮' : (phase === 'chapter1' ? '📍 Disney Land' : '📍 Disney Sea') }}</div>
+            <div class="deck-label">{{ phase === 'onsen' ? '♨️ 汪泉閣：露天風呂' : (phase === 'chapter1' ? '📍 Disney Land' : '📍 Disney Sea') }}</div>
             <div class="card-scroller">
                 <div v-for="card in currentCards" :key="card.id" class="mini-card" 
                      :class="{active: selectedCard && selectedCard.id === card.id}" @click="selectCard(card)">
-                    <i :class="card.icon" style="font-size: 30px; color: #aaa; margin-bottom: 10px;"></i>
-                    <div style="font-size: 12px; font-weight: bold; text-align: center;">{{ card.name }}</div>
-                    <div v-if="card.tags" style="font-size: 10px; color: #e67e22; margin-top: 5px;">{{ card.tags }}</div>
+                    <img :src="card.cover">
+                    <div style="font-size: 12px; font-weight: bold; text-align: center; color:#fff; text-shadow:0 1px 2px black;">{{ card.name }}</div>
                 </div>
             </div>
         </div>
@@ -366,21 +317,19 @@
         <div class="fever-overlay" :style="{opacity: isFever ? 1 : 0}"></div>
 
         <div class="game-hud">
-            <div class="vertical-progress">
-                <div class="v-prog-flag">🏁</div>
-                <div class="v-prog-fill" :style="{height: Math.min(100, (skatingDistance / maxDistance * 100)) + '%'}"></div>
-                <div class="v-prog-icon" :style="{bottom: Math.min(100, (skatingDistance / maxDistance * 100)) + '%'}">🐏</div>
+            <div class="game-score-board">
+                <i class="fas fa-flag-checkered" style="color: #e74c3c;"></i>
+                距離終點: {{ Math.max(0, Math.floor(maxDistance - skatingDistance)) }}m
             </div>
             
-            <div style="display:flex; justify-content:space-between; align-items:center; width:90%;">
+            <div style="display:flex; justify-content:space-between; align-items:center; width:90%; margin-top:100px;">
                 <div class="life-container">
-                    <i v-for="n in 5" :key="n" class="fas fa-heart" :class="{lost: n > skatingLife}"></i>
+                    <i v-for="n in 6" :key="n" class="fas fa-heart" :class="{lost: n > skatingLife}" v-if="n <= maxSkatingLife"></i>
                 </div>
                 <div style="color:white; font-size:14px; font-weight:bold; text-shadow:0 0 5px black;">
                     Fever: <span v-for="n in 3" :key="n" style="margin-left:2px;">{{ n <= collectedHearts ? '❤️' : '⚪' }}</span>
                 </div>
             </div>
-            <div style="margin-top:5px; color:#fff; font-size:12px; font-weight:bold;">距離: {{ Math.max(0, Math.floor(maxDistance - skatingDistance)) }}m</div>
         </div>
 
         <div class="game-canvas">
@@ -393,9 +342,7 @@
             </div>
             
             <div v-for="s in stampedeSheep" :key="s.id" class="stampede-item" 
-                 :style="{left: s.x + '%', fontSize: s.size + 'px', animationDuration: s.speed + 's'}">
-                🐏
-            </div>
+                 :style="{left: s.x + '%', fontSize: s.size + 'px', animationDuration: s.speed + 's'}">🐏</div>
 
             <div v-for="obj in gameObjects" :key="obj.id" class="game-obj" :style="{left: obj.x + '%', top: obj.y + '%'}">
                 <div :class="obj.cls" style="font-size:40px;">{{ obj.icon }}</div>
@@ -403,22 +350,6 @@
 
             <div v-for="fb in feedbackEffects" :key="fb.id" class="feedback-item" :style="{left: fb.x + '%', top: fb.y + '%'}">
                 {{ fb.icon }} {{ fb.val }}
-            </div>
-        </div>
-
-        <div v-if="!gameRunning && !showGameIntro" class="modal-mask" style="align-items: center; justify-content: center;">
-            <div class="order-panel" style="text-align: center; width: 85%;">
-                <h2 v-if="skatingLife > 0 && skatingDistance < maxDistance">⛸️ 冰之舞</h2>
-                <h2 v-else-if="skatingLife <= 0" style="color: #ff4757;">💥 發生碰撞！</h2>
-                <h2 v-else style="color: gold;">🏆 抵達終點！</h2>
-                <p v-if="skatingLife > 0 && skatingDistance < maxDistance" style="color:#aaa;">目標：12000m<br>拖曳閃避</p>
-                <p v-else>本次滑冰獎勵：<span style="color: gold;">${{ gameScore * 10 }}</span></p>
-                <button class="btn-play" @click="showGameIntro = true" v-if="skatingDistance < maxDistance && skatingLife > 0">
-                    閱讀規則
-                </button>
-                <button class="btn-play" @click="toggleGame" v-else>
-                    前往明治神宮
-                </button>
             </div>
         </div>
     </div>
@@ -433,19 +364,26 @@
         <div class="result-bg" :style="{backgroundImage: 'url(' + resultInfo.bg + ')'}"></div>
         <div class="result-content">
             <div class="result-title" :style="{color: resultInfo.isLucky ? '#FFD700' : '#fff'}">{{ resultInfo.title }}</div>
+            <div class="photo-polaroid">
+                <img :src="resultInfo.photoImg" class="photo-img">
+                <div class="photo-caption">{{ resultInfo.photoName }}</div>
+                <div style="font-size:12px; color:#666; margin-top:5px;">Point: {{ resultInfo.photoVal }}</div>
+            </div>
             <div class="result-stats"><div v-for="(c, i) in resultInfo.changes" :key="i" class="stat-change" :style="{color: c.color}">{{ c.text }}</div></div>
             <div class="result-desc">{{ resultInfo.desc }}</div>
-            <button class="btn-play" style="background: rgba(255,255,255,0.2);">點擊繼續</button>
+            <button class="btn-play" style="background: rgba(255,255,255,0.2);">KEEP MEMORY</button>
         </div>
     </div>
 
     <div v-if="showDinner" class="modal-mask" style="align-items: center; justify-content: center;">
         <div class="order-panel" style="text-align: center;">
             <h2 style="color: #e67e22;">🍽️ 溫泉晚餐</h2>
-            <div style="font-size: 80px;">{{ dinnerResult.icon }}</div>
-            <h3>{{ dinnerResult.name }}</h3>
+            <div class="photo-polaroid" style="width:200px; padding-bottom:20px;">
+                <img :src="dinnerResult.img" class="photo-img">
+                <div class="photo-caption">{{ dinnerResult.name }}</div>
+            </div>
             <div class="stat-change" style="color: #2ED573;">{{ dinnerResult.effectText }}</div>
-            <button class="btn-play" style="margin-top:20px;" @click="finishDinner">吃飽了！</button>
+            <button class="btn-play" style="margin-top:20px;" @click="finishDinner">享用！</button>
         </div>
     </div>
 
@@ -453,16 +391,16 @@
         <div class="order-panel">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                 <h3 style="color: #e67e22; margin:0;">Mobile Order</h3>
-                <div style="color:gold; font-size:18px; font-weight:bold;"><i class="fas fa-coins"></i> {{ money }}</div>
+                <div style="color:gold; font-size:18px; font-weight:bold;"><i class="fas fa-camera"></i> {{ money }}</div>
             </div>
-            <p style="font-size: 12px; color: #666; margin-bottom: 20px;">⚠️ 消耗 <b>1小時</b>。<br>{{ orderCooldown > 0 ? `忙碌中 (剩${orderCooldown}回)` : '目前可下單' }}</p>
+            <p style="font-size: 12px; color: #666; margin-bottom: 20px;">吃東西放鬆一下 (不耗時)。<br>{{ orderCooldown > 0 ? `忙碌中` : '目前可下單' }}</p>
             <div v-for="food in currentMenu" :key="food.id" style="display: flex; align-items: center; padding: 15px 0; border-bottom: 1px solid #333;">
                 <div style="font-size: 40px; margin-right: 15px;">{{ food.icon }}</div>
                 <div style="flex: 1;">
                     <div style="font-weight: bold; font-size:16px;">{{ food.name }}</div>
-                    <div style="color: #2ED573; font-size: 13px;">❤️ {{ food.effect }}</div>
+                    <div style="color: #2ED573; font-size: 13px;">{{ food.effect }}</div>
                 </div>
-                <button @click="buyFood(food)" :disabled="money < food.price || time < 1 || orderCooldown > 0" style="background: #e67e22; border: none; color: white; padding: 8px 20px; border-radius: 20px; font-size:14px; font-weight:bold;">${{ food.price }}</button>
+                <button @click="buyFood(food)" :disabled="money < food.price || orderCooldown > 0" style="background: #e67e22; border: none; color: white; padding: 8px 20px; border-radius: 20px; font-size:14px; font-weight:bold;">${{ food.price }}</button>
             </div>
             <button class="btn-play" style="margin-top: 20px; background: #333; padding: 10px;" @click="showOrder = false">關閉</button>
         </div>
@@ -473,133 +411,347 @@
 
     createApp({
         setup() {
-            // --- 1. 核心變數 ---
+            // =========================================
+            // 1. 變數與資料設定
+            // =========================================
+            
             const phase = ref('prologue');
             const money = ref(0); 
-            const hp = ref(100); 
-            const time = ref(8); // ★ Land 初始改為 8 小時
-            const windLv = ref(0); 
+            const fatigue = ref(0); 
+            const time = ref(8); 
             const orderCooldown = ref(0); 
             const effects = ref([]);
             
+            // 啞巴變數
+            const windLv = ref(0);
+            
             // UI 狀態
             const selectedCard = ref(null); const stageMessage = ref(""); const stageResult = ref(false);
-            const showOrder = ref(false); const showResultModal = ref(false);
-            const resultInfo = ref({ title:'', desc:'', changes:[], bg:'', isLucky:false });
+            const showOrder = ref(false); const showResultModal = ref(false); 
             
-            // 特效變數
+            // 羊皮紙系統
+            const showParchmentPhase = ref(false); 
+            const parchmentMode = ref('intro'); 
+            
+            // 結算與轉場
+            const resultInfo = ref({ title:'', desc:'', changes:[], bg:'', isLucky:false, photoImg:'', photoName:'', photoVal:0 });
             const isHurt = ref(false); 
             const screenEffectClass = ref(""); 
             const moneyBox = ref(null); const hpBox = ref(null);
-
-            // 轉場與影片
             const showTransition = ref(false); const transitionData = ref({ nextPhase:'', title:'' });
             const isLoading = ref(true); const loadingProgress = ref(0);
             const showVideoModal = ref(false); const videoPlaying = ref(false); 
             const videoVisible = ref(false); const projectionVideo = ref(null); 
             const showManualBtn = ref(false);
 
-            // ★★★ 滑冰遊戲變數 (最終極致版) ★★★
-            const showGameIntro = ref(false);
+            // ★★★ 滑冰倒數變數 ★★★
+            const showCountdown = ref(false);
+            const countdownNum = ref(3);
+
+            // 滑冰與晚餐 Buff
             const gameRunning = ref(false); const gameScore = ref(0);
             const playerX = ref(50); const trackOffset = ref(0); 
             const gameObjects = ref([]); 
-            
-            // 暴走與物理
+            const gameBuffs = ref({ life:0, feverDuration:1, magnet:1 }); 
             const isFever = ref(false); const collectedHearts = ref(0); 
-            const isHit = ref(false); // 控制全螢幕震動
+            const isHit = ref(false);
             const skatingSpeed = ref(0.8); const skatingDistance = ref(0); 
-            const maxDistance = 12000; // ★ 加長跑道至 12000m (+20%)
+            const maxDistance = 12000; 
             const skatingLife = ref(5);
+            const maxSkatingLife = ref(5);
             const laneState = ref(['','','','','']); 
-            
-            // 特效與保底機制
             const stampedeSheep = ref([]); 
             const feedbackEffects = ref([]); 
-            const consecutiveObstacles = ref(0); // ★ 保底計數器
-            
+            const consecutiveObstacles = ref(0); 
             let lastSpawnTime = 0;
             const imgPath = './images/';
             
-            // --- 2. 設施資料定義 ---
+            // --- 設施資料 (防劇透：bg = cover) ---
             const landRides = ref([
-                { id:'beauty', name:'美女與野獸', icon:'fas fa-chess-rook', cost:2, played:false, bg:imgPath+'beauty-beast.png', desc:'賭運氣：抽到DPA賺大錢！' },
-                { id:'baymax', name:'杯麵歡樂搭乘', icon:'fas fa-robot', cost:1, played:false, bg:imgPath+'baymax.png', desc:'快樂搖擺！心情大好。' },
-                { id:'splash', name:'飛濺山', icon:'fas fa-water', cost:2, played:false, bg:imgPath+'splash-mountain.png', desc:'刺激！小心濕透。' },
-                { id:'train', name:'西部鐵路', icon:'fas fa-train', cost:1, played:false, bg:imgPath+'western-river.png', desc:'休息回復體溫。' },
-                { id:'shoot', name:'西部射擊', icon:'fas fa-crosshairs', cost:1, played:false, moneyCost:100, bg:imgPath+'westernland-shootin.png', desc:'花錢買子彈賭獎金。' },
-                { id:'monsters', name:'怪獸電力', icon:'fas fa-flashlight', cost:2, played:false, bg:imgPath+'monsters.png', desc:'找阿布賺積分。' },
-                { id:'carrousel', name:'城堡旋轉木馬', icon:'fas fa-horse-head', cost:1, played:false, bg:imgPath+'castle-carrousel.png', desc:'浪漫夜晚，拍照聖地。' }
+                { 
+                    id:'beauty', name:'美女與野獸', icon:'fas fa-chess-rook', cost:2, fatigueCost:15, played:false, 
+                    cover: imgPath+'beauty-beast.png', bg: imgPath+'beauty-beast.png',
+                    desc:'賭人品：能拍到浪漫共舞嗎？',
+                    good: { img:imgPath+'land-beauty-good.png', val:1000, name:'浪漫共舞照', fatigue:15 },
+                    bad: { img:imgPath+'land-beauty-bad.png', val:200, name:'排隊後腦杓', fatigue:40 }
+                },
+                { 
+                    id:'splash', name:'飛濺山', icon:'fas fa-water', cost:2, fatigueCost:15, played:false, 
+                    cover: imgPath+'splash-mountain.png', bg: imgPath+'splash-mountain.png',
+                    desc:'賭膽量：小心全身濕透！',
+                    good: { img:imgPath+'land-splash-good.png', val:800, name:'完美抓拍', fatigue:15 },
+                    bad: { img:imgPath+'land-splash-bad.png', val:150, name:'落湯雞特寫', fatigue:45 }
+                },
+                { 
+                    id:'baymax', name:'杯麵歡樂搭乘', icon:'fas fa-robot', cost:1, fatigueCost:10, played:false, 
+                    cover: imgPath+'baymax.png', bg: imgPath+'baymax.png',
+                    desc:'快樂搖擺！',
+                    good: { img:imgPath+'land-baymax-good.png', val:500, name:'快樂擊拳照', fatigue:10 },
+                    bad: { img:imgPath+'land-baymax-bad.png', val:100, name:'模糊的殘影', fatigue:30 }
+                },
+                { 
+                    id:'monsters', name:'怪獸電力公司', icon:'fas fa-flashlight', cost:2, fatigueCost:10, played:false, 
+                    cover: imgPath+'monsters.png', bg: imgPath+'monsters.png',
+                    desc:'尋找阿布！',
+                    good: { img:imgPath+'land-monsters-good.png', val:600, name:'阿布合照', fatigue:10 },
+                    bad: { img:imgPath+'land-monsters-bad.png', val:150, name:'閉眼照', fatigue:25 }
+                },
+                { 
+                    id:'shoot', name:'西部射擊', icon:'fas fa-crosshairs', cost:1, fatigueCost:5, moneyCost:100, played:false, 
+                    cover: imgPath+'westernland-shootin.png', bg: imgPath+'westernland-shootin.png',
+                    desc:'付費挑戰：神射手！',
+                    good: { img:imgPath+'land-shoot-good.png', val:700, name:'神射手警徽', fatigue:5 },
+                    bad: { img:imgPath+'land-shoot-bad.png', val:50, name:'射偏的彈孔', fatigue:15 }
+                },
+                { 
+                    id:'carrousel', name:'城堡旋轉木馬', icon:'fas fa-horse-head', cost:1, fatigueCost:5, played:false, 
+                    cover: imgPath+'castle-carrousel.png', bg: imgPath+'castle-carrousel.png',
+                    desc:'輕鬆拍照聖地。',
+                    good: { img:imgPath+'land-carousel-good.png', val:400, name:'網美打卡照', fatigue:5 },
+                    bad: { img:imgPath+'land-carousel-bad.png', val:80, name:'晃到的馬頭', fatigue:10 }
+                },
+                { 
+                    id:'rest', name:'中央廣場長椅', icon:'fas fa-chair', cost:1, fatigueCost:0, played:false, 
+                    cover: imgPath+'common-rest.png', bg: imgPath+'common-rest.png',
+                    desc:'休息一下，回復體力。', isRest:true,
+                    good: { img:imgPath+'common-rest.png', val:0, name:'休息時光', fatigue:-50 }
+                }
             ]);
+
             const seaRides = ref([
-                { id:'rapunzel', name:'樂佩天燈', icon:'fas fa-lightbulb', cost:3, played:false, bg:imgPath+'rapunzel-lantern.png', desc:'(3hr) 絕美場景，高分必去。' },
-                { id:'peter', name:'小彼得潘', icon:'fas fa-hat-wizard', cost:2, played:false, bg:imgPath+'peter-pan.png', desc:'夢幻泉鄉，療癒身心 (回血)。' },
-                { id:'journey', name:'地心探險', icon:'fas fa-mountain', cost:2, played:false, bg:imgPath+'journey-to-earth.png', desc:'遭遇怪獸！高風險高報酬。' },
-                { id:'sindbad', name:'辛巴達', icon:'fas fa-ship', cost:1, played:false, bg:imgPath+'sindbad.png', desc:'(1hr) 心靈指南針，絕對安全。' },
-                { id:'20k', name:'海底兩萬哩', icon:'fas fa-subway', cost:1, played:false, bg:imgPath+'under-the-sea.png', desc:'(1hr) 躲避強風專用。' },
-                { id:'arendelle', name:'皇家宴會', icon:'fas fa-utensils', cost:2, played:false, moneyCost:500, bg:imgPath+'frozen.png', desc:'花錢吃大餐，補滿狀態。' }
-            ]);
-            const onsenOptions = ref([
-                { id:'maka', name:'摩訶溫泉', icon:'fas fa-hot-tub', cost:0, bg:imgPath+'hot-spring.png', desc:'機率撿到錢？' },
-                { id:'hannya', name:'般若溫泉', icon:'fas fa-brain', cost:0, bg:imgPath+'hot-spring.png', desc:'思考人生 (幸運UP)' },
-                { id:'child', name:'子寶溫泉', icon:'fas fa-gem', cost:0, bg:imgPath+'hot-spring.png', desc:'高風險高報酬' },
-                { id:'maya', name:'麻耶溫泉', icon:'fas fa-spa', cost:0, bg:imgPath+'hot-spring.png', desc:'絕對放鬆 (回血)' }
+                { 
+                    id:'rapunzel', name:'樂佩天燈', icon:'fas fa-lightbulb', cost:3, fatigueCost:20, played:false, 
+                    cover: imgPath+'rapunzel-lantern.png', bg: imgPath+'rapunzel-lantern.png',
+                    desc:'(3hr) 絕美場景，高耗時。',
+                    good: { img:imgPath+'sea-rapunzel-good.png', val:1500, name:'絕美天燈海', fatigue:20 },
+                    bad: { img:imgPath+'sea-rapunzel-bad.png', val:300, name:'被人頭擋住', fatigue:50 }
+                },
+                { 
+                    id:'journey', name:'地心探險', icon:'fas fa-mountain', cost:2, fatigueCost:15, played:false, 
+                    cover: imgPath+'journey-to-earth.png', bg: imgPath+'journey-to-earth.png',
+                    desc:'刺激！小心怪獸。',
+                    good: { img:imgPath+'sea-journey-good.png', val:900, name:'岩漿怪獸合影', fatigue:15 },
+                    bad: { img:imgPath+'sea-journey-bad.png', val:200, name:'驚恐表情包', fatigue:50 }
+                },
+                { 
+                    id:'peter', name:'小彼得潘', icon:'fas fa-hat-wizard', cost:2, fatigueCost:10, played:false, 
+                    cover: imgPath+'peter-pan.png', bg: imgPath+'peter-pan.png',
+                    desc:'童話飛行。',
+                    good: { img:imgPath+'sea-peterpan-good.png', val:700, name:'夢幻島俯視', fatigue:10 },
+                    bad: { img:imgPath+'sea-peterpan-bad.png', val:150, name:'暈車嘔吐袋', fatigue:30 }
+                },
+                { 
+                    id:'sindbad', name:'辛巴達', icon:'fas fa-ship', cost:1, fatigueCost:5, played:false, 
+                    cover: imgPath+'sindbad.png', bg: imgPath+'sindbad.png',
+                    desc:'療癒系遊船。',
+                    good: { img:imgPath+'sea-sindbad-good.png', val:500, name:'小老虎合照', fatigue:5 },
+                    bad: { img:imgPath+'sea-sindbad-bad.png', val:100, name:'睡著的側臉', fatigue:-5 }
+                },
+                { 
+                    id:'20k', name:'海底兩萬哩', icon:'fas fa-subway', cost:1, fatigueCost:10, played:false, 
+                    cover: imgPath+'under-the-sea.png', bg: imgPath+'under-the-sea.png',
+                    desc:'潛入深海。',
+                    good: { img:imgPath+'sea-20k-good.png', val:400, name:'大章魚特寫', fatigue:10 },
+                    bad: { img:imgPath+'sea-20k-bad.png', val:80, name:'起霧的玻璃', fatigue:25 }
+                },
+                { 
+                    id:'arendelle', name:'皇家宴會', icon:'fas fa-utensils', cost:2, fatigueCost:0, moneyCost:500, played:false, 
+                    cover: imgPath+'frozen.png', bg: imgPath+'frozen.png',
+                    desc:'付費大餐，大幅恢復。',
+                    good: { img:imgPath+'sea-frozen-good.png', val:600, name:'艾莎女王合照', fatigue:-40 }
+                },
+                { 
+                    id:'rest', name:'港口長椅', icon:'fas fa-chair', cost:1, fatigueCost:0, played:false, 
+                    cover: imgPath+'common-rest.png', bg: imgPath+'common-rest.png',
+                    desc:'休息一下，回復體力。', isRest:true,
+                    good: { img:imgPath+'common-rest.png', val:0, name:'港口小憩', fatigue:-50 }
+                }
             ]);
             
+            // 溫泉：設定消耗時間為 0
+            const onsenOptions = ref([
+                { id:'onsen_entry', name:'汪泉閣露天風呂', icon:'fas fa-hot-tub', cost:0, cover: imgPath+'hot-spring.png', bg: imgPath+'hot-spring.png', desc:'進入雪中秘湯，試試運氣。' }
+            ]);
+            
+            const onsenLoot = [
+                { prob:0.2, img:imgPath+'onsen-outdoor-S.png', val:2000, name:'雪中秘湯 (S級)' },
+                { prob:0.4, img:imgPath+'onsen-window-A.png', val:1200, name:'雪見之窗 (A級)' },
+                { prob:0.4, img:imgPath+'onsen-steam-B.png', val:500, name:'暖呼呼白煙 (B級)' }
+            ];
+
             const menus = { 
-                chapter1: [{id:'waffle', name:'米奇鬆餅', icon:'🧇', price:150, hp:20, effect:'+20 HP'},{id:'mochi', name:'三眼怪麻糬', icon:'🍡', price:250, hp:40, effect:'+40 HP'},{id:'turkey', name:'煙燻火雞腿', icon:'🍗', price:500, hp:80, effect:'+80 HP'}], 
-                chapter2: [{id:'icecream', name:'海鹽冰淇淋', icon:'🍦', price:150, hp:15, effect:'+15 HP'},{id:'wine', name:'熱紅酒', icon:'🍷', price:300, hp:30, effect:'+30 HP'},{id:'chicken', name:'辣味燻雞腿', icon:'🍖', price:550, hp:85, effect:'+85 HP'}] 
+                chapter1: [{id:'waffle', name:'米奇鬆餅', icon:'🧇', price:150, fatigue:-10, effect:'-10% Fatigue'},{id:'mochi', name:'三眼怪麻糬', icon:'🍡', price:250, fatigue:-20, effect:'-20% Fatigue'},{id:'turkey', name:'煙燻火雞腿', icon:'🍗', price:500, fatigue:-40, effect:'-40% Fatigue'}], 
+                chapter2: [{id:'icecream', name:'海鹽冰淇淋', icon:'🍦', price:150, fatigue:-10, effect:'-10% Fatigue'},{id:'wine', name:'熱紅酒', icon:'🍷', price:300, fatigue:-25, effect:'-25% Fatigue'},{id:'chicken', name:'辣味燻雞腿', icon:'🍖', price:550, fatigue:-45, effect:'-45% Fatigue'}] 
             };
-            const dinnerDishes = [{ name:'熊肉火鍋', icon:'🥘', effect:{hp:100}, effectText:'溫暖值 MAX!'},{ name:'鹽烤岩魚', icon:'🐟', effect:{luck:30}, effectText:'幸運 +30'},{ name:'山菜天婦羅', icon:'🍄', effect:{hp:30,luck:10}, effectText:'溫暖+30'}];
+            
+            // ★★★ 晚餐資料 (繁體中文) ★★★
+            const dinnerDishes = [
+                { prob:0.1, name:'熊肉火鍋 (S級)', img:imgPath+'food-bear-S.png', effectText:'最大生命值 +1', buff:{life:1, feverDuration:1, magnet:1} },
+                { prob:0.2, name:'精緻懷石 (S級)', img:imgPath+'food-kaiseki-S.png', effectText:'Fever 暴走時間加倍', buff:{life:0, feverDuration:2, magnet:1} },
+                { prob:0.3, name:'鹽烤岩魚 (A級)', img:imgPath+'food-fish-A.png', effectText:'磁鐵吸力增強', buff:{life:0, feverDuration:1, magnet:2} },
+                { prob:0.4, name:'山菜天婦羅 (B級)', img:imgPath+'food-tempura-B.png', effectText:'一般恢復', buff:{life:0, feverDuration:1, magnet:1} }
+            ];
             const showDinner = ref(false); const dinnerResult = ref({});
             
-            // --- 3. Computed & Loader ---
-            const currentCards = computed(() => { if(phase.value==='chapter1') return landRides.value.filter(r=>!r.played); if(phase.value==='chapter2') return seaRides.value.filter(r=>!r.played); if(phase.value==='onsen') return onsenOptions.value; return []; });
+            // --- Computed ---
+            const currentCards = computed(() => { if(phase.value==='chapter1') return landRides.value; if(phase.value==='chapter2') return seaRides.value; if(phase.value==='onsen') return onsenOptions.value; return []; });
             const currentMenu = computed(() => menus[phase.value] || []);
-            const windColor = computed(()=>['#2ecc71','#f39c12','#ff4757'][windLv.value]);
-            const windLabel = computed(()=>['微風 Lv.0','強風 Lv.1','暴風 Lv.2'][windLv.value]);
+            const windColor = computed(() => 'transparent');
+            const windLabel = computed(() => '');
             const currentBg = computed(() => { if (selectedCard.value) return selectedCard.value.bg; if (phase.value === 'chapter1') return imgPath+'land-castle.png'; if (phase.value === 'chapter2') return imgPath+'disney-sea.png'; if (phase.value === 'onsen') return imgPath+'hot-spring.png'; return ''; });
 
+            // ★★★ 羊皮紙文字 (動態顯示 Dinner 結果與操作說明) ★★★
+            const parchmentData = computed(() => {
+                if (phase.value === 'chapter1') return { title: 'Disney Land', desc: 'Welcome to the Kingdom of Dreams!<br><br>目標：收集回憶照片 (積分)。<br>注意：疲勞值滿 100% 將無法行動。<br>善用休息與飲食！' };
+                if (phase.value === 'chapter2') return { title: 'Disney Sea', desc: 'Welcome to the Ocean of Adventure!<br><br>這裡的設施更刺激，容易累積疲勞。<br>小心控制體力，避免暈眩！' };
+                if (phase.value === 'karuizawa') {
+                    if (parchmentMode.value === 'settlement') return { title: '輕井澤挑戰成功!', desc: '恭喜您完成了滑冰挑戰！' };
+                    
+                    // 前導：動態顯示晚餐效果
+                    const dishName = dinnerResult.value.name || '美味的晚餐';
+                    const dishEffect = dinnerResult.value.effectText || '體力恢復';
+                    
+                    return { 
+                        title: '輕井澤滑冰場', 
+                        desc: `您剛才享用了 <b>${dishName}</b><br>獲得效果：<span style="color:#2ecc71">${dishEffect}</span><br><br><b>【滑冰操作說明】</b><br>左右滑動螢幕控制綿羊移動<br>閃避障礙物 🪨 並收集金幣 💰` 
+                    };
+                }
+                return { title:'', desc:'' };
+            });
+
             const loadList = async (list) => { let loaded = 0; return Promise.all(list.map(src => new Promise(resolve => { const img = new Image(); img.src = src; img.onload = () => { loaded++; loadingProgress.value = (loaded/list.length)*100; resolve(); }; img.onerror = () => { console.error('❌ Load Failed:', src); loaded++; resolve(); }; }))); };
-            const preloadImages = async () => { const critical = [imgPath+'prologue-bg.png', imgPath+'land-castle.png']; landRides.value.forEach(r => critical.push(r.bg)); await loadList(critical); setTimeout(() => { isLoading.value = false; loadBackgroundImages(); }, 500); };
-            
-            // ★ 加入 scroll-bg.png 到預載清單
-            const loadBackgroundImages = () => { const background = [imgPath+'disney-sea.png', imgPath+'hot-spring.png', imgPath+'ice-skating.png', imgPath+'sheep-top.png', imgPath+'scroll-bg.png']; seaRides.value.forEach(r => background.push(r.bg)); background.forEach(src => { const img = new Image(); img.src = src; }); };
+            const preloadImages = async () => { 
+                const critical = [imgPath+'prologue-bg.png', imgPath+'land-castle.png', imgPath+'settlement-board.png', imgPath+'sheep-top.png']; 
+                landRides.value.forEach(r => { if(r.cover) critical.push(r.cover); if(r.good) critical.push(r.good.img); if(r.bad) critical.push(r.bad.img); });
+                seaRides.value.forEach(r => { if(r.cover) critical.push(r.cover); if(r.good) critical.push(r.good.img); if(r.bad) critical.push(r.bad.img); });
+                onsenLoot.forEach(l => critical.push(l.img));
+                dinnerDishes.forEach(d => critical.push(d.img));
+                await loadList(critical); 
+                setTimeout(() => { isLoading.value = false; }, 500); 
+            };
             onMounted(() => { preloadImages(); });
-            // --- Helper ---
+            // =========================================
+            // 2. 遊戲邏輯與函式 (含倒數功能)
+            // =========================================
+
             const spawnText = (t,c,tag) => { const el=tag==='money'?moneyBox.value:hpBox.value; if(!el)return; const r=el.getBoundingClientRect(); effects.value.push({id:Date.now(),txt:t,cls:c,x:r.left+10,y:r.top+30}); setTimeout(()=>effects.value.shift(),1500); };
 
-            // --- 核心行動邏輯 ---
             const executeAction = () => {
                 const c = selectedCard.value;
-                let title='', desc='', changes=[], lucky=true;
-                time.value -= c.cost;
+                
+                // 疲勞檢查 (溫泉除外)
+                if (phase.value !== 'onsen' && fatigue.value >= 100 && !c.isRest) { 
+                    spawnText('太累了!', 'ft-bad', 'hp'); return; 
+                }
+
+                // 時間與金錢扣除 (溫泉不扣時間)
+                if (phase.value !== 'onsen') {
+                    time.value -= c.cost;
+                }
                 if(c.moneyCost) money.value -= c.moneyCost;
 
-                if(phase.value === 'onsen') { hp.value=100; title='極致放鬆'; desc='溫泉太舒服了！'; changes.push({text:'溫暖 MAX', color:'#2ED573'}); } 
-                else {
-                    if(c.id === 'beauty') { if(Math.random() > 0.6) { money.value += 150; hp.value -= 10; title='排隊地獄'; desc='只拿到安慰獎。'; changes.push({text:'+$150', color:'gold'}, {text:'-10 HP', color:'red'}); lucky=false; spawnText('+$150','ft-money','money'); spawnText('-10 HP','ft-dmg','hp'); } else { money.value += 600; title='抽中 DPA!'; desc='不用排隊太爽了！'; changes.push({text:'+$600', color:'gold'}); spawnText('+$600','ft-money','money'); }} 
-                    else if(c.id === 'splash') { if(Math.random() > 0.5) { hp.value -= 30; title='全濕了！'; desc='好冷...'; changes.push({text:'-30 HP', color:'red'}); lucky=false; spawnText('-30 HP','ft-dmg','hp'); } else { money.value += 300; title='完美閃避'; desc='刺激又好玩！'; changes.push({text:'+$300', color:'gold'}); spawnText('+$300','ft-money','money'); }} 
-                    else if(c.id === 'shoot') { if(Math.random() > 0.7) { money.value += 600; title='百發百中'; desc='拿到警長徽章！'; changes.push({text:'+$600', color:'gold'}); spawnText('+$600','ft-money','money'); } else { title='槓龜'; desc='錢飛了。'; changes.push({text:'$0', color:'#ccc'}); lucky=false; }} 
-                    else if(c.id === 'baymax') { hp.value = Math.min(100, hp.value + 40); title='杯麵電音趴'; desc='Bala-lala~ 心情大好！'; changes.push({text:'+40 HP', color:'#2ED573'}); spawnText('+40 HP','ft-hp','hp'); } 
-                    else if(c.id === 'carrousel') { hp.value = Math.min(100, hp.value + 15); money.value+=100; title='浪漫旋轉'; desc='燈光美氣氛佳。'; changes.push({text:'+15 HP', color:'#2ED573'}); spawnText('+15 HP','ft-hp','hp'); }
-                    else if(c.id === 'rapunzel') { money.value += 400; title='絕美天燈'; desc='浪漫夜晚。'; changes.push({text:'+$400', color:'gold'}); spawnText('+$400','ft-money','money'); } 
-                    else if(c.id === 'peter') { money.value += 150; hp.value = Math.min(100, hp.value + 30); title='夢幻島飛行'; desc='Tinker Bell 超療癒！'; changes.push({text:'+30 HP', color:'#2ED573'}); spawnText('+30 HP','ft-hp','hp'); } 
-                    else if(c.id === 'journey') { if(Math.random() > 0.5) { money.value += 500; title='岩漿絕景'; desc='壯觀！'; changes.push({text:'+$500', color:'gold'}); spawnText('+$500','ft-money','money'); } else { hp.value -= 20; title='怪獸突襲'; desc='被嚇死...'; changes.push({text:'-20 HP', color:'red'}); lucky=false; spawnText('-20 HP','ft-dmg','hp'); }} 
-                    else if(c.id === 'sindbad') { money.value += 100; hp.value = Math.min(100, hp.value + 10); title='心靈指南針'; desc='絕對安全。'; changes.push({text:'+$100', color:'gold'}); } 
-                    else if(c.id === 'arendelle') { hp.value = 100; title='皇家盛宴'; desc='體力全滿！'; changes.push({text:'HP MAX', color:'#2ED573'}); spawnText('HP MAX','ft-hp','hp'); } 
-                    else { money.value += 200; title='美好回憶'; desc='開心！'; changes.push({text:'+$200', color:'gold'}); spawnText('+$200','ft-money','money'); }
-                    if(orderCooldown.value>0) orderCooldown.value--;
+                // 溫泉邏輯
+                if(phase.value === 'onsen') { 
+                    fatigue.value=0; 
+                    const r = Math.random();
+                    let loot = onsenLoot[2]; // Default B
+                    if (r < 0.2) loot = onsenLoot[0]; 
+                    else if (r < 0.6) loot = onsenLoot[1]; 
+                    
+                    money.value += loot.val;
+                    resultInfo.value = { title: loot.name.split(' ')[0], desc:'身心舒暢...', changes:[{text:'疲勞全消', color:'#2ED573'}], bg:c.bg, isLucky:true, photoImg:loot.img, photoName:loot.name, photoVal:loot.val }; 
+                    showResultModal.value=true; 
+                    return; 
+                } 
+
+                let isLucky = true;
+                if (!c.isRest) fatigue.value = Math.min(100, fatigue.value + c.fatigueCost);
+
+                let photoData = c.good; 
+                let outcomeDesc = "拍到了好照片！";
+
+                if (c.isRest) {
+                    fatigue.value = Math.max(0, fatigue.value - 50);
+                    outcomeDesc = "體力大幅恢復。";
+                } else if (c.bad) {
+                    if (Math.random() > 0.6) {
+                        isLucky = false; photoData = c.bad;
+                        fatigue.value = Math.min(100, fatigue.value + photoData.fatigue);
+                        outcomeDesc = "發生了意外...";
+                    } else {
+                        fatigue.value = Math.min(100, fatigue.value + photoData.fatigue);
+                    }
+                } else {
+                    fatigue.value = Math.max(0, fatigue.value + photoData.fatigue); 
                 }
-                resultInfo.value = { title, desc, changes, bg:c.bg, isLucky:lucky };
-                showResultModal.value = true; c.played = true;
+
+                money.value += photoData.val;
+                if (photoData.val > 0) spawnText(`+$${photoData.val}`, 'ft-money', 'money');
+                
+                let fatChangeText = photoData.fatigue > 0 ? `+${photoData.fatigue}%` : `${photoData.fatigue}%`;
+                if (c.isRest) fatChangeText = "-50%";
+                spawnText(`疲勞 ${fatChangeText}`, photoData.fatigue > 0 ? 'ft-bad' : 'ft-good', 'hp');
+
+                if(orderCooldown.value>0) orderCooldown.value--;
+
+                resultInfo.value = { 
+                    title: isLucky ? 'Great Memory!' : 'Bad Memory...', 
+                    desc: outcomeDesc, 
+                    changes: [{text: `疲勞 ${fatChangeText}`, color: photoData.fatigue > 0 ? '#FF4757' : '#2ED573'}], 
+                    bg: c.bg, isLucky: isLucky, photoImg: photoData.img, photoName: photoData.name, photoVal: photoData.val
+                };
+                showResultModal.value = true; 
             };
 
             const confirmResult = () => { showResultModal.value = false; selectedCard.value = null; if(phase.value === 'onsen') startDinner(); else endTurnCheck(); };
-            const startDinner = () => { const d=dinnerDishes[Math.floor(Math.random()*dinnerDishes.length)]; dinnerResult.value=d; if(d.effect.hp) hp.value=Math.min(100,hp.value+d.effect.hp); showDinner.value=true; };
-            const finishDinner = () => { showDinner.value=false; phase.value='karuizawa'; showGameIntro.value = true; }; 
-            const buyFood = (f) => { money.value -= f.price; hp.value = Math.min(100, hp.value + f.hp); showOrder.value = false; orderCooldown.value = 1; spawnText(`-${f.price}`,'ft-dmg','money'); spawnText(`+${f.hp} HP`,'ft-hp','hp'); endTurnCheck(); };
+            
+            const startDinner = () => { 
+                const r = Math.random();
+                let dish = dinnerDishes[3]; 
+                if (r < 0.1) dish = dinnerDishes[0]; 
+                else if (r < 0.3) dish = dinnerDishes[1]; 
+                else if (r < 0.6) dish = dinnerDishes[2]; 
+                
+                dinnerResult.value = dish; 
+                gameBuffs.value = dish.buff; 
+                showDinner.value = true; 
+            };
+            
+            const finishDinner = () => { 
+                showDinner.value=false; 
+                phase.value='karuizawa'; 
+                gameRunning.value = false; 
+                parchmentMode.value='intro'; 
+                showParchmentPhase.value = true; 
+            }; 
+            
+            const buyFood = (f) => { money.value -= f.price; fatigue.value = Math.max(0, fatigue.value + f.fatigue); showOrder.value = false; orderCooldown.value = 1; spawnText(`-${f.price}`, 'ft-bad', 'money'); spawnText(`${f.effect}`, 'ft-good', 'hp'); };
 
+            const handleParchmentAction = () => {
+                // 滑冰結算
+                if (parchmentMode.value === 'settlement' && phase.value === 'karuizawa') {
+                    showParchmentPhase.value = false;
+                    alert("To Be Continued in 明治神宮...");
+                    return;
+                }
+
+                // 前導
+                if (parchmentMode.value === 'intro') {
+                    showParchmentPhase.value = false;
+                    if(phase.value === 'karuizawa') {
+                        // ★★★ 滑冰前導點擊後，先啟動倒數 ★★★
+                        startCountdown();
+                    }
+                } else {
+                    // 一般轉場
+                    proceedToNextChapter();
+                }
+            };
+
+            const startGame = () => { money.value = 0; fatigue.value = 0; phase.value = 'chapter1'; time.value = 8; parchmentMode.value='intro'; showParchmentPhase.value = true; }; 
+            const selectCard = (c) => { selectedCard.value = c; stageMessage.value = ""; stageResult.value = false; };
+            const canAfford = (c) => (time.value >= c.cost) && (!c.moneyCost || money.value >= c.moneyCost);
+            
             const startProjectionShow = async () => { showVideoModal.value = true; showManualBtn.value = false; await nextTick(); playVideo(); };
             const playVideo = () => {
                 const v = projectionVideo.value; if(!v) return; v.volume = 0; const playPromise = v.play();
@@ -607,21 +759,72 @@
             };
             const onVideoEnded = () => { videoVisible.value = false; setTimeout(() => { showVideoModal.value = false; transitionData.value = { nextPhase:'chapter2', title:'Disney Sea' }; showTransition.value = true; }, 2000); };
             
-            // 回合檢查
             const endTurnCheck = () => { 
-                if(phase.value==='chapter2' && windLv.value>0){ const d=windLv.value*10; hp.value-=d; isHurt.value=true; setTimeout(()=>isHurt.value=false,400); spawnText(`-${d} 風`,'ft-dmg','hp'); windLv.value=Math.floor(Math.random()*2)+1; } 
-                if(currentCards.value.length === 0 && time.value > 0) { spawnText("設施全制霸！", 'ft-money', 'money'); setTimeout(() => { time.value = 0; endTurnCheck(); }, 1500); return; } 
-                if(time.value<=0){ setTimeout(()=>{ if(phase.value==='chapter1'){ startProjectionShow(); } else if(phase.value==='chapter2') { transitionData.value = { nextPhase:'onsen', title:'Healing Onsen' }; showTransition.value = true; } }, 500); } 
+                if (phase.value !== 'onsen' && time.value <= 0) {
+                    parchmentMode.value = 'settlement';
+                    showParchmentPhase.value = true;
+                }
             };
-            const proceedToNextChapter = () => { showTransition.value = false; const next = transitionData.value.nextPhase; if(next === 'chapter2') { phase.value='chapter2'; time.value=8; windLv.value=1; } else if(next === 'onsen') { phase.value='onsen'; } };
-            const jumpTo = (p) => { phase.value = p; if(p === 'chapter2') time.value = 8; else time.value = 8; money.value = 1000; if(p === 'karuizawa') { showGameIntro.value = true; gameRunning.value=false; } };
+            
+            const proceedToNextChapter = () => { 
+                showParchmentPhase.value = false; 
 
-            // ★★★ 滑冰遊戲邏輯 (最終強化) ★★★
-            const enterGame = () => { showGameIntro.value = false; initGame(); };
-            const initGame = () => { skatingLife.value=5; skatingDistance.value=0; gameScore.value=0; collectedHearts.value=0; isFever.value=false; playerX.value=50; gameObjects.value=[]; stampedeSheep.value=[]; feedbackEffects.value=[]; consecutiveObstacles.value=0; gameRunning.value=true; lastSpawnTime=Date.now(); requestAnimationFrame(gameLoop); };
+                // 1. 票券邏輯
+                if (showTransition.value) {
+                    if (transitionData.value.nextPhase === 'chapter2') {
+                        phase.value = 'chapter2'; 
+                        time.value = 8; 
+                        fatigue.value = Math.floor(fatigue.value * 0.4); 
+                        parchmentMode.value = 'intro'; 
+                        showParchmentPhase.value = true; 
+                    } else if (transitionData.value.nextPhase === 'onsen') {
+                        phase.value = 'onsen'; 
+                    }
+                    showTransition.value = false; 
+                    return; 
+                }
+
+                // 2. 轉場觸發
+                if (phase.value === 'chapter1') { 
+                    startProjectionShow(); 
+                } 
+                else if (phase.value === 'chapter2') {
+                    transitionData.value = { nextPhase:'onsen', title:'Healing Onsen' };
+                    showTransition.value = true; 
+                }
+            };
+            
+            const jumpTo = (p) => { 
+                phase.value = p; 
+                if(p === 'chapter2') { time.value = 8; fatigue.value = 20; parchmentMode.value='intro'; showParchmentPhase.value = true; } 
+                else if(p === 'onsen') { time.value = 2; fatigue.value = 80; }
+                else { time.value = 8; fatigue.value = 0; } 
+                money.value = 2000; 
+                if(p === 'karuizawa') { parchmentMode.value='intro'; showParchmentPhase.value = true; gameRunning.value=false; } 
+            };
+
+            // ★★★ 倒數與開始遊戲邏輯 ★★★
+            const startCountdown = () => {
+                showCountdown.value = true;
+                countdownNum.value = 3;
+                const timer = setInterval(() => {
+                    countdownNum.value--;
+                    if (countdownNum.value < 0) {
+                        clearInterval(timer);
+                        showCountdown.value = false;
+                        enterGame(); // 倒數結束，開始遊戲
+                    }
+                }, 1000);
+            };
+
+            const enterGame = () => { initGame(); };
+            const initGame = () => { 
+                maxSkatingLife.value = 5 + gameBuffs.value.life;
+                skatingLife.value = maxSkatingLife.value;
+                skatingDistance.value=0; gameScore.value=0; collectedHearts.value=0; isFever.value=false; playerX.value=50; gameObjects.value=[]; stampedeSheep.value=[]; feedbackEffects.value=[]; consecutiveObstacles.value=0; gameRunning.value=true; lastSpawnTime=Date.now(); requestAnimationFrame(gameLoop); 
+            };
             const toggleGame = () => { if(!gameRunning.value) { money.value+=gameScore.value*10; spawnText(`+$${gameScore.value*10}`,'ft-money','money'); alert("前往明治神宮(待續)"); return; } }; 
             
-            // 手指拖曳 (Touch Move) - 零延遲版本
             const onTouchStart = (e) => { };
             const onTouchMove = (e) => {
                 if(!gameRunning.value) return;
@@ -646,10 +849,15 @@
                 skatingDistance.value += move; 
                 trackOffset.value = (trackOffset.value + move) % 100; 
 
-                // 暴走優先：如果距離到了但還在暴走，不結束
-                if(skatingDistance.value >= maxDistance && !isFever.value) { gameRunning.value = false; return; } 
+                // 滑冰結算
+                if(skatingDistance.value >= maxDistance && !isFever.value) { 
+                    gameRunning.value = false; 
+                    money.value += gameScore.value * 10; 
+                    parchmentMode.value = 'settlement'; 
+                    showParchmentPhase.value = true;
+                    return; 
+                } 
 
-                // 萬羊奔騰生成
                 if(isFever.value && Math.random() > 0.8) {
                     stampedeSheep.value.push({ id: Date.now(), x: Math.random()*90, speed: 0.5 + Math.random(), size: 40 + Math.random()*40 });
                 }
@@ -662,45 +870,35 @@
                     const lanes=[10,30,50,70,90]; const laneIdx = Math.floor(Math.random()*lanes.length); const x=lanes[laneIdx];
                     laneState.value[laneIdx] = 'warn'; setTimeout(() => laneState.value[laneIdx] = '', 500);
 
-                    // ★ 生成邏輯：暴走時全金幣 vs 平時保底機制 ★
                     let t='obstacle', i='🪨', cls='obstacle';
-                    
                     if (isFever.value) {
-                        // 暴走時：強制生成金幣
-                        t='item-coin'; i='💰'; cls='item-coin'; laneState.value[laneIdx] = 'gold';
+                        t='item-coin'; i='💰'; cls='item-coin'; laneState.value[laneIdx] = 'gold'; 
                     } else {
-                        // 平時：檢查保底
                         let isReward = false;
                         const r = Math.random();
-                        
-                        if (consecutiveObstacles.value >= 5) isReward = true; // 強制保底
-                        else if (r > 0.65) isReward = true; // 自然獎勵
-
+                        if (consecutiveObstacles.value >= 5) isReward = true; 
+                        else if (r > 0.65) isReward = true; 
                         if (isReward) {
-                            consecutiveObstacles.value = 0; // 重置
+                            consecutiveObstacles.value = 0; 
                             if (Math.random() > 0.7) { t='item-heart'; i='❤️'; cls='item-heart'; laneState.value[laneIdx] = 'gold'; }
                             else { t='item-coin'; i='💰'; cls='item-coin'; laneState.value[laneIdx] = 'gold'; }
                         } else {
-                            consecutiveObstacles.value++; // 障礙物計數+1
+                            consecutiveObstacles.value++; 
                             const obs = ['🪨', '🪵', '🐦‍⬛']; i = obs[Math.floor(Math.random()*obs.length)]; 
                         }
                     }
-                    
                     gameObjects.value.push({id:now, x, y:-10, type:t, icon:i, cls, hit:false}); lastSpawnTime=now;
                 }
 
                 gameObjects.value.forEach((o, idx)=>{
                     o.y += (1.0 * skatingSpeed.value);
-
-                    // ★ 暴走磁鐵：極速吸金 (係數 0.6) ★
+                    const magnetStrength = 0.6 * gameBuffs.value.magnet; 
                     if(isFever.value && (o.type==='item-coin' || o.type==='item-heart')) {
                          const dx = playerX.value - o.x;
-                         o.x += dx * 0.6; // 每幀靠近 60%，幾乎瞬間吸入
+                         o.x += dx * magnetStrength; 
                     }
 
-                    // 碰撞判定 (暴走時範圍加大至40)
                     const hitRange = isFever.value ? 40 : 15; 
-                    
                     if(!o.hit && o.y>75 && o.y<90 && Math.abs(o.x-playerX.value) < hitRange){
                         o.hit=true;
                         if(o.type==='obstacle'){
@@ -708,10 +906,13 @@
                                 isHit.value = true; isHurt.value = true; 
                                 setTimeout(() => { isHit.value = false; isHurt.value = false; }, 400);
                                 skatingLife.value--; 
-                                if(skatingLife.value<=0) gameRunning.value = false; 
+                                if(skatingLife.value<=0) {
+                                    gameRunning.value = false;
+                                    parchmentMode.value = 'settlement';
+                                    showParchmentPhase.value = true;
+                                }
                             } else { 
-                                gameScore.value += 2; 
-                                spawnFeedback(o.x, '💥', '+2');
+                                gameScore.value += 2; spawnFeedback(o.x, '💥', '+2');
                             }
                         } else if(o.type==='item-coin'){ 
                             gameScore.value+=10; spawnFeedback(o.x, '💰', '+10'); gameObjects.value.splice(idx,1); 
@@ -721,7 +922,8 @@
                                 collectedHearts.value++;
                                 if(collectedHearts.value >= 3) { 
                                     isFever.value = true; collectedHearts.value = 3;
-                                    setTimeout(() => { isFever.value = false; collectedHearts.value = 0; stampedeSheep.value = []; }, 5000); 
+                                    const feverTime = 5000 * gameBuffs.value.feverDuration;
+                                    setTimeout(() => { isFever.value = false; collectedHearts.value = 0; stampedeSheep.value = []; }, feverTime); 
                                 }
                             } else { gameScore.value += 20; }
                             gameObjects.value.splice(idx,1);
@@ -732,21 +934,18 @@
                 requestAnimationFrame(gameLoop);
             };
 
-            const startGame = () => { money.value = 600; phase.value = 'chapter1'; time.value = 8; }; // ★ Land 初始 8
-            const selectCard = (c) => { selectedCard.value = c; stageMessage.value = ""; stageResult.value = false; };
-            const canAfford = (c) => (time.value >= c.cost) && (!c.moneyCost || money.value >= c.moneyCost);
-            
             return {
-                phase, money, hp, time, windLv, windColor, windLabel, effects, jumpTo,
+                phase, money, fatigue, time, windLv, windColor, windLabel, effects, jumpTo,
                 selectedCard, stageMessage, stageResult, showOrder, showResultModal, resultInfo, showDinner, dinnerResult,
                 landRides, seaRides, onsenOptions, currentCards, currentMenu, moneyBox, hpBox, isHurt, screenEffectClass,
-                currentBg, isLoading, loadingProgress,
+                currentBg, isLoading, loadingProgress, parchmentData, showParchmentPhase, parchmentMode, handleParchmentAction,
                 showTransition, transitionData, proceedToNextChapter,
                 showVideoModal, videoPlaying, videoVisible, projectionVideo, playVideo, onVideoEnded, showManualBtn,
+                showCountdown, countdownNum, // 匯出倒數變數
                 startGame, selectCard, canAfford, executeAction, confirmResult, buyFood, finishDinner,
-                showGameIntro, enterGame, toggleGame, onTouchStart, onTouchMove, onTouchEnd,
+                enterGame, toggleGame, onTouchStart, onTouchMove, onTouchEnd,
                 gameRunning, gameScore, playerX, trackOffset, gameObjects, isFever, isHit,
-                skatingSpeed, skatingDistance, maxDistance, skatingLife, laneState, collectedHearts,
+                skatingSpeed, skatingDistance, maxDistance, skatingLife, maxSkatingLife, laneState, collectedHearts,
                 stampedeSheep, feedbackEffects
             };
         }
