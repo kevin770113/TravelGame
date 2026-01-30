@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>冬日時空冒險 (Battle Detail Update)</title>
+    <title>冬日時空冒險 (Final Fix)</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -29,32 +29,35 @@
         .stat-box { display: flex; flex-direction: column; align-items: center; width: 70px; position: relative; }
         .stat-val { font-size: 14px; font-weight: bold; }
         
-        /* 一般浮動文字 (Land/Sea用) */
+        /* 浮動文字 */
         .float-text { position: absolute; font-weight: 900; font-size: 32px; z-index: 9999; animation: floatUp 1.5s forwards; pointer-events: none; -webkit-text-stroke: 1.2px #000; text-shadow: 0 0 15px rgba(255,255,255,0.8); }
-        
-        /* 戰鬥專用浮動文字 */
-        .battle-float-text { position: absolute; font-weight: 900; font-size: 48px; z-index: 2000; animation: damagePop 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; pointer-events: none; -webkit-text-stroke: 2px #000; text-shadow: 0 0 10px rgba(0,0,0,0.8); white-space: nowrap; }
-        .dmg-crit { color: #FFD700; font-size: 60px; }
-        .dmg-normal { color: #fff; }
-        .dmg-player { color: #FF4757; }
-        .dmg-heal { color: #2ED573; font-size: 40px; text-shadow: 0 0 10px #2ED573; }
+        .battle-float-text { position: absolute; font-weight: 900; font-size: 48px; z-index: 2000; pointer-events: none; -webkit-text-stroke: 2px #000; text-shadow: 0 0 10px rgba(0,0,0,0.8); white-space: nowrap; }
+        .dmg-crit { color: #FFD700; font-size: 65px; animation: damagePopCrit 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .dmg-normal { color: #fff; animation: floatUp 1s forwards; }
+        .dmg-player { color: #FF4757; animation: shake 0.5s ease-in-out; }
+        .dmg-heal { color: #2ED573; font-size: 40px; text-shadow: 0 0 10px #2ED573; animation: floatUp 1.5s forwards; }
         
         @keyframes floatUp { 0% { opacity: 0; transform: translateY(10px) scale(0.5); } 15% { opacity: 1; transform: translateY(0) scale(1.2); } 100% { opacity: 0; transform: translateY(-120px) scale(1); } }
-        @keyframes damagePop { 0% { opacity: 0; transform: translate(-50%, 20px) scale(0.5); } 30% { opacity: 1; transform: translate(-50%, -20px) scale(1.5); } 100% { opacity: 0; transform: translate(-50%, -80px) scale(1); } }
+        @keyframes damagePopCrit { 
+            0% { opacity: 0; transform: translate(-50%, 0) scale(0.5); } 
+            20% { opacity: 1; transform: translate(-50%, -40px) scale(1.5); } 
+            40% { transform: translate(-30%, -60px) scale(1.2); }
+            100% { opacity: 0; transform: translate(20%, 50px) scale(1); } 
+        }
         
         .ft-money { color: var(--accent); } .ft-bad { color: var(--danger); } .ft-good { color: var(--safe); }
-        
-        /* ★ 震動與紅框特效 */
         .damage-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: radial-gradient(circle, transparent 50%, rgba(255, 71, 87, 0.6) 100%); pointer-events: none; z-index: 1500; opacity: 0; transition: opacity 0.1s; }
         .damage-overlay.active { opacity: 1; animation: flashRed 0.2s infinite alternate; }
         
         .shake-effect { animation: shake 0.4s ease-in-out; }
         .screen-shake { animation: shake 0.5s ease-in-out; }
         .shake-hard { animation: shakeHard 0.3s ease-in-out !important; }
+        .boss-hit-flash { animation: flashWhite 0.15s ease-out !important; }
         
         @keyframes flashRed { from { opacity: 0.5; } to { opacity: 0.8; } }
+        @keyframes flashWhite { 0% { filter: brightness(10) sepia(1) hue-rotate(-50deg); transform: scale(1.1); } 100% { filter: none; transform: scale(1); } }
         @keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-5px);color:var(--danger)} 40%,80%{transform:translateX(5px)} }
-        @keyframes shakeHard { 0%,100%{transform:translate(0,0)} 25%{transform:translate(-10px, 5px)} 50%{transform:translate(10px, -5px)} 75%{transform:translate(-10px, -5px)} }
+        @keyframes shakeHard { 0%,100%{transform:translate(0,0)} 25%{transform:translate(-15px, 10px)} 50%{transform:translate(15px, -10px)} 75%{transform:translate(-15px, -10px)} }
 
         /* --- 舞台區 --- */
         .stage-area { flex: 1; position: relative; background: #222; overflow: hidden; display: flex; flex-direction: column; }
@@ -69,13 +72,13 @@
         .btn-play { width: 100%; padding: 16px; border-radius: 30px; border: none; font-size: 18px; font-weight: bold; color: white; background: linear-gradient(45deg, var(--primary), #e66767); box-shadow: 0 5px 20px rgba(255, 107, 139, 0.4); cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 10px; }
         .btn-play:disabled { filter: grayscale(1); opacity: 0.5; cursor: not-allowed; background: #555; box-shadow: none; }
         
-        /* DPA Button Styling */
+        /* DPA Button */
         .btn-dpa { width: 100%; padding: 12px; border-radius: 30px; border: 2px solid #a55eea; font-size: 16px; font-weight: bold; color: white; background: rgba(50, 0, 100, 0.8); cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 10px; backdrop-filter: blur(5px); transition: 0.3s; }
         .btn-dpa i { color: #FFD700; }
         .btn-dpa:disabled { opacity: 0.6; cursor: not-allowed; border-color: #444; background: rgba(60,60,60,0.8); color: #aaa; }
         .btn-dpa:disabled i { color: #aaa; }
 
-        /* --- 手牌區 (一般模式) --- */
+        /* --- 手牌區 --- */
         .deck-area { height: 190px; background: #151515; border-top: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; padding: 10px 0; z-index: 10; flex-shrink: 0; }
         .card-scroller { flex-grow: 1; display: flex; overflow-x: auto; padding: 0 20px; gap: 15px; align-items: center; scrollbar-width: none; }
         .mini-card { flex: 0 0 140px; height: 160px; background: var(--card-bg); border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.2s; cursor: pointer; overflow: hidden; position: relative; }
@@ -142,9 +145,9 @@
         .lane-hint.gold { background: rgba(255, 215, 0, 0.2); opacity: 1; box-shadow: 0 0 20px rgba(255, 215, 0, 0.2); }
         .sprite-wrapper { position: absolute; bottom: 15%; z-index: 20; display:flex; justify-content:center; align-items:center; transform: translateX(-50%); pointer-events: none; }
         .sheep-img { width: 100px; height: 100px; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.5)); transition: width 0.3s, height 0.3s; }
-        .sheep-img.fever { width: 500px; height: 500px; animation: rainbow-flash 0.5s infinite; } /* ★ Fever Rainbow Effect */
+        .sheep-img.fever { width: 500px; height: 500px; animation: rainbow-flash 0.5s infinite; } 
         
-        /* ★★★ 修復：暴走羊使用 <img>，並且移除 transition 以便 JS 控制 ★★★ */
+        /* 暴走羊 (移除 transition 以便 JS 控制) */
         .stampede-item { position: absolute; z-index: 8; pointer-events: none; transition: none !important; filter: drop-shadow(0 0 10px rgba(255,255,255,0.5)); }
         
         .player { animation: waddle 0.3s infinite alternate; }
@@ -214,6 +217,11 @@
         .hp-bar-container { width: 220px; height: 12px; background: #333; border-radius: 6px; overflow: hidden; border: 1px solid #555; position: relative; margin-top: 5px; }
         .hp-fill { height: 100%; background: linear-gradient(to right, #e74c3c, #c0392b); transition: width 0.5s; }
         
+        /* ★ 特效層 */
+        .vfx-layer { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events: none; z-index: 15; }
+        .vfx-slash { position: absolute; top:50%; left:50%; width:100%; height:5px; background: #fff; transform: translate(-50%, -50%) rotate(-45deg); box-shadow: 0 0 20px #fff; animation: slashAnim 0.2s forwards; }
+        @keyframes slashAnim { 0% { width:0; opacity:1; } 50% { width:120%; opacity:1; } 100% { width:120%; opacity:0; } }
+        
         /* 2. Player Stats (Mid-Top 10%) - Independent */
         .battle-player-area { position: absolute; top: 38%; width: 100%; height: 10%; display: flex; flex-direction: column; align-items: center; z-index: 10; }
         
@@ -222,7 +230,9 @@
         .slot { width: 65px; height: 95px; border: 2px dashed rgba(255,255,255,0.3); border-radius: 5px; display: flex; justify-content: center; align-items: center; background: rgba(0,0,0,0.3); position: relative; }
         .slot.filled { border-style: solid; border-color: #FFD700; background: rgba(0,0,0,0.5); }
         .slot-img { width: 100%; height: 100%; object-fit: cover; border-radius: 3px; }
-        .battle-btn-go { width: 60px; height: 60px; border-radius: 50%; background: #2ED573; border: 3px solid #fff; color: #fff; font-weight: 900; font-size: 18px; cursor: pointer; box-shadow: 0 0 15px rgba(46, 213, 115, 0.6); display: flex; justify-content: center; align-items: center; margin-left: 10px; }
+        /* ★★★ GO Button Disabled Style ★★★ */
+        .battle-btn-go { width: 60px; height: 60px; border-radius: 50%; background: #2ED573; border: 3px solid #fff; color: #fff; font-weight: 900; font-size: 18px; cursor: pointer; box-shadow: 0 0 15px rgba(46, 213, 115, 0.6); display: flex; justify-content: center; align-items: center; margin-left: 10px; transition: 0.3s; }
+        .battle-btn-go.disabled { background: #555; border-color: #777; color: #aaa; box-shadow: none; cursor: not-allowed; }
         
         /* ★★★ 新增：右側被動卡欄位 (顯示正在生效的被動卡) ★★★ */
         .battle-passive-area { position: absolute; right: 10px; top: 20%; width: 50px; display: flex; flex-direction: column; gap: 10px; z-index: 15; }
@@ -239,6 +249,10 @@
         .basic-card-content { width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #333; color: #fff; border-radius: 4px; }
         .basic-card-content i { font-size: 40px; color: #ECEFF4; }
         .basic-card-content span { font-size: 12px; margin-top: 10px; font-weight: bold; }
+        
+        /* 卡片投擲動畫 Class (JS動態加入) */
+        .card-thrown { animation: throwToBoss 0.3s forwards ease-in !important; z-index: 200 !important; }
+        @keyframes throwToBoss { 100% { bottom: 60%; transform: scale(0.2) rotate(360deg); opacity: 0; } }
         
         .battle-card.hovered { transform: translateY(-40px) scale(1.3) !important; z-index: 100; box-shadow: 0 0 20px rgba(255,255,255,0.5); border-color: #FFD700; }
         
@@ -471,10 +485,12 @@
         </div>
         
         <div class="battle-boss-area">
+            <div class="vfx-layer" id="boss-vfx"></div>
+            
             <img src="./images/boss-guardian.png" class="boss-img" id="boss-target">
             <div class="boss-status-icons">
                 <div v-for="(val, key) in bossStats.debuffs" :key="key" class="status-icon" v-if="val > 0">
-                    <i class="fas" :class="getDebuffIcon(key)"></i> {{ val }}
+                    <i class="fas" :class="getDebuffIcon(key)"></i> ({{ val }} 回合)
                 </div>
             </div>
             <div class="hp-bar-container" style="border-color: #e74c3c;">
@@ -491,16 +507,20 @@
             <div class="boss-status-icons">
                 <div v-if="playerStats.atkBuff > 0" class="status-icon" style="border-color:gold; color:gold;"><i class="fas fa-sword"></i> +{{playerStats.atkBuff}}%</div>
                 <div v-if="playerStats.defBuff > 0" class="status-icon" style="border-color:cyan; color:cyan;"><i class="fas fa-shield-halved"></i> +{{playerStats.defBuff}}%</div>
+                <div v-if="playerStats.isInvincible" class="status-icon" style="border-color:#fff; color:#fff;"><i class="fas fa-shield-alt"></i> 無敵</div>
+                <div v-if="playerStats.critNext" class="status-icon" style="border-color:red; color:red;"><i class="fas fa-fire"></i> 暴擊</div>
             </div>
         </div>
 
         <div class="battle-slot-area">
             <div v-for="(slot, i) in battleSlots" :key="i" class="slot" :class="{filled: slot}" @click="removeCardFromSlot(i)">
-                <div v-if="slot && slot.id === 'basic_attack'" class="basic-card-content"><i class="fas fa-fist-raised"></i></div>
-                <img v-else-if="slot" :src="slot.img" class="slot-img">
+                <div v-if="slot" :class="{'card-thrown': slot.isFlying}" style="width:100%; height:100%;">
+                    <div v-if="slot.id === 'basic_attack'" class="basic-card-content"><i class="fas fa-fist-raised"></i></div>
+                    <img v-else :src="slot.img" class="slot-img">
+                </div>
                 <i v-else class="fas fa-plus" style="color:rgba(255,255,255,0.3)"></i>
             </div>
-            <div class="battle-btn-go" @click="executeTurn">GO!</div>
+            <div class="battle-btn-go" :class="{disabled: isBattleAnimating}" @click="executeTurn">GO!</div>
         </div>
         
         <div class="battle-passive-area">
@@ -668,17 +688,24 @@
             const orderCooldown = ref(0); 
             const effects = ref([]);
             
-            // 戰鬥數值
-            const playerStats = ref({ hp: 10000, maxHp: 10000, atk: 500, def: 100, atkBuff:0, defBuff:0 });
-            const bossStats = ref({ hp: 50000, maxHp: 50000, atk: 1500, turn: 1, debuffs: { stun:0, atkDown:0, defDown:0 } });
+            // 戰鬥數值 (新增 critNext, isInvincible 狀態)
+            const playerStats = ref({ 
+                hp: 10000, maxHp: 10000, atk: 500, def: 100, 
+                atkBuff:0, defBuff:0, 
+                critNext: false, isInvincible: false 
+            });
+            const bossStats = ref({ 
+                hp: 50000, maxHp: 50000, atk: 1500, turn: 1, 
+                debuffs: { stun:0, atkDown:0, defDown:0 } 
+            });
             
             // ★★★ Boss 戰 UI 變數 ★★★
-            const battleHand = ref([]); 
-            const activePassives = ref([]); 
+            const battleHand = ref([]); // 下方手牌
+            const activePassives = ref([]); // 右側被動欄
             const battleSlots = ref([null, null, null]); 
             const hoveringCard = ref(-1); 
             const isBattleAnimating = ref(false); 
-            const showBattleDetail = ref(false); // 控制詳細資訊視窗
+            const showBattleDetail = ref(false); // 詳細資訊視窗
             const passiveAnim = ref({ show: false, text: '', card: {} }); 
             const turnAnimText = ref(''); 
             
@@ -705,7 +732,7 @@
 
             // 結算與轉場
             const resultInfo = ref({ title:'', desc:'', changes:[], bg:'', isLucky:false, photoImg:'', photoName:'', photoVal:0 });
-            const isHurt = ref(false); 
+            const isHurt = ref(false); // 控制受傷紅框
             const screenEffectClass = ref(""); 
             const moneyBox = ref(null); 
             const hpBox = ref(null);
@@ -807,7 +834,7 @@
                 { id: 'sr_well', name: '清正井之龍', rank: 'SR', type:'passive', img: imgPath+'card-sr-well.png', desc: '強大的能量點。', effectText: '<b>[被動] 湧泉之力</b><br>戰鬥開始時，直接對 Boss 造成 <b>15% (7500)</b> 當前血量的傷害。' },
                 { id: 'sr_crow', name: '八咫烏', rank: 'SR', type:'active', cd:2, img: imgPath+'card-sr-crow.png', desc: '導引勝利的神鴉。', effectText: '<b>[主動] 導引 (CD:2)</b><br>賦予自身 1 回合 <b>絕對迴避</b> (不受傷害)。' },
                 { id: 'sr_miko', name: '神樂巫女', rank: 'SR', type:'active', cd:2, img: imgPath+'card-sr-miko.png', desc: '跳著浦安之舞的巫女。', effectText: '<b>[主動] 淨化之舞 (CD:2)</b><br>造成 1000 傷害，並 <b>驅散</b> Boss 身上的增益狀態 (Buff)。' },
-                { id: 'sr_amazake', name: '甜酒', rank: 'SR', type:'passive', img: imgPath+'card-sr-amazake.png', desc: '溫暖身心的神酒。', effectText: '<b>[被動] 溫暖</b><br>戰鬥開始時，賦予每回合回復 <b>5%</b> 生命的狀態。' },
+                { id: 'sr_amazake', name: '甜酒', rank: 'SR', type:'passive', img: imgPath+'card-sr-amazake.png', desc: '溫暖身心的神酒。', effectText: '<b>[被動] 溫暖</b><br>每回合結束時，回復 <b>5%</b> 生命。' },
                 { id: 'sr_iris', name: '御苑菖蒲花', rank: 'SR', type:'passive', img: imgPath+'card-sr-iris.png', desc: '御苑中盛開的花朵。', effectText: '<b>[被動] 高雅</b><br>持有者免疫 <b>暈眩</b> 類效果。' },
                 { id: 'sr_forest', name: '代代木之森', rank: 'SR', type:'passive', img: imgPath+'card-sr-forest.png', desc: '人工種植的百年森林。', effectText: '<b>[被動] 生命循環</b><br>最大生命值提升 <b>20%</b>。' },
                 { id: 'sr_festival', name: '鎮座百年祭', rank: 'SR', type:'active', cd:3, img: imgPath+'card-sr-festival.png', desc: '熱鬧非凡的祭典。', effectText: '<b>[主動] 祭典高潮 (CD:3)</b><br>我方所有技能冷卻時間 (CD) <b>減少 1 回合</b>。' },
@@ -899,6 +926,7 @@
                     if(el) { const r = el.getBoundingClientRect(); x = r.left + r.width/2; y = r.top; }
                 }
                 
+                // 加入隨機偏移
                 x += (Math.random() - 0.5) * 40;
                 
                 effects.value.push({ id: Date.now(), txt: txt, cls: cls, x: x, y: y });
@@ -1178,7 +1206,8 @@
                     maxHp: Math.floor(maxHp * melonMulti) + (gameBuffs.value.bossHp ? 2000 : 0),
                     atk: 500 * melonMulti + (gameBuffs.value.bossAtk ? 25 : 0),
                     def: 100 * melonMulti,
-                    atkBuff: 0, defBuff: 0
+                    atkBuff: 0, defBuff: 0,
+                    critNext: false, isInvincible: false
                 };
                 
                 bossStats.value = { 
@@ -1262,6 +1291,9 @@
             };
             
             const executeTurn = async () => {
+                // ★ 防止連點 ★
+                if (isBattleAnimating.value) return;
+
                 const cardsToPlay = battleSlots.value.filter(c => c !== null);
                 if(cardsToPlay.length === 0) {
                     if(!confirm('確定不使用任何卡片直接結束回合？')) return;
@@ -1271,14 +1303,23 @@
                 
                 // --- Player Phase ---
                 for(const card of cardsToPlay) {
+                    // ★ 標記正在飛行，觸發CSS動畫 ★
+                    card.isFlying = true;
+                    await new Promise(r => setTimeout(r, 350)); // 等待飛行撞擊
+
                     let dmg = 0;
                     if(card.id === 'basic_attack') dmg = 500; // 普攻傷害
                     if(card.id === 'ssr_emperor') dmg = (bossStats.value.debuffs.atkDown > 0 || bossStats.value.debuffs.defDown > 0) ? 6000 : 3000;
-                    if(card.id === 'ssr_empress') { playerStats.value.hp = playerStats.value.maxHp; spawnBattleText('+MAX', 'battle-float-text dmg-heal', 'player'); }
+                    if(card.id === 'ssr_empress') { playerStats.value.hp = playerStats.value.maxHp; playerStats.value.isInvincible = true; spawnBattleText('+MAX', 'battle-float-text dmg-heal', 'player'); }
                     if(card.id === 'ssr_susanoo') { dmg = 2000; bossStats.value.debuffs.atkDown = 3; }
-                    if(card.id === 'sr_sake') { dmg = playerStats.value.atk * 2; }
+                    if(card.id === 'sr_sake') { playerStats.value.critNext = true; spawnBattleText('NEXT CRIT!', 'battle-float-text dmg-normal', 'player'); }
                     if(card.id === 'sr_wine') { bossStats.value.debuffs.atkDown = 2; }
-                    if(card.id === 'sr_miko') { dmg = 1000; }
+                    if(card.id === 'sr_crow') { playerStats.value.isInvincible = true; }
+                    if(card.id === 'sr_miko') { dmg = 1000; /* 驅散未實作 */ }
+                    if(card.id === 'sr_festival') { 
+                        battleHand.value.forEach(c => { if(c.cd > 0) c.cd--; }); // 全隊 CD -1
+                        spawnBattleText('CD -1', 'battle-float-text dmg-normal', 'player');
+                    }
                     if(card.id === 'r_arrow') dmg = 500;
                     if(card.id === 'r_ema') playerStats.value.atkBuff = 30; 
                     if(card.id === 'r_fortune_good') dmg = 500 + Math.random()*1500;
@@ -1287,24 +1328,37 @@
                     if(card.id === 'r_pebble') dmg = 100;
                     
                     if(dmg > 0) {
-                        const totalDmg = Math.floor(dmg * (1 + playerStats.value.atkBuff/100));
+                        let totalDmg = Math.floor(dmg * (1 + playerStats.value.atkBuff/100));
+                        
+                        // 爆擊計算
+                        let isCrit = false;
+                        if(playerStats.value.critNext) {
+                            totalDmg *= 2;
+                            isCrit = true;
+                            playerStats.value.critNext = false; // 消耗爆擊狀態
+                        }
+                        
                         bossStats.value.hp -= totalDmg;
-                        spawnBattleText(`-${totalDmg}`, 'battle-float-text dmg-crit', 'boss'); 
+                        spawnBattleText(`-${totalDmg}`, isCrit ? 'battle-float-text dmg-crit' : 'battle-float-text dmg-normal', 'boss'); 
                         
                         // ★ Boss 受傷震動 ★
                         const bossEl = document.getElementById('boss-target');
                         if(bossEl) {
-                            bossEl.classList.remove('shake-hard'); 
+                            bossEl.classList.remove('shake-hard', 'boss-hit-flash'); 
                             void bossEl.offsetWidth; 
-                            bossEl.classList.add('shake-hard');
+                            bossEl.classList.add('shake-hard', 'boss-hit-flash');
                         }
                     }
                     
+                    // 設定 CD
                     card.cd = card.rank === 'SSR' ? (card.cdMax || 3) : (card.rank === 'SR' ? 2 : 1); 
-                    if(card.id === 'basic_attack') card.cd = 0; // 普攻無CD
+                    if(card.id === 'basic_attack') card.cd = 0; 
+                    
+                    // ★ 標記為剛使用，避免稍後 CD-- 誤傷 ★
+                    card.justUsed = true;
 
                     battleHand.value.push(card);
-                    await new Promise(r => setTimeout(r, 800));
+                    await new Promise(r => setTimeout(r, 600)); // 攻擊間隔
                 }
                 battleSlots.value = [null, null, null];
                 
@@ -1327,9 +1381,21 @@
                     bossAI();
                 }
                 
-                // --- End Turn ---
-                battleHand.value.forEach(c => { if(c.cd > 0) c.cd--; });
+                // --- End Turn (Passives) ---
+                processTurnEndPassives();
+
+                // CD & Status Updates
+                battleHand.value.forEach(c => { 
+                    if(c.justUsed) {
+                        c.justUsed = false; // 本回合剛用的卡不減 CD
+                    } else if(c.cd > 0) {
+                        c.cd--; 
+                    }
+                });
+
                 if(playerStats.value.atkBuff > 0) playerStats.value.atkBuff = 0;
+                playerStats.value.isInvincible = false; // 無敵一回合後失效
+                
                 if(bossStats.value.debuffs.atkDown > 0) bossStats.value.debuffs.atkDown--;
                 if(bossStats.value.debuffs.defDown > 0) bossStats.value.debuffs.defDown--;
                 
@@ -1357,32 +1423,50 @@
                     dmg = 3000;
                 } else if (turn === 8) {
                     actionName = '時空崩塌';
-                    playerStats.value.hp = 1;
-                    spawnBattleText('HP -> 1', 'battle-float-text dmg-player', 'player');
-                    isHurt.value = true; 
-                    setTimeout(() => isHurt.value = false, 800);
+                    if(!playerStats.value.isInvincible) {
+                        playerStats.value.hp = 1;
+                        spawnBattleText('HP -> 1', 'battle-float-text dmg-player', 'player');
+                        isHurt.value = true; 
+                        setTimeout(() => isHurt.value = false, 800);
+                    } else {
+                        spawnBattleText('IMMUNE', 'battle-float-text dmg-normal', 'player');
+                    }
                 } else {
                     actionName = '狂暴攻擊';
                     dmg = 2000 + (turn * 100);
                 }
                 
                 if (dmg > 0) {
-                    const defMulti = (100 + playerStats.value.def) / 100;
-                    const bossAtkMulti = bossStats.value.debuffs.atkDown > 0 ? 0.7 : 1.0;
-                    const realDmg = Math.floor((dmg * bossAtkMulti) / defMulti);
-                    
-                    playerStats.value.hp -= realDmg;
-                    spawnBattleText(`-${realDmg}`, 'battle-float-text dmg-player', 'player');
-                    
-                    // ★ 玩家受傷特效 (紅框 + 震動)
-                    isHurt.value = true; 
-                    setTimeout(() => isHurt.value = false, 500);
+                    if(playerStats.value.isInvincible) {
+                        spawnBattleText('IMMUNE', 'battle-float-text dmg-normal', 'player');
+                    } else {
+                        const defMulti = (100 + playerStats.value.def) / 100;
+                        const bossAtkMulti = bossStats.value.debuffs.atkDown > 0 ? 0.7 : 1.0;
+                        const realDmg = Math.floor((dmg * bossAtkMulti) / defMulti);
+                        
+                        playerStats.value.hp -= realDmg;
+                        spawnBattleText(`-${realDmg}`, 'battle-float-text dmg-player', 'player');
+                        
+                        // ★ 玩家受傷特效 (紅框)
+                        isHurt.value = true; 
+                        setTimeout(() => isHurt.value = false, 500);
+                    }
                 }
                 
                 if (playerStats.value.hp <= 0) {
                     alert('GAME OVER... 體力耗盡');
                     location.reload();
                 }
+            };
+            
+            const processTurnEndPassives = () => {
+                activePassives.value.forEach(card => {
+                    if(card.id === 'sr_amazake') {
+                        const heal = Math.floor(playerStats.value.maxHp * 0.05);
+                        playerStats.value.hp = Math.min(playerStats.value.maxHp, playerStats.value.hp + heal);
+                        spawnBattleText(`+${heal}`, 'battle-float-text dmg-heal', 'player');
+                    }
+                });
             };
 
             return {
