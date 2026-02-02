@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>冬日時空冒險 - Final Chapter</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* --- 全域設定 (保留原樣) --- */
+        :root {
+            --primary: #FF6B8B; --secondary: #00B4D8; --accent: #FFD700;
+            --suit-dia: #e74c3c; --suit-spd: #2c3e50; --suit-clb: #2f3640; --suit-hrt: #c0392b;
+            --bg-dark: #121212; --text-main: #333;
+            --rank-ur: #8e44ad; --rank-ssr: #e74c3c; --rank-sr: #f1c40f; --rank-r: #bdc3c7;
+        }
+        * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
+        body { margin: 0; padding: 0; font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #fff; color: var(--text-main); height: 100dvh; width: 100vw; overflow: hidden; display: flex; justify-content: center; }
+        #app { width: 100%; max-width: 430px; height: 100dvh; position: relative; background: #fff; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
+
+        /* UI 通用 (保留原樣) */
+        .shibuya-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 50; overflow: hidden; }
+        .game-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; background-position: center; z-index: 0; }
+        .hub-bg { background: #fff; width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
+
+        .game-header { position: absolute; top: 15px; left: 0; width: 100%; text-align: center; z-index: 60; pointer-events: none; }
+        .header-hub .game-title { color: #333; text-shadow: none; }
+        .header-game .game-title { color: #fff; text-shadow: 2px 2px 0 #000; }
+        .game-title { font-size: 24px; font-weight: 900; letter-spacing: 2px; }
+        .title-clb { color: #00ff00 !important; -webkit-text-stroke: 1px black; }
+        .game-subtitle { font-size: 12px; color: #888; text-transform: uppercase; }
+        
+        .game-money-display { 
+            position: absolute; top: 15px; right: 15px; font-size: 20px; font-weight: 900; color: #FFD700; 
+            text-shadow: 0 0 5px #000; z-index: 60; font-family: 'Courier New', monospace; 
+            background: rgba(0,0,0,0.5); padding: 5px 10px; border-radius: 10px; 
+        }
+
+        .btn-exit-game { 
+            position: absolute; top: 15px; left: 15px; 
+            background: #e74c3c; color: white; border: none; 
+            padding: 8px 15px; border-radius: 20px; font-weight: bold; cursor: pointer; z-index: 5000; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        /* --- [新增] 牌組構築與抽卡介面樣式 --- */
+        .gacha-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; padding: 20px; width: 100%; position: absolute; top: 120px; overflow-y: auto; z-index: 10; max-height: 60%; }
+        .gacha-card { aspect-ratio: 2/3; background: #222; border-radius: 6px; overflow: hidden; border: 2px solid #555; position: relative; animation: flipIn 0.5s backwards; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        .gacha-card img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .rank-UR { border-color: var(--rank-ur); box-shadow: 0 0 15px var(--rank-ur); }
+        .rank-SSR { border-color: var(--rank-ssr); box-shadow: 0 0 10px var(--rank-ssr); }
+        .card-badge { position: absolute; top: 0; right: 0; background: rgba(0,0,0,0.8); color: #fff; font-size: 10px; padding: 2px 4px; border-bottom-left-radius: 4px; font-weight: bold; }
+        .btn-play { width: 80%; padding: 15px; border-radius: 30px; border: none; font-size: 18px; font-weight: bold; color: white; background: linear-gradient(45deg, var(--primary), #e66767); box-shadow: 0 0 20px rgba(255, 107, 139, 0.4); cursor: pointer; position: absolute; bottom: 50px; left: 10%; z-index: 100; transition: transform 0.2s; }
+        .btn-play:active { transform: scale(0.95); }
+
+        /* Deck Builder */
+        .deck-builder-container { position: absolute; top: 60px; bottom: 0; width: 100%; padding: 10px; overflow-y: auto; background: #f0f0f0; z-index: 55; }
+        .deck-zone { margin-bottom: 20px; background: #fff; border-radius: 10px; padding: 10px; border: 1px solid #ddd; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .zone-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; color: #333; font-weight: bold; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .zone-limit { font-size: 12px; color: #888; }
+        .zone-limit.full { color: #e74c3c; font-weight: bold; }
+        .zone-cards { display: flex; gap: 8px; flex-wrap: wrap; }
+        .deck-card { width: 60px; height: 84px; position: relative; cursor: pointer; transition: 0.2s; border-radius: 4px; overflow: hidden; border: 2px solid transparent; opacity: 0.5; filter: grayscale(1); }
+        .deck-card.selected { border-color: #2ED573; box-shadow: 0 0 10px #2ED573; transform: scale(1.05); opacity: 1; filter: grayscale(0); border-width: 3px; }
+        .deck-card img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* --- 原本的特效與遊戲樣式 (保留) --- */
+        .money-popup { position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%); font-size: 60px; font-weight: 900; text-shadow: 2px 2px 0 #000; pointer-events: none; z-index: 2000; }
+        .money-plus { color: #FFD700; animation: moneyUp 1s forwards; }
+        .money-minus { color: #FF4757; animation: moneyDown 1s forwards; }
+        @keyframes moneyUp { 0% { opacity: 0; transform: translate(-50%, 0) scale(0.5); } 20% { opacity: 1; transform: translate(-50%, -50px) scale(1.2); } 100% { opacity: 0; transform: translate(-50%, -150px) scale(1); } }
+        @keyframes moneyDown { 0% { opacity: 0; transform: translate(-50%, 0) scale(0.5); } 20% { opacity: 1; transform: translate(-50%, 50px) scale(1.2); } 100% { opacity: 0; transform: translate(-50%, 150px) scale(1); } }
+
+        .lucky-popup { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2500; display: flex; justify-content: center; align-items: center; animation: fadeOut 1.5s forwards; background: rgba(255, 215, 0, 0.2); }
+        .lucky-text { font-size: 80px; color: #FFD700; font-weight: 900; text-shadow: 0 0 30px red; border: 8px solid #FFD700; padding: 20px 40px; background: rgba(200,0,0,0.8); transform: rotate(-10deg); box-shadow: 0 0 50px #FFD700; animation: stamp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes stamp { 0% { transform: scale(3); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes fadeOut { 0%, 70% { opacity: 1; } 100% { opacity: 0; } }
+
+        .damage-flash { position: absolute; top: 0; left: 0; width: 100%; height: 100%; box-shadow: inset 0 0 100px rgba(255, 0, 0, 0.8); pointer-events: none; z-index: 4000; animation: flashAnim 0.2s forwards; }
+        @keyframes flashAnim { 0% { opacity: 1; } 100% { opacity: 0; } }
+
+        .custom-alert-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 9999; display: flex; justify-content: center; align-items: center; animation: fadeIn 0.2s; }
+        .custom-alert-box { width: 80%; max-width: 320px; background: rgba(20, 20, 20, 0.95); border: 2px solid #fff; border-radius: 10px; box-shadow: 0 0 20px rgba(255, 255, 255, 0.2); padding: 20px; text-align: center; color: #fff; transform: scale(1); animation: popIn 0.3s; }
+        .alert-msg { font-size: 18px; margin-bottom: 20px; font-weight: bold; }
+        .alert-btn { background: linear-gradient(45deg, #FF6B8B, #e66767); color: white; border: none; padding: 10px 30px; font-size: 16px; font-weight: bold; border-radius: 20px; cursor: pointer; }
+
+        .tutorial-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 3000; display: flex; justify-content: center; align-items: center; }
+        .parchment-box { width: 85%; max-width: 350px; background: #f3e5ab; border: 8px solid #8b4513; border-radius: 5px; padding: 20px; position: relative; text-align: center; color: #5d4037; font-family: 'Georgia', serif; }
+        .tut-title { font-size: 24px; font-weight: 900; margin-bottom: 15px; border-bottom: 2px solid #8b4513; padding-bottom: 10px; }
+        .tut-content { font-size: 16px; line-height: 1.6; text-align: left; margin-bottom: 20px; font-weight: bold; }
+        .tut-btn { background: #8b4513; color: #fff; border: none; padding: 10px 30px; font-size: 18px; border-radius: 5px; cursor: pointer; }
+
+        .countdown-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 4000; display: flex; justify-content: center; align-items: center; }
+        .countdown-text { font-size: 120px; color: #FFD700; font-weight: 900; text-shadow: 0 0 50px #FFD700; animation: pulseCount 1s infinite; }
+        @keyframes pulseCount { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: 0.8; } 100% { transform: scale(1); opacity: 0; } }
+
+        .skill-bar { position: absolute; bottom: 80px; right: 10px; width: 50px; display: flex; flex-direction: column; gap: 10px; z-index: 2000; pointer-events: none; }
+        .skill-card { width: 50px; height: 70px; background: rgba(0,0,0,0.8); border: 1px solid #aaa; border-radius: 5px; position: relative; overflow: hidden; pointer-events: auto; transition: 0.3s; cursor: pointer; }
+        .skill-card img { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; }
+        .skill-card.used { opacity: 0; transform: translateX(50px); pointer-events: none; }
+
+        /* Hub & Airship */
+        .hub-grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 40px 15px; padding: 120px 20px 50px 20px; height: 100%; width: 100%; position: relative; z-index: 2000; }
+        .hub-airship-item { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; position: relative; animation: floatAirship 3s infinite ease-in-out alternate; }
+        @keyframes floatAirship { from { transform: translateY(0); } to { transform: translateY(-8px); } }
+        .airship-visual { width: 140px; height: auto; z-index: 10; margin-bottom: -5px; }
+        .airship-visual img { width: 100%; display: block; } 
+        .airship-cables { width: 80px; height: 20px; border-left: 2px solid #555; border-right: 2px solid #555; margin-top: -5px; z-index: 5; }
+        .hub-card { width: 110px; height: 150px; background: #fff; border-radius: 10px; border: 3px solid #333; box-shadow: 0 5px 15px rgba(0,0,0,0.2); display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; z-index: 6; position: relative; top: -5px; }
+        .hub-card.cleared { filter: grayscale(1); opacity: 0.8; }
+        .hub-card.cleared::after { content: 'CLEARED'; position: absolute; color: #2ED573; font-weight: 900; font-size: 20px; transform: rotate(-30deg); border: 3px solid #2ED573; padding: 5px; }
+        .card-corner { position: absolute; font-family: 'Courier New', monospace; font-weight: bold; font-size: 16px; line-height: 1; }
+        .top-left { top: 5px; left: 5px; display: flex; flex-direction: column; align-items: center; }
+        .bottom-right { bottom: 5px; right: 5px; transform: rotate(180deg); display: flex; flex-direction: column; align-items: center; }
+        .hub-main-icon { font-size: 50px; margin-bottom: 5px; }
+        .hub-label { font-weight: bold; font-size: 14px; color: #333; margin-top: 5px; }
+        .suit-dia { color: var(--suit-dia); } .suit-spd { color: var(--suit-spd); } .suit-clb { color: var(--suit-clb); } .suit-hrt { color: var(--suit-hrt); }
+
+        /* 銀座 (Spd) */
+        .spd-canvas-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; }
+        .spd-hud { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 20; pointer-events: none; }
+        .spd-boss-hp { position: absolute; top: 70px; left: 10%; width: 80%; height: 15px; background: #333; border: 2px solid #fff; border-radius: 10px; overflow: hidden; }
+        .spd-boss-fill { height: 100%; background: #c0392b; width: 100%; transition: width 0.2s; }
+        .spd-player-hp { position: absolute; bottom: 40px; left: 10%; width: 80%; height: 15px; background: #333; border: 2px solid #2ED573; border-radius: 10px; overflow: hidden; }
+        .spd-player-fill { height: 100%; background: #2ED573; width: 100%; transition: width 0.2s; }
+        .spd-warning { position: absolute; top: 40%; left: 0; width: 100%; padding: 20px 0; background: rgba(255, 0, 0, 0.4); text-align: center; color: #fff; font-size: 36px; font-weight: 900; opacity: 0; text-shadow: 0 0 10px #ff0000; letter-spacing: 5px; pointer-events: none; }
+        .spd-warning.active { animation: flashRed 0.5s infinite; }
+
+        /* 神籤 (Clb) */
+        .clb-draw-area { position: absolute; top: 20%; width: 100%; text-align: center; z-index: 20; }
+        .btn-draw-deck { width: 160px; height: 220px; margin: 0 auto; background: #c0392b; border: 6px solid #f1c40f; border-radius: 15px; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 10px 25px rgba(0,0,0,0.6); animation: pulse 3s infinite; }
+        .btn-draw-deck .label { font-size: 32px; font-weight: 900; color: #f1c40f; writing-mode: vertical-rl; text-shadow: 2px 2px 0 #000; border: 4px solid #f1c40f; padding: 10px; }
+        .clb-current-paper { width: 100px; height: 100px; margin: 20px auto; position: relative; }
+        .clb-result-show { width: 120px; height: 180px; background: #fff; border: 4px solid #000; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 40px; font-weight: 900; margin: 0 auto; box-shadow: 0 0 20px rgba(255,255,255,0.8); animation: popIn 0.3s; }
+        .result-good { color: #FFD700; border-color: #FFD700; text-shadow: 1px 1px 0 #000; }
+        .result-bad { color: #e84118; border-color: #000; background: #000; }
+        .clb-bad-emoji { font-size: 80px; filter: drop-shadow(0 0 10px rgba(0,0,0,0.8)); animation: popIn 0.3s; text-align:center; }
+        .clb-rack { position: absolute; bottom: 140px; width: 100%; display: flex; justify-content: center; gap: 15px; z-index: 20; }
+        .clb-slot { width: 70px; height: 100px; position: relative; background: rgba(139, 69, 19, 0.4); border: 4px solid #8b4513; border-radius: 8px; display: flex; flex-direction: column-reverse; align-items: center; cursor: pointer; box-shadow: inset 0 0 10px #000; overflow: visible; }
+        .clb-slot-item { font-size: 40px; width: 100%; text-align: center; position: absolute; text-shadow: 0 0 5px #000; transition: 0.3s; }
+
+        /* 謊言 (Hrt) */
+        .hrt-status-bar { position: absolute; top: 60px; width: 100%; text-align: center; font-size: 18px; font-weight: bold; padding: 10px; background: rgba(0,0,0,0.8); color: #fff; z-index: 60; border-top: 1px solid #555; border-bottom: 1px solid #555; }
+        .hrt-boss-area { position: absolute; top: 110px; width: 100%; display: flex; flex-direction: column; align-items: center; z-index: 5; }
+        .hrt-boss-hand { display: flex; gap: 5px; margin-bottom: 10px; }
+        .hrt-boss-card-back { width: 40px; height: 60px; background: #b00; border: 1px solid #fff; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+        .hrt-boss-img { width: 160px; filter: drop-shadow(0 0 20px rgba(232, 65, 24, 0.4)); }
+        .hrt-gun-area { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 250px; pointer-events: none; z-index: 50; }
+        .hrt-gun-img { width: 100%; opacity: 0; transition: 0.3s; }
+        .hrt-gun-img.active { opacity: 1; animation: gun-shake 0.2s infinite; }
+        .hrt-gun-img.shoot { animation: gun-recoil 0.2s; }
+        .hrt-chamber-container { position: absolute; top: 55%; left: 10px; transform: translateY(-50%); display: flex; flex-direction: column; align-items: center; z-index: 60; background: rgba(0,0,0,0.8); padding: 10px; border-radius: 10px; border: 2px solid #555; }
+        .hrt-chamber-visual { width: 60px; height: 60px; border-radius: 50%; border: 2px solid #aaa; position: relative; margin-bottom: 5px; }
+        .bullet-dot { position: absolute; width: 8px; height: 8px; background: #333; border-radius: 50%; top: 50%; left: 50%; margin: -4px 0 0 -4px; }
+        .bullet-dot.filled { background: #FFD700; box-shadow: 0 0 5px #FFD700; }
+        .dot-1 { transform: rotate(0deg) translate(22px); } .dot-2 { transform: rotate(60deg) translate(22px); }
+        .dot-3 { transform: rotate(120deg) translate(22px); } .dot-4 { transform: rotate(180deg) translate(22px); }
+        .dot-5 { transform: rotate(240deg) translate(22px); } .dot-6 { transform: rotate(300deg) translate(22px); }
+        .hrt-info-text { margin-top: 5px; color: #fff; font-family: monospace; font-size: 11px; text-align: center; }
+        .hrt-center-pile { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100px; height: 140px; display: flex; justify-content: center; align-items: center; z-index: 20; }
+        .hrt-played-card { width: 90px; height: 135px; background: #fff; border-radius: 8px; border: 2px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.8); display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 40px; font-weight: bold; animation: popIn 0.3s; }
+        .hrt-played-card.back { background: #b00; background-image: repeating-linear-gradient(45deg, #a00 0, #a00 10px, #b00 10px, #b00 20px); }
+        .hrt-hand-area { position: absolute; bottom: 30px; width: 100%; display: flex; justify-content: center; gap: -5px; z-index: 30; pointer-events: auto; }
+        .hrt-card { width: 60px; height: 90px; background: #fff; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: bold; font-family: 'Courier New', serif; cursor: pointer; transition: 0.2s; box-shadow: -2px 0 5px rgba(0,0,0,0.5); border: 1px solid #ccc; }
+        .hrt-card.selected { transform: translateY(-30px); border: 3px solid var(--suit-hrt); z-index: 40; }
+        .suit-red { color: #e74c3c !important; } .suit-black { color: #2c3e50 !important; }
+        .hrt-btn-container { position: absolute; bottom: 150px; left: 0; width: 100%; display: flex; justify-content: center; gap: 20px; z-index: 100; pointer-events: auto; }
+        .hrt-action-btn { padding: 10px 30px; background: var(--suit-hrt); color: white; border: none; font-size: 18px; font-weight: bold; border-radius: 30px; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        .btn-trigger-fix { position: absolute; bottom: 150px; left: 50%; transform: translateX(-50%); background: #000; border: 3px solid #FF4757; color: #FF4757; font-size: 24px; padding: 15px 40px; border-radius: 50px; box-shadow: 0 0 30px #FF4757; z-index: 5000 !important; pointer-events: auto !important; cursor: pointer; animation: pulse 1s infinite; }
+
+        /* Dia K & Skill Bar */
+        .dia-screen { position: absolute; top: 130px; left: 10%; width: 80%; height: 100px; background: rgba(0,0,0,0.9); border: 2px solid var(--suit-dia); border-radius: 10px; display: flex; justify-content: center; align-items: center; gap: 10px; z-index: 10; }
+        .dia-digit { width: 40px; height: 60px; background: #111; color: var(--suit-dia); font-family: monospace; font-size: 32px; font-weight: bold; display: flex; justify-content: center; align-items: center; border: 1px solid #333; }
+        .dia-digit.locked { color: #2ED573; border-color: #2ED573; }
+        .dia-history { position: absolute; top: 250px; left: 10%; width: 80%; height: calc(100% - 250px - 260px); overflow-y: auto; background: rgba(0,0,0,0.7); padding: 10px; font-family: monospace; color: #fff; font-size: 16px; border-radius: 5px; z-index: 10; }
+        .dia-row { display: flex; justify-content: space-between; margin-bottom: 5px; border-bottom: 1px solid #444; padding-bottom: 2px; }
+        .dia-keypad { position: absolute; bottom: 10px; left: 5%; width: 90%; height: 240px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; z-index: 100; }
+        .key-btn { background: rgba(0, 40, 80, 0.8); border: 1px solid var(--suit-dia); color: #fff; display: flex; justify-content: center; align-items: center; font-size: 24px; font-weight: bold; border-radius: 10px; }
+        .stage-clear-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 5000; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #fff; animation: fadeIn 0.5s; }
+        .btn-return { margin-top: 40px; padding: 15px 40px; background: #fff; color: #000; font-weight: bold; border: none; border-radius: 30px; font-size: 20px; cursor: pointer; }
+
+        @keyframes flipIn { from { transform: rotateY(90deg); opacity: 0; } to { transform: rotateY(0); opacity: 1; } }
+        @keyframes popIn { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes gun-shake { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+        @keyframes gun-recoil { 0% { transform: scale(1) rotate(0deg); } 20% { transform: scale(1.1) rotate(-10deg); } 100% { transform: scale(1) rotate(0deg); } }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div v-if="moneyAnim" class="money-popup" :class="{'money-plus': moneyAnim.includes('+'), 'money-minus': moneyAnim.includes('-')}">{{ moneyAnim }}</div>
+    <div v-if="luckyAnim" class="lucky-popup"><div class="lucky-text">大吉</div></div>
+    <div v-if="damageAnim" class="damage-flash"></div>
+    <div v-if="countdown !== null" class="countdown-overlay"><div class="countdown-text">{{ countdown === 0 ? 'GO!' : countdown }}</div></div>
+    <div v-if="customAlert.show" class="custom-alert-overlay"><div class="custom-alert-box"><div class="alert-msg">{{ customAlert.message }}</div><button class="alert-btn" @click="closeAlert">確定</button></div></div>
+    <div v-if="showTutorial" class="tutorial-overlay"><div class="parchment-box"><div class="tut-title" :class="{'title-clb': activeGame === 'clb'}">{{ tutorialData.title }}</div><div class="tut-content" v-html="tutorialData.desc"></div><button class="tut-btn" @click="confirmStart">開始挑戰</button></div></div>
+
+    <button v-if="phase.startsWith('game_')" class="btn-exit-game" @click="returnToHub">
+        <i class="fas fa-sign-out-alt"></i> 退出
+    </button>
+
+    <div v-if="showStageClear" class="stage-clear-overlay">
+        <div style="font-size:24px;">STAGE CLEAR</div>
+        <div style="font-size:80px; font-weight:900; color:#FFD700; margin:20px 0;">{{ clearRank }}</div>
+        <div>獲得獎金: ${{ currentBonus }}</div>
+        <button class="btn-return" @click="returnToHub">返回大廳</button>
+    </div>
+
+    <div v-if="phase === 'meiji_intro'" class="shibuya-container">
+        <div class="game-bg" style="background-image: url('images/meiji-entry.png');"></div>
+        <div class="game-header header-game">
+            <div class="game-title">明治神宮</div>
+            <div class="game-subtitle">FATIGUE AFFECTS LUCK</div>
+        </div>
+        <div style="position:absolute; top:40%; width:100%; text-align:center; color:#fff; text-shadow:0 0 5px #000; z-index:10;">
+            <p>經過了滑冰的考驗...</p>
+            <p>你的疲勞度是 <span style="font-size:24px; font-weight:bold; color:var(--fatigue)">{{ fatigue }}%</span></p>
+            <p>這將決定你抽到強力卡片的機率！</p>
+        </div>
+        <button class="btn-play" @click="drawGacha">進行命運十連抽</button>
+    </div>
+
+    <div v-if="phase === 'meiji_result'" class="shibuya-container" style="background:#111;">
+        <div class="game-header header-game" style="top:20px;">
+            <div class="game-title">獲得卡片</div>
+            <div class="game-subtitle">PREPARE YOUR DECK</div>
+        </div>
+        <div class="gacha-grid">
+            <div v-for="card in drawnCards" :key="card.uid" class="gacha-card" :class="'rank-'+card.rank">
+                <img :src="card.img">
+                <div class="card-badge">{{ card.rank }}</div>
+            </div>
+        </div>
+        <button class="btn-play" @click="enterDeckBuild">整理牌組</button>
+    </div>
+
+    <div v-if="phase === 'deck_build'" class="shibuya-container">
+        <div class="game-header" style="top:10px;">
+            <div class="game-title" style="color:#333; text-shadow:none; font-size:20px;">配置你的卡片</div>
+            <div class="game-subtitle" style="color:#666;">EACH STAGE MAX 3 CARDS</div>
+        </div>
+        
+        <div class="deck-builder-container">
+            <div class="deck-zone" v-for="suit in ['dia','spd','clb','hrt']" :key="suit">
+                <div class="zone-header">
+                    <span>
+                        <i class="fas" :class="getSuitIconClass(suit)"></i> 
+                        {{ getZoneName(suit) }}
+                    </span>
+                    <span class="zone-limit" :class="{full: getZoneCount(suit) > 3}">{{ getZoneCount(suit) }}/3</span>
+                </div>
+                <div class="zone-cards">
+                    <div v-for="card in getCardsBySuit(suit)" :key="card.uid" class="deck-card" 
+                         :class="{selected: card.selected, disabled: !card.selected && getZoneCount(suit) >= 3}"
+                         @click="toggleCardSelection(card, suit)">
+                        <img :src="card.img">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="deck-zone" style="border-color: gold;">
+                <div class="zone-header">
+                    <span style="color:gold;"><i class="fas fa-crown"></i> 通用卡 (All)</span>
+                    <span class="zone-limit">自動生效</span>
+                </div>
+                <div class="zone-cards">
+                    <div v-for="card in getCardsBySuit('🌈')" :key="card.uid" class="deck-card selected" style="border-color:gold; opacity:1; filter:none;">
+                        <img :src="card.img">
+                    </div>
+                </div>
+            </div>
+            <div style="height: 60px;"></div>
+        </div>
+        <button class="btn-play" @click="enterHub">確認牌組，前往涉谷</button>
+    </div>
+
+    <div v-if="phase === 'shibuya_hub'" class="shibuya-container">
+        <div class="hub-bg"></div>
+        <div class="game-header header-hub" style="top: 40px;">
+            <div class="game-subtitle">FINAL STAGE</div>
+            <div class="game-title">闖關者的挑戰</div>
+            <div style="font-size:14px; margin-top:5px; color:#555;">目前獎金: ${{ money }}</div>
+        </div>
+        <div class="hub-grid">
+            <div class="hub-airship-item" @click="enterGame('dia')">
+                <div class="airship-visual"><img src="images/ui-airship-header.png" alt="Airship"></div>
+                <div class="airship-cables"></div>
+                <div class="hub-card hub-dia" :class="{cleared: games.dia.cleared}">
+                    <div class="card-corner top-left"><span class="suit-dia">♦</span><span>K</span></div>
+                    <div class="hub-main-icon suit-dia">♦</div><div class="hub-label">推理神算</div>
+                    <div class="card-corner bottom-right"><span class="suit-dia">♦</span><span>K</span></div>
+                </div>
+            </div>
+            <div class="hub-airship-item" @click="enterGame('spd')">
+                <div class="airship-visual"><img src="images/ui-airship-header.png" alt="Airship"></div>
+                <div class="airship-cables"></div>
+                <div class="hub-card hub-spd" :class="{cleared: games.spd.cleared}">
+                    <div class="card-corner top-left"><span class="suit-spd">♠</span><span>Q</span></div>
+                    <div class="hub-main-icon suit-spd">♠</div><div class="hub-label">武力威脅</div>
+                    <div class="card-corner bottom-right"><span class="suit-spd">♠</span><span>Q</span></div>
+                </div>
+            </div>
+            <div class="hub-airship-item" @click="enterGame('clb')">
+                <div class="airship-visual"><img src="images/ui-airship-header.png" alt="Airship"></div>
+                <div class="airship-cables"></div>
+                <div class="hub-card hub-clb" :class="{cleared: games.clb.cleared}">
+                    <div class="card-corner top-left"><span class="suit-clb">♣</span><span>J</span></div>
+                    <div class="hub-main-icon suit-clb">♣</div><div class="hub-label">神籤</div>
+                    <div class="card-corner bottom-right"><span class="suit-clb">♣</span><span>J</span></div>
+                </div>
+            </div>
+            <div class="hub-airship-item" @click="enterGame('hrt')">
+                <div class="airship-visual"><img src="images/ui-airship-header.png" alt="Airship"></div>
+                <div class="airship-cables"></div>
+                <div class="hub-card hub-hrt" :class="{cleared: games.hrt.cleared}">
+                    <div class="card-corner top-left"><span class="suit-hrt">♥</span><span>K</span></div>
+                    <div class="hub-main-icon suit-hrt">♥</div><div class="hub-label">謊言</div>
+                    <div class="card-corner bottom-right"><span class="suit-hrt">♥</span><span>K</span></div>
+                </div>
+            </div>
+        </div>
+        <button v-if="allGamesCleared" class="btn-return" style="position:absolute; bottom:20px; left:10%; width:80%; z-index:100; animation:pulse 1s infinite;" @click="finishGame">
+            前往最終結局 <i class="fas fa-crown"></i>
+        </button>
+    </div>
+
+    <div v-if="phase.startsWith('game_')" class="shibuya-container">
+        <div class="game-bg" :style="{backgroundImage: 'url(images/' + (activeGame==='spd'?'bg-ginza.png':(activeGame==='dia'?'bg-qfront.png':(activeGame==='clb'?'bg-asakusa.png':'bg-shibuya-sky.png'))) + ')'}"></div>
+        
+        <div class="game-header header-game">
+            <div class="game-subtitle">{{ currentGameData.subtitle }}</div>
+            <div class="game-title" :class="{'title-clb': activeGame === 'clb'}" :style="{color: currentGameData.color}">{{ currentGameData.title }}</div>
+        </div>
+        <div class="game-money-display">${{ currentBonus }}</div>
+        
+        <div class="skill-bar">
+            <div v-for="card in activeSkills" :key="card.uid" class="skill-card" :class="{used: card.used}" @click="useSkill(card)">
+                <img :src="card.img" onerror="this.src='https://via.placeholder.com/50?text=Card'">
+            </div>
+        </div>
+
+        <div v-if="activeGame === 'dia'" style="height:100%;">
+            <div class="dia-screen">
+                <div v-for="(n, i) in diaState.input" :key="i" class="dia-digit" :class="{locked: diaState.locked[i]}">{{ n }}</div>
+                <div v-if="diaState.input.length < 4" class="dia-digit" style="border:none;">_</div>
+            </div>
+            <div class="dia-history">
+                <div v-for="(h, i) in diaState.history" :key="i" class="dia-row">
+                    <span>{{ h.guess }}</span><span :style="{color: h.a === 4 ? '#2ED573' : '#fff'}">{{ h.a }}A {{ h.b }}B</span>
+                </div>
+            </div>
+            <div class="dia-keypad">
+                <div v-for="n in 9" :key="n" class="key-btn" @click="diaInput(n)">{{ n }}</div>
+                <div class="key-btn" style="background:#c0392b" @click="diaDel"><i class="fas fa-backspace"></i></div>
+                <div class="key-btn" @click="diaInput(0)">0</div>
+                <div class="key-btn" style="background:var(--suit-dia)" @click="diaSubmit"><i class="fas fa-check"></i></div>
+            </div>
+        </div>
+
+        <div v-if="activeGame === 'spd'" style="height:100%;">
+            <div class="spd-canvas-layer"><canvas ref="spdCanvas" width="400" height="600"></canvas></div>
+            <div class="spd-hud">
+                <div class="spd-boss-hp"><div class="spd-boss-fill" :style="{width: spdState.bossHpPercent + '%'}"></div></div>
+                <div class="spd-player-hp"><div class="spd-player-fill" :style="{width: spdState.playerHpPercent + '%', background: spdState.playerHpPercent < 30 ? '#FF4757' : '#2ED573'}"></div></div>
+                <div class="spd-warning" :class="{active: spdState.warning}">⚠️ DANGER ⚠️<br><span style="font-size:20px">Boss Attack Incoming</span></div>
+            </div>
+        </div>
+
+        <div v-if="activeGame === 'clb'" style="height:100%;">
+            <div class="clb-draw-area">
+                <div v-if="!clbState.currentPaper && clbState.deck.length > 0" class="btn-draw-deck" @click="clbDraw">
+                    <div class="label">御神籤</div>
+                </div>
+
+                <div v-if="clbState.currentPaper" class="clb-current-paper">
+                    <div v-if="clbState.revealed">
+                        <div v-if="clbState.currentPaper.type === 'good'" class="clb-result-show result-good">大吉</div>
+                        <div v-else class="clb-result-show result-bad">凶</div>
+                    </div>
+                    
+                    <div v-if="clbState.showEmoji" class="clb-bad-emoji">
+                        <i class="fas" :class="clbState.currentPaper.icon" style="color:#e84118;"></i>
+                    </div>
+                </div>
+                <div style="margin-top:10px; color:#aaa; font-weight:bold; text-shadow:1px 1px 0 #000;">剩餘: {{ clbState.deck.length }}</div>
+            </div>
+
+            <div class="clb-rack">
+                <div v-for="(cell, i) in clbState.grid" :key="i" class="clb-slot" @click="clbPlace(i)">
+                    <div v-for="(p, idx) in cell" :key="idx" class="clb-slot-item" :style="{bottom: (idx * 20) + 'px', zIndex: idx}">
+                        <i class="fas" :class="p.icon" style="color:#e84118;"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <button v-if="clbState.currentPaper && clbState.showEmoji && clbState.currentPaper.type === 'bad' && !clbState.hasPaid" 
+                    class="btn-exit" style="position:absolute; bottom:50px; left:50%; transform:translateX(-50%); width:200px; background:#4cd137;" 
+                    @click="clbPayClear" :disabled="money < 3000">
+                <i class="fas fa-fire"></i> 花錢消災 ($3000)
+            </button>
+        </div>
+
+        <div v-if="activeGame === 'hrt'" style="height:100%;">
+            <div class="hrt-status-bar">{{ hrtStatusText }}</div>
+
+            <div class="hrt-boss-area">
+                <div class="hrt-boss-hand">
+                    <div v-for="n in hrtState.bossHandCount" :key="n" class="hrt-boss-card-back"></div>
+                </div>
+                <img src="images/boss-queen.png" class="hrt-boss-img" style="border-radius:50%; width:100px; margin-top:10px; border:2px solid #fff;">
+            </div>
+            
+            <div class="hrt-gun-area"><img src="images/prop-revolver.png" class="hrt-gun-img" :class="{active: hrtState.gunActive, shoot: hrtState.isShooting}"></div>
+            
+            <div class="hrt-chamber-container">
+                <div class="hrt-chamber-visual">
+                    <div class="chamber-dots">
+                        <div v-for="n in 6" :key="n" :class="['bullet-dot', 'dot-'+n, {filled: n <= hrtState.chamberCount}]"></div>
+                    </div>
+                </div>
+                <div class="hrt-info-text">
+                    實彈: 1 | 空包: {{ hrtState.chamberCount - 1 }}
+                </div>
+            </div>
+
+            <div class="hrt-table">
+                <div class="hrt-center-pile">
+                    <div v-if="hrtState.lastPlayedCard" class="hrt-played-card" :class="{back: hrtState.lastPlayedCard.isBack}">
+                        <div v-if="!hrtState.lastPlayedCard.isBack">
+                            <span :class="getCardColorClass(hrtState.lastPlayedCard)" style="font-size:30px;">{{ hrtState.lastPlayedCard.rank }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="hrt-hand-area">
+                    <div v-for="(card, i) in hrtState.hand" :key="i" class="hrt-card" :class="{selected: hrtState.selectedCard === i, joker: card.rank === 'JOKER'}" @click="hrtSelectCard(i)">
+                        <span v-if="card.rank !== 'JOKER'" class="suit" :class="getCardColorClass(card)">{{ card.suit }}</span>
+                        <span :class="getCardColorClass(card)">{{ card.rank }}</span>
+                    </div>
+                </div>
+                
+                <div v-if="hrtState.phase === 'player_turn'" class="hrt-btn-container">
+                    <button class="hrt-action-btn" @click="hrtPlayCard">出牌 (宣稱Q)</button>
+                </div>
+                <div v-if="hrtState.phase === 'player_reaction'" class="hrt-btn-container">
+                    <button class="hrt-action-btn" style="background:#555;" @click="hrtReaction(false)">Pass (相信)</button>
+                    <button class="hrt-action-btn" style="background:#e84118;" @click="hrtReaction(true)">Liar! (抓謊)</button>
+                </div>
+                <button v-if="hrtState.phase === 'trigger'" class="btn-trigger-fix" @click="hrtTrigger">開槍判定</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const { createApp, nextTick } = Vue;
+
+const app = createApp({
+    data() {
+        return {
+            // --- 狀態變數 ---
+            phase: 'meiji_intro', // 預設先進入明治神宮 (會被 mounted 覆蓋但保留此預設較安全)
+            money: 0, 
+            fatigue: 0,
+            isLoading: false,
+            
+            // UI
+            moneyAnim: null, luckyAnim: false, damageAnim: false, countdown: null,
+            showTutorial: false, tutorialData: { title:'', desc:'' },
+            customAlert: { show:false, message:'', callback:null },
+            showStageClear: false, clearRank: 'A', currentBonus: 50000,
+            
+            // 遊戲資料
+            activeGame: null,
+            games: { dia:{cleared:false}, spd:{cleared:false}, clb:{cleared:false}, hrt:{cleared:false} },
+            
+            // 卡片
+            inventory: [],
+            drawnCards: [],
+            activeSkills: [],
+            
+            // --- 30張卡片資料 (Corrected) ---
+            gachaPool: [
+                { id:'ur1', name:'傳說中的西瓜', rank:'UR', suit:'🌈', img:'images/card-ur-watermelon.png', skill:'時空凍結 (最強效果)' },
+                // Hrt
+                { id:'h1', name:'昭憲皇太后', rank:'SSR', suit:'hrt', img:'images/card-ssr-empress.png', skill:'透視 (看穿謊言)' },
+                { id:'h2', name:'奉納清酒樽', rank:'SR', suit:'hrt', img:'images/card-sr-sake.png', skill:'吐真言 (Boss說實話)' },
+                { id:'h3', name:'奉納葡萄酒', rank:'SR', suit:'hrt', img:'images/card-sr-wine.png', skill:'微醺 (免除懲罰)' },
+                { id:'h4', name:'緣結守', rank:'R', suit:'hrt', img:'images/card-r-charm-love.png', skill:'和局 (Pass無事)' },
+                { id:'h5', name:'鳥居鞠躬', rank:'R', suit:'hrt', img:'images/card-r-bow.png', skill:'放棄 (Boss不抓謊)' },
+                // Spd
+                { id:'s1', name:'明治天皇', rank:'SSR', suit:'spd', img:'images/card-ssr-emperor.png', skill:'皇道光炮 (清場)' },
+                { id:'s2', name:'建速須佐之男', rank:'SSR', suit:'spd', img:'images/card-ssr-susanoo.png', skill:'十拳劍陣 (護體)' },
+                { id:'s3', name:'夫婦楠', rank:'SR', suit:'spd', img:'images/card-sr-tree.png', skill:'連結 (大回復)' },
+                { id:'s4', name:'甜酒', rank:'SR', suit:'spd', img:'images/card-sr-amazake.png', skill:'暖身 (加速)' },
+                { id:'s5', name:'代代木之森', rank:'SR', suit:'spd', img:'images/card-sr-forest.png', skill:'護盾 (抵擋傷害)' },
+                { id:'s6', name:'破魔矢', rank:'R', suit:'spd', img:'images/card-r-arrow.png', skill:'飛彈 (追蹤)' },
+                { id:'s7', name:'洗手舍水杓', rank:'R', suit:'spd', img:'images/card-r-ladle.png', skill:'回復 (小補血)' },
+                // Clb
+                { id:'c1', name:'稻荷大神', rank:'SSR', suit:'clb', img:'images/card-ssr-inari.png', skill:'豐收 (凶變吉)' },
+                { id:'c2', name:'清正井之龍', rank:'SR', suit:'clb', img:'images/card-sr-well.png', skill:'沖刷 (消同種凶)' },
+                { id:'c3', name:'神樂巫女', rank:'SR', suit:'clb', img:'images/card-sr-miko.png', skill:'淨化 (重洗凶籤)' },
+                { id:'c4', name:'厄除守', rank:'R', suit:'clb', img:'images/card-r-charm-bad.png', skill:'消除 (消1凶)' },
+                { id:'c5', name:'大吉籤', rank:'R', suit:'clb', img:'images/card-r-fortune.png', skill:'幸運 (加錢)' },
+                { id:'c6', name:'兇籤', rank:'R', suit:'clb', img:'images/card-r-fortune-bad.png', skill:'轉化 (凶變吉)' },
+                // Dia
+                { id:'d1', name:'大鳥居之靈', rank:'SSR', suit:'dia', img:'images/card-ssr-torii.png', skill:'神域 (鎖定正確)' },
+                { id:'d2', name:'八咫烏', rank:'SR', suit:'dia', img:'images/card-sr-crow.png', skill:'導引 (刪除錯誤)' },
+                { id:'d3', name:'御苑菖蒲花', rank:'SR', suit:'dia', img:'images/card-sr-iris.png', skill:'花語 (提示數量)' },
+                { id:'d4', name:'勝守', rank:'R', suit:'dia', img:'images/card-r-charm-win.png', skill:'機會 (增加猜測)' },
+                { id:'d5', name:'合格繪馬', rank:'R', suit:'dia', img:'images/card-r-ema.png', skill:'提示 (範圍)' },
+                { id:'d6', name:'御朱印帳', rank:'R', suit:'dia', img:'images/card-r-book.png', skill:'紀錄 (提示位置)' },
+                // All
+                { id:'a1', name:'鎮座百年祭', rank:'SR', suit:'🌈', img:'images/card-sr-festival.png', skill:'祭典 (金錢加倍)' },
+                { id:'a2', name:'5円硬幣', rank:'R', suit:'🌈', img:'images/card-r-coin.png', skill:'結緣 (隨機錢)' },
+                { id:'a3', name:'參道小石子', rank:'R', suit:'🌈', img:'images/card-r-pebble.png', skill:'投擲 (干擾)' }
+            ],
+
+            // 遊戲狀態機 (保留原本的)
+            diaState: { answer:[], input:[], history:[], locked:[false,false,false,false] },
+            spdState: { bossHpPercent:100, playerHpPercent:100, warning:false },
+            spdGame: { active:false, bullets:[], enemies:[] }, 
+            clbState: { grid:[[],[],[]], deck:[], currentPaper:null, revealed:false, showEmoji:false, hasPaid:false },
+            hrtState: { phase:'idle', hand:[], bossHandCount:5, chamberCount:6, gunActive:false, isShooting:false, bossIsLying:false }
+        };
+    },
+    computed: {
+        allGamesCleared() { return this.games.dia.cleared && this.games.spd.cleared && this.games.clb.cleared && this.games.hrt.cleared; },
+        hrtStatusText() {
+            const p = this.hrtState.phase;
+            if (p==='player_turn') return "🔴 輪到你：請出牌";
+            if (p==='boss_thinking') return "🔴 輪到你：Boss 思考中...";
+            if (p==='player_reaction') return "🔵 Boss 回合：Boss 出牌了";
+            if (p==='trigger') return "⚠️ 生死判定";
+            return "";
+        },
+        currentGameData() {
+            const map = {
+                dia: { title: 'Q-FRONT 推理神算', subtitle: 'DIAMOND KING', color: '#e74c3c' },
+                spd: { title: '銀座 武力威脅', subtitle: 'SPADE QUEEN', color: '#fff' },
+                clb: { title: '淺草 神籤', subtitle: 'CLUB JACK', color: '#2f3640' },
+                hrt: { title: 'SHIBUYA 謊言', subtitle: 'HEART KING', color: '#c0392b' }
+            };
+            if(this.activeGame === 'clb') map.clb.color = '#00ff00';
+            return map[this.activeGame] || { title: '', subtitle: '', color: '#fff' };
+        }
+    },
+    mounted() {
+        // [新增] 讀取繼承資料
+        const params = new URLSearchParams(window.location.search);
+        const m = params.get('money');
+        const f = params.get('fatigue');
+        if (m) this.money = parseInt(m);
+        if (f) this.fatigue = parseInt(f);
+
+        // [新增] 流程控制
+        setTimeout(() => {
+            this.isLoading = false;
+            this.phase = 'meiji_intro';
+        }, 1000);
+    },
+    methods: {
+        // --- Helpers ---
+        getSuitIconClass(suit) { const map = { dia:'fa-gem', spd:'fa-skull-crossbones', clb:'fa-star', hrt:'fa-heart-broken' }; return map[suit] || ''; },
+        getZoneName(suit) { const map = { dia:'推理', spd:'武力', clb:'神籤', hrt:'心理' }; return map[suit] || suit; },
+        showMoneyEffect(txt) { this.moneyAnim = txt; setTimeout(()=>this.moneyAnim=null, 1000); },
+        showAlert(msg, cb) { this.customAlert.message=msg; this.customAlert.callback=cb; this.customAlert.show=true; },
+        closeAlert() { this.customAlert.show=false; if(this.customAlert.callback) { const cb=this.customAlert.callback; this.customAlert.callback=null; cb(); } },
+        getCardColorClass(card) { if(!card) return ''; return ['♥','♦'].includes(card.suit)?'suit-red':'suit-black'; },
+
+        // --- Gacha & Deck (新增邏輯) ---
+        drawGacha() {
+            const results = [];
+            const penalty = this.fatigue > 80 ? 0.5 : 1;
+            for(let i=0; i<10; i++) {
+                const r = Math.random();
+                let pool = [];
+                if(r < 0.03*penalty) pool = this.gachaPool.filter(c=>c.rank==='UR');
+                else if(r < 0.15*penalty) pool = this.gachaPool.filter(c=>c.rank==='SSR');
+                else if(r < 0.45) pool = this.gachaPool.filter(c=>c.rank==='SR');
+                else pool = this.gachaPool.filter(c=>c.rank==='R');
+                if(pool.length===0) pool = this.gachaPool.filter(c=>c.rank==='R');
+                
+                const card = pool[Math.floor(Math.random()*pool.length)];
+                results.push({ ...card, uid: Date.now()+i, selected: true, used: false });
+            }
+            this.drawnCards = results;
+            this.inventory = [...this.inventory, ...results];
+            this.phase = 'meiji_result';
+        },
+        enterDeckBuild() {
+            this.phase = 'deck_build';
+            // 自動修整選擇：每區只留前 3 張
+            ['dia','spd','clb','hrt'].forEach(s => {
+                const cards = this.getCardsBySuit(s);
+                cards.forEach((c, i) => c.selected = (i<3));
+            });
+        },
+        getCardsBySuit(suit) { return this.inventory.filter(c => c.suit === suit); },
+        getZoneCount(suit) { return this.inventory.filter(c => c.suit === suit && c.selected).length; },
+        toggleCardSelection(card, suit) {
+            if(card.selected) card.selected = false;
+            else {
+                if(this.getZoneCount(suit) < 3) card.selected = true;
+                else {
+                    const sel = this.getCardsBySuit(suit).filter(c=>c.selected);
+                    if(sel.length>0) sel[0].selected = false;
+                    card.selected = true;
+                }
+            }
+        },
+        enterHub() { this.phase = 'shibuya_hub'; },
+
+        // --- Game Logic (保留原本的) ---
+        enterGame(gid) {
+            if(this.games[gid].cleared) return;
+            this.activeGame = gid;
+            const intro = { 
+                dia:{title:'推理神算',desc:'猜 4 位數字。A=位置對 B=數字對。'}, 
+                spd:{title:'武力威脅',desc:'閃避並射擊。SSR卡可回血。'},
+                clb:{title:'神籤試煉',desc:'抽出吉籤。消除凶籤(湊3個)。'},
+                hrt:{title:'心理博弈',desc:'吹牛撲克。出牌宣稱Q。'}
+            };
+            this.tutorialData = intro[gid];
+            this.showTutorial = true;
+        },
+        confirmStart() {
+            this.showTutorial = false;
+            this.phase = 'game_' + this.activeGame;
+            this.currentBonus = 50000;
+            // 帶入選擇的卡片
+            this.activeSkills = this.inventory.filter(c => c.selected && !c.used && (c.suit===this.activeGame || c.suit==='🌈'));
+            
+            if(this.activeGame==='spd') {
+                this.countdown = 3;
+                const t = setInterval(()=>{ this.countdown--; if(this.countdown<0){ clearInterval(t); this.countdown=null; nextTick(()=>this.spdInit()); } }, 1000);
+            } else if(this.activeGame==='dia') this.diaInit();
+            else if(this.activeGame==='clb') this.clbInit();
+            else if(this.activeGame==='hrt') this.hrtInit();
+        },
+        returnToHub() { this.phase='shibuya_hub'; this.activeGame=null; this.spdGame.active=false; },
+        finishGame() { this.showAlert("恭喜完全通關！感謝遊玩。", ()=>{ window.location.href='index.html'; }); },
+
+        // --- [修改] 技能邏輯 (改為對應新卡池) ---
+        useSkill(card) {
+            if(card.used) return;
+            let ok = false;
+            // UR
+            if(card.id==='ur1') { ok=true; if(this.activeGame==='dia') this.diaState.locked=[true,true,true,true]; if(this.activeGame==='spd') this.spdState.bossHpPercent=1; }
+            // All
+            else if(card.id==='a1') { this.currentBonus=Math.floor(this.currentBonus*1.5); this.showMoneyEffect("獎金UP"); ok=true; }
+            else if(card.id==='a2') { this.money+=1000; this.showMoneyEffect("+1000"); ok=true; }
+            
+            // Dia
+            else if (this.activeGame==='dia') {
+                if(card.id==='d1' || card.id==='d2') { 
+                    const idx = this.diaState.locked.findIndex(x=>!x);
+                    if(idx!==-1) { this.diaState.locked[idx]=true; this.diaState.input[idx]=this.diaState.answer[idx]; ok=true; }
+                }
+            }
+            // Spd
+            else if (this.activeGame==='spd') {
+                if(card.rank==='SSR') { this.spdState.bossHpPercent -= 30; this.spdGame.bullets = []; ok=true; } 
+                else if(card.id==='s3' || card.id==='s7') { this.spdState.playerHpPercent = Math.min(100, this.spdState.playerHpPercent+50); ok=true; } 
+                else if(card.id==='s6') { this.spdState.bossHpPercent -= 10; ok=true; } 
+            }
+            // Clb
+            else if (this.activeGame==='clb') {
+                if(this.clbState.currentPaper && this.clbState.currentPaper.type==='bad') {
+                    this.clbState.currentPaper={type:'good', icon:'fa-star'}; this.showAlert("轉禍為福！", ()=>this.clbDrawResult()); ok=true;
+                }
+            }
+            // Hrt
+            else if (this.activeGame==='hrt') {
+                if(card.rank==='SSR') { this.showAlert(`透視：Boss 手牌 [${this.hrtState.lastPlayedCard?this.hrtState.lastPlayedCard.rank:'?'}]`, null); ok=true; }
+                else if(card.id==='h2') { this.hrtState.bossIsLying=false; this.showAlert("Boss 被迫說實話", null); ok=true; }
+            }
+
+            if(ok) card.used = true;
+        },
+
+        // --- Games (保留原樣) ---
+        diaInit() {
+            const n=[0,1,2,3,4,5,6,7,8,9]; this.diaState.answer=[]; for(let i=0;i<4;i++) this.diaState.answer.push(n.splice(Math.floor(Math.random()*n.length),1)[0]);
+            this.diaState.input=[]; this.diaState.history=[]; this.diaState.locked=[false,false,false,false];
+        },
+        diaInput(n) { if(this.diaState.input.length<4) this.diaState.input.push(n); },
+        diaDel() { if(this.diaState.input.length>0 && !this.diaState.locked[this.diaState.input.length-1]) this.diaState.input.pop(); },
+        diaSubmit() {
+            if(this.diaState.input.length!==4) return;
+            if(new Set(this.diaState.input).size!==4) { this.showAlert("數字重複", ()=>{ this.diaState.input=[]; }); return; }
+            let a=0,b=0;
+            for(let i=0;i<4;i++) { if(this.diaState.input[i]==this.diaState.answer[i]) a++; else if(this.diaState.answer.includes(this.diaState.input[i])) b++; }
+            this.diaState.history.unshift({ guess:this.diaState.input.join(''), a, b });
+            if(a===4) this.stageClear('dia');
+            else { this.currentBonus-=2000; this.diaState.input=this.diaState.input.filter((_,i)=>this.diaState.locked[i]); }
+        },
+
+        spdInit() {
+            this.spdState.bossHpPercent=100; this.spdState.playerHpPercent=100;
+            const cvs = this.$refs.spdCanvas; if(!cvs) return;
+            this.spdGame.ctx = cvs.getContext('2d'); this.spdGame.active=true;
+            this.spdGame.player={x:200,y:500}; this.spdGame.boss={x:200,y:100,dir:1};
+            this.spdGame.imgs={p:new Image(), b:new Image(), e:new Image()};
+            this.spdGame.imgs.p.src='images/sheep-top.png'; this.spdGame.imgs.b.src='images/boss-swat.png'; this.spdGame.imgs.e.src='images/enemy-drone.png';
+            this.spdGame.bullets=[]; this.spdGame.enemies=[]; this.spdGame.lastShot=0;
+            
+            const move=(e)=>{ const r=cvs.getBoundingClientRect(); this.spdGame.player.x=(e.touches?e.touches[0].clientX:e.clientX)-r.left; this.spdGame.player.y=(e.touches?e.touches[0].clientY:e.clientY)-r.top; };
+            cvs.addEventListener('touchmove', move); cvs.addEventListener('mousemove', move);
+            requestAnimationFrame(this.spdLoop);
+        },
+        spdLoop() {
+            if(!this.spdGame.active || this.phase!=='game_spd') return;
+            const ctx=this.spdGame.ctx, G=this.spdGame;
+            ctx.clearRect(0,0,400,600);
+            // Player
+            try{ ctx.drawImage(G.imgs.p, G.player.x-25, G.player.y-25, 50, 50); } catch{ ctx.fillStyle='cyan'; ctx.fillRect(G.player.x-20,G.player.y-20,40,40); }
+            // Boss
+            G.boss.x+=G.boss.dir*2; if(G.boss.x>350||G.boss.x<50) G.boss.dir*=-1;
+            try{ ctx.drawImage(G.imgs.b, G.boss.x-40, G.boss.y-40, 80, 80); } catch{ ctx.fillStyle='red'; ctx.fillRect(G.boss.x-40,G.boss.y-40,80,80); }
+            // Shoot
+            if(Date.now()-G.lastShot>200) { G.bullets.push({x:G.player.x,y:G.player.y-20,vy:-10,type:'p'}); G.lastShot=Date.now(); }
+            // Enemies
+            if(Math.random()<0.03) G.enemies.push({x:Math.random()*380+10,y:-20});
+            G.enemies.forEach((e,i)=>{
+                e.y+=3; try{ ctx.drawImage(G.imgs.e, e.x-15, e.y-15, 30, 30); } catch{}
+                if(Math.hypot(e.x-G.player.x, e.y-G.player.y)<40) { this.spdState.playerHpPercent-=10; this.damageAnim=true; setTimeout(()=>this.damageAnim=false,200); G.enemies.splice(i,1); }
+            });
+            // Bullets
+            G.bullets.forEach((b,i)=>{
+                b.y+=b.vy; ctx.fillStyle=b.type==='p'?'#fff':'#f00'; ctx.fillRect(b.x-2,b.y-5,4,10);
+                if(b.type==='p' && Math.hypot(b.x-G.boss.x,b.y-G.boss.y)<40) { this.spdState.bossHpPercent-=0.5; G.bullets.splice(i,1); }
+            });
+            if(this.spdState.bossHpPercent<=0) { G.active=false; this.stageClear('spd'); }
+            else if(this.spdState.playerHpPercent<=0) { G.active=false; this.showAlert("HP歸零", ()=>{ this.money-=10000; this.returnToHub(); }); }
+            else requestAnimationFrame(this.spdLoop);
+        },
+
+        clbInit() { this.clbState.deck=[]; for(let i=0;i<15;i++) this.clbState.deck.push(i<6?{type:'good',icon:'fa-star'}:{type:'bad',subtype:'ghost',icon:'fa-ghost'}); this.clbState.deck.sort(()=>Math.random()-0.5); this.clbState.grid=[[],[],[]]; },
+        clbDraw() {
+            if(this.clbState.currentPaper || this.clbState.deck.length===0) return;
+            this.clbState.currentPaper = this.clbState.deck.pop();
+            this.clbState.revealed = false; this.clbState.showEmoji = false;
+            setTimeout(()=>{
+                this.clbState.revealed=true;
+                this.clbDrawResult();
+            }, 500);
+        },
+        clbDrawResult() {
+            if(this.clbState.currentPaper.type==='good') { this.money+=1000; this.showMoneyEffect("+1000"); this.luckyAnim=true; setTimeout(()=>{this.luckyAnim=false; this.clbState.currentPaper=null; this.checkClbEnd();}, 1000); }
+            else setTimeout(()=>{this.clbState.showEmoji=true;}, 500);
+        },
+        clbPlace(i) {
+            if(!this.clbState.currentPaper || this.clbState.currentPaper.type==='good') return;
+            this.clbState.grid[i].push(this.clbState.currentPaper); this.clbState.currentPaper=null;
+            if(this.clbState.grid[i].length>=3) { this.clbState.grid[i]=[]; this.currentBonus+=3000; this.showMoneyEffect("+3000"); }
+            this.checkClbEnd();
+        },
+        clbPayClear() { if(this.money>=3000) { this.money-=3000; this.clbState.currentPaper=null; this.checkClbEnd(); } },
+        checkClbEnd() { if(this.clbState.deck.length===0 && !this.clbState.currentPaper) this.stageClear('clb'); },
+
+        hrtInit() { this.hrtState.phase='player_turn'; this.hrtState.hand=[{rank:'Q',suit:'♥'},{rank:'K',suit:'♠'},{rank:'10',suit:'♦'},{rank:'JK',suit:'🤡'}]; this.hrtState.bossHandCount=5; this.hrtState.chamberCount=6; this.hrtState.selectedCard=null; },
+        hrtSelectCard(i) { this.hrtState.selectedCard=i; },
+        hrtPlayCard() {
+            if(this.hrtState.selectedCard===null) return;
+            const c=this.hrtState.hand.splice(this.hrtState.selectedCard,1)[0];
+            this.hrtState.lastPlayedCard={...c,isBack:true}; this.hrtState.selectedCard=null; this.hrtState.phase='boss_thinking';
+            setTimeout(()=>{
+                const isTruth = (c.rank==='Q'||c.rank==='JK');
+                if(!isTruth && Math.random()<0.7) { this.showAlert("Boss: LIAR!", ()=>{ this.hrtState.target='player'; this.hrtState.phase='trigger'; }); }
+                else { this.showAlert("Boss: Pass.", ()=>{ this.hrtState.phase='player_reaction'; this.hrtState.bossHandCount--; this.hrtState.bossIsLying=Math.random()<0.5; }); }
+            }, 1000);
+        },
+        hrtReaction(call) {
+            if(call) { this.hrtState.target=this.hrtState.bossIsLying?'boss':'player'; this.showAlert(this.hrtState.bossIsLying?"抓到了!":"抓錯了!", ()=>this.hrtState.phase='trigger'); }
+            else this.hrtState.phase='player_turn';
+        },
+        hrtTrigger() {
+            this.hrtState.isShooting=true;
+            setTimeout(()=>{
+                if(Math.random()<(1/this.hrtState.chamberCount)) { this.showAlert("BANG!", ()=>{ if(this.hrtState.target==='boss') this.stageClear('hrt'); else { this.money=Math.floor(this.money/2); this.returnToHub(); } }); }
+                else { this.showAlert("Click... 空包彈", ()=>{ this.hrtState.chamberCount--; this.hrtState.isShooting=false; this.hrtState.phase=this.hrtState.target==='boss'?'player_turn':'player_reaction'; }); }
+            }, 500);
+        },
+
+        stageClear(gid) { this.games[gid].cleared=true; this.money+=this.currentBonus; this.showStageClear=true; this.clearRank = this.currentBonus>=40000?'S':'B'; }
+    }
+});
+app.mount('#app');
+</script>
+</body>
+</html>

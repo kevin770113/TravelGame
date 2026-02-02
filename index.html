@@ -1126,7 +1126,25 @@
                 skatingDistance.value += move; 
                 trackOffset.value = (trackOffset.value + move) % 100; 
                 
-                if(skatingDistance.value >= maxDistance && !isFever.value) { gameRunning.value = false; money.value += gameScore.value * 10; parchmentMode.value = 'settlement'; showParchmentPhase.value = true; return; } 
+                            // [修改後] 包含金錢與疲勞度的完整傳送
+            if(skatingDistance.value >= maxDistance && !isFever.value) { 
+                gameRunning.value = false; 
+                
+                // 1. 保留原本的加錢邏輯
+                money.value += gameScore.value * 10; 
+
+                // 2. 提示訊息
+                alert(`滑冰挑戰成功！\n獲得獎金 $${gameScore.value * 10}\n準備前往東京涉谷...`);
+                
+                // 3. 【關鍵】帶著「錢」跟「疲勞」一起跳轉
+                // shibuya.html 是新檔案
+                // money 是錢
+                // fatigue 是疲勞 (明治神宮會用到)
+                window.location.href = `shibuya.html?money=${money.value}&fatigue=${fatigue.value}`;
+                
+                return; 
+            }
+ 
                 
                 // 羊群生成 (更大隻, 更多)
                 if(isFever.value && Math.random() > 0.7) { 
