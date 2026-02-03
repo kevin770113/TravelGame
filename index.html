@@ -20,8 +20,12 @@
         body { margin: 0; padding: 0; font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #000; color: var(--text-main); height: 100dvh; width: 100vw; overflow: hidden; display: flex; justify-content: center; }
         #app { width: 100%; max-width: 430px; height: 100dvh; position: relative; background: #1a1a1a; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
 
-        /* --- 測試與狀態列 --- */
-        .debug-panel { position: fixed; top: 80px; left: 10px; z-index: 9999; display: flex; flex-direction: column; gap: 5px; opacity: 0.3; transition: 0.3s; pointer-events: auto; }
+        /* --- 隱藏測試與狀態列 --- */
+        .debug-panel { 
+            position: fixed; top: 80px; left: 10px; z-index: 9999; 
+            display: none !important; /* 強制隱藏 */
+            flex-direction: column; gap: 5px; opacity: 0.3; transition: 0.3s; pointer-events: auto; 
+        }
         .debug-panel:hover { opacity: 1; }
         .debug-btn { background: rgba(0, 0, 0, 0.8); border: 1px solid #ff4757; color: #fff; padding: 5px 8px; font-size: 10px; border-radius: 4px; cursor: pointer; font-weight: bold; }
         
@@ -135,7 +139,7 @@
         .game-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; background: url('images/ice-skating.png') no-repeat center center; background-size: cover; overflow: hidden; z-index: 50; touch-action: none; }
         .game-hud { position: absolute; top: 70px; left: 15px; right: 15px; z-index: 60; pointer-events: none; }
         .game-score-board { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); border: 2px solid #ffd700; border-radius: 20px; padding: 8px 25px; color: #fff; font-size: 22px; font-weight: 900; text-shadow: 0 0 5px #000; z-index: 1000; display: flex; align-items: center; gap: 10px; white-space: nowrap; }
-        .life-container { display: flex; gap: 5px; }
+        .life-container { display: flex; gap: 5px; z-index: 1001; position: relative; } /* [修正] Z-index */
         .life-container .fa-heart { color: #ff4757; font-size: 24px; filter: drop-shadow(0 0 5px rgba(255, 71, 87, 0.5)); transition: 0.3s; }
         .life-container .fa-heart.lost { color: #2d3436; transform: scale(0.8); opacity: 0.3; }
         .game-canvas { width: 100%; height: 100%; position: relative; perspective: 600px; overflow: hidden; z-index: 10; }
@@ -329,16 +333,36 @@
         <div class="scroll-paper">
             <div class="scroll-title">📜 {{ parchmentData.title }}</div>
             <div class="scroll-content">
-                <div v-if="parchmentMode === 'settlement'">
-                    <p>旅程結束</p>
-                    <div style="font-size:36px; color:#c0392b; margin:10px 0;"><i class="fas fa-camera"></i> {{ money }}</div>
-                    <p style="font-size:14px; color:#5d4037;">獲得總分</p>
-                    <div style="display:flex; justify-content:center; gap:20px; margin-top:20px; font-size:14px;">
-                        <div><i class="fas fa-dizzy"></i> 最終疲勞: <b>{{ fatigue }}%</b></div>
-                        <div v-if="phase==='chapter1'"><i class="fas fa-bed"></i> 恢復後: <b>{{ Math.floor(fatigue * 0.4) }}%</b></div>
-                        <div v-if="phase==='karuizawa'"><i class="fas fa-heart"></i> 剩餘愛心: <b>{{ skatingLife }}</b></div>
+                
+                <div v-if="parchmentMode === 'settlement' && phase === 'karuizawa'">
+                    <p style="font-size:18px; color:#5d4037;">滑冰挑戰結束</p>
+                    
+                    <div style="margin:20px 0; padding:15px; background:rgba(0,0,0,0.05); border-radius:10px;">
+                        <div style="font-size:16px; margin-bottom:5px;">滑冰得分: <b>{{ gameScore }}</b></div>
+                        <div style="font-size:14px; color:#c0392b;">獎金倍率: <b>x5</b></div>
                     </div>
+
+                    <div style="font-size:36px; color:#c0392b; margin:10px 0;">
+                        <i class="fas fa-camera"></i> +{{ gameScore * 5 }}
+                    </div>
+                    <p style="font-size:14px; color:#5d4037;">(目前總資產: ${{ money }})</p>
                 </div>
+
+                <div v-else-if="parchmentMode === 'settlement'">
+                    <p style="font-size:18px; color:#5d4037;">本站旅程結束</p>
+                    <div style="margin:20px 0; padding:15px; background:rgba(0,0,0,0.05); border-radius:10px;">
+                        <div style="font-size:16px; margin-bottom:5px;">目前累積資產</div>
+                        <div style="font-size:36px; color:#c0392b; margin:10px 0;">
+                            <i class="fas fa-camera"></i> ${{ money }}
+                        </div>
+                        <div style="font-size:14px; color:#5d4037;">
+                            <i class="fas fa-dizzy"></i> 累積疲勞: <b>{{ fatigue }}%</b>
+                        </div>
+                    </div>
+                    <p style="font-size:14px; color:#888;" v-if="phase === 'chapter1'">前往海洋將恢復部分體力...</p>
+                    <p style="font-size:14px; color:#888;" v-if="phase === 'chapter2'">準備前往溫泉療癒身心...</p>
+                </div>
+
                 <div v-else-if="parchmentMode === 'dinner_summary'">
                     <p>休息結束，整裝待發！</p>
                     <div style="margin-top:15px; font-size:14px; text-align:left; background:rgba(0,0,0,0.05); padding:10px; border-radius:5px;">
@@ -350,10 +374,16 @@
                         <div v-else style="padding-left:15px; font-size:12px; color:#999;">(無特殊效果)</div>
                     </div>
                 </div>
+
                 <div v-else><p v-html="parchmentData.desc"></p></div>
             </div>
+            
             <button class="scroll-btn" @click="handleParchmentAction">
-                {{ parchmentMode === 'settlement' ? (phase==='karuizawa'?'前往明治神宮 (To Be Continued)':'前往下一站') : (phase==='karuizawa' ? '開始挑戰' : '開始探索') }} <i class="fas fa-arrow-right"></i>
+                {{ 
+                    parchmentMode === 'settlement' 
+                        ? (phase === 'karuizawa' ? '進入涉谷篇章' : '前往下一站') 
+                        : (phase === 'karuizawa' ? '開始挑戰' : '開始探索') 
+                }} <i class="fas fa-arrow-right"></i>
             </button>
         </div>
     </div>
@@ -688,28 +718,22 @@
             const orderCooldown = ref(0); 
             const effects = ref([]);
             
-            // 戰鬥數值 (新增 critNext, isInvincible 狀態)
-            const playerStats = ref({ 
-                hp: 10000, maxHp: 10000, atk: 500, def: 100, 
-                atkBuff:0, defBuff:0, 
-                critNext: false, isInvincible: false 
-            });
-            const bossStats = ref({ 
-                hp: 50000, maxHp: 50000, atk: 1500, turn: 1, 
-                debuffs: { stun:0, atkDown:0, defDown:0 } 
-            });
+            // 章節分數追蹤
+            const chapterScores = ref({ land: 0, sea: 0, skate: 0 });
+
+            // 戰鬥數值
+            const playerStats = ref({ hp: 10000, maxHp: 10000, atk: 500, def: 100, atkBuff:0, defBuff:0, critNext: false, isInvincible: false });
+            const bossStats = ref({ hp: 50000, maxHp: 50000, atk: 1500, turn: 1, debuffs: { stun:0, atkDown:0, defDown:0 } });
             
-            // ★★★ Boss 戰 UI 變數 ★★★
-            const battleHand = ref([]); // 下方手牌
-            const activePassives = ref([]); // 右側被動欄
+            // Boss 戰 UI 變數
+            const battleHand = ref([]); 
+            const activePassives = ref([]); 
             const battleSlots = ref([null, null, null]); 
             const hoveringCard = ref(-1); 
             const isBattleAnimating = ref(false); 
-            const showBattleDetail = ref(false); // 詳細資訊視窗
+            const showBattleDetail = ref(false); 
             const passiveAnim = ref({ show: false, text: '', card: {} }); 
             const turnAnimText = ref(''); 
-            
-            // 舊變數保留 (防錯)
             const selectedBattleCards = ref([]); 
 
             // UI 狀態
@@ -732,7 +756,7 @@
 
             // 結算與轉場
             const resultInfo = ref({ title:'', desc:'', changes:[], bg:'', isLucky:false, photoImg:'', photoName:'', photoVal:0 });
-            const isHurt = ref(false); // 控制受傷紅框
+            const isHurt = ref(false); 
             const screenEffectClass = ref(""); 
             const moneyBox = ref(null); 
             const hpBox = ref(null);
@@ -741,7 +765,6 @@
             const isLoading = ref(true); 
             const loadingProgress = ref(0);
             
-            // 防錯變數
             const windLv = ref(0);
             const windColor = computed(() => 'transparent'); 
             const windLabel = computed(() => '');
@@ -781,7 +804,6 @@
             // =========================================
             // 2. 資料定義
             // =========================================
-            
             const landRides = ref([
                 { id:'beauty', name:'美女與野獸', cost:2, playCount:0, dpaUsed:false, fatigueCost:15, played:false, cover: imgPath+'beauty-beast.png', bg: imgPath+'beauty-beast.png', desc:'賭人品：能拍到浪漫共舞嗎？', good: { img:imgPath+'land-beauty-good.png', val:1000, name:'浪漫共舞照', fatigue:15 }, bad: { img:imgPath+'land-beauty-bad.png', val:200, name:'排隊後腦杓', fatigue:40 } },
                 { id:'splash', name:'飛濺山', cost:2, playCount:0, dpaUsed:false, fatigueCost:15, played:false, cover: imgPath+'splash-mountain.png', bg: imgPath+'splash-mountain.png', desc:'賭膽量：小心全身濕透！', good: { img:imgPath+'land-splash-good.png', val:800, name:'完美抓拍', fatigue:15 }, bad: { img:imgPath+'land-splash-bad.png', val:150, name:'落湯雞特寫', fatigue:45 } },
@@ -812,15 +834,15 @@
             
             const menus = { chapter1: [{id:'waffle', name:'米奇鬆餅', icon:'🧇', price:150, fatigue:-10, effect:'-10% Fatigue'},{id:'mochi', name:'三眼怪麻糬', icon:'🍡', price:250, fatigue:-20, effect:'-20% Fatigue'},{id:'turkey', name:'煙燻火雞腿', icon:'🍗', price:500, fatigue:-40, effect:'-40% Fatigue'}], chapter2: [{id:'icecream', name:'海鹽冰淇淋', icon:'🍦', price:150, fatigue:-10, effect:'-10% Fatigue'},{id:'wine', name:'熱紅酒', icon:'🍷', price:300, fatigue:-25, effect:'-25% Fatigue'},{id:'chicken', name:'辣味燻雞腿', icon:'🍖', price:550, fatigue:-45, effect:'-45% Fatigue'}] };
             
+            // [修正] 隱藏 Boss 戰效果說明，但保留 buff 數值
             const dinnerDishes = [
-                { id:'d1', name:'熊肉火鍋 (S級)', price:1500, img:imgPath+'food-bear-S.png', rank:'S', lore:'用當地獵人捕獲的熊肉製成的鍋物，極度滋補。', effectText:'<b>[Boss戰 體質強化]</b><br><span style="color:#2ED573">主角</span> 最大血量 <b>+20%</b><br><br><b>[滑冰 小遊戲]</b><br>額外生命 <b>+1</b> (可多撞一次)', buff:{life:1, feverDuration:1, magnet:1, bossHp:0.2} },
-                { id:'d2', name:'精緻懷石 (S級)', price:1200, img:imgPath+'food-kaiseki-S.png', rank:'S', lore:'展現料理職人精神的藝術品，提升專注力。', effectText:'<b>[Boss戰 戰技強化]</b><br><span style="color:#2ED573">主角</span> 爆擊率 <b>+15%</b><br><br><b>[滑冰 小遊戲]</b><br>Fever 無敵衝刺時間 <b>加倍</b>', buff:{life:0, feverDuration:2, magnet:1, bossCrit:0.15} },
-                { id:'d3', name:'鹽烤岩魚 (A級)', price:600, img:imgPath+'food-fish-A.png', rank:'A', lore:'溪流中捕獲的新鮮岩魚，簡單鹽烤最美味。', effectText:'<b>[Boss戰 力量強化]</b><br><span style="color:#2ED573">主角</span> 基礎攻擊力 <b>+5%</b><br><br><b>[滑冰 小遊戲]</b><br>金幣磁鐵吸力 <b>大幅增強</b>', buff:{life:0, feverDuration:1, magnet:2, bossAtk:0.05} },
-                { id:'d4', name:'山菜天婦羅 (B級)', price:0, img:imgPath+'food-tempura-B.png', rank:'B', lore:'溫泉旅館招待的家常炸物。', effectText:'<b>[Boss戰]</b><br>無特殊數值加成 (僅填飽肚子)<br><br><b>[滑冰 小遊戲]</b><br>無特殊效果', buff:{life:0, feverDuration:1, magnet:1} }
+                { id:'d1', name:'熊肉火鍋 (S級)', price:1500, img:imgPath+'food-bear-S.png', rank:'S', lore:'用當地獵人捕獲的熊肉製成的鍋物，極度滋補。', effectText:'<b>[滑冰 小遊戲]</b><br>額外生命 <b>+1</b> (可多撞一次)', buff:{life:1, feverDuration:1, magnet:1, bossHp:0.2} },
+                { id:'d2', name:'精緻懷石 (S級)', price:1200, img:imgPath+'food-kaiseki-S.png', rank:'S', lore:'展現料理職人精神的藝術品，提升專注力。', effectText:'<b>[滑冰 小遊戲]</b><br>Fever 無敵衝刺時間 <b>加倍</b>', buff:{life:0, feverDuration:2, magnet:1, bossCrit:0.15} },
+                { id:'d3', name:'鹽烤岩魚 (A級)', price:600, img:imgPath+'food-fish-A.png', rank:'A', lore:'溪流中捕獲的新鮮岩魚，簡單鹽烤最美味。', effectText:'<b>[滑冰 小遊戲]</b><br>金幣磁鐵吸力 <b>大幅增強</b>', buff:{life:0, feverDuration:1, magnet:2, bossAtk:0.05} },
+                { id:'d4', name:'山菜天婦羅 (B級)', price:0, img:imgPath+'food-tempura-B.png', rank:'B', lore:'溫泉旅館招待的家常炸物。', effectText:'<b>[滑冰 小遊戲]</b><br>無特殊效果', buff:{life:0, feverDuration:1, magnet:1} }
             ];
 
             const drawnCards = ref([]);
-            
             const gachaPool = [
                 { id: 'ur_watermelon', name: '傳說中的西瓜', rank: 'UR', type:'passive', img: imgPath+'card-ur-watermelon.png', desc: '傳說中的神聖水果。', lore: '供奉給最高神祇的稀有供品。', effectText: '<b>[被動] 西瓜神威</b><br>戰鬥開始時，對 Boss 造成 3 回合 <b>暈眩</b>。<br>並使 Boss 防禦力永久 <b>-50%</b>。<br>主角全數值 (HP/ATK/DEF) <b>+10%</b>。' },
                 { id: 'ssr_emperor', name: '明治天皇', rank: 'SSR', type:'active', cd:3, img: imgPath+'card-ssr-emperor.png', desc: '開拓時代的英主。', effectText: '<b>[主動] 皇威 (CD:3)</b><br>對 Boss 造成 <b>3000</b> 點神聖傷害。<br>若 Boss 處於 Debuff 狀態，傷害加倍 (6000)。' },
@@ -972,6 +994,9 @@
             const buyDinner = (dish) => {
                 if(money.value >= dish.price) {
                     money.value -= dish.price;
+                    // 溫泉晚餐費用記入滑冰/溫泉章節成本
+                    chapterScores.value.skate -= dish.price;
+                    
                     spawnText(`-$${dish.price}`, 'ft-bad', 'money');
                     dinnerResult.value = dish;
                     gameBuffs.value = dish.buff; 
@@ -1012,6 +1037,10 @@
                 money.value -= moneyCost;
                 if (moneyCost > 0) spawnText(`-$${moneyCost}`, 'ft-bad', 'money');
 
+                // 記錄各章節成本
+                if (phase.value === 'chapter1') chapterScores.value.land -= moneyCost;
+                else if (phase.value === 'chapter2') chapterScores.value.sea -= moneyCost;
+
                 if(phase.value === 'onsen') { 
                     const r = Math.random(); 
                     let loot = onsenLoot[2]; 
@@ -1019,6 +1048,8 @@
                     else if (r < 0.6) loot = onsenLoot[1]; 
                     
                     money.value += loot.val;
+                    // 溫泉獲得獎金記入 Skate 章節收益
+                    chapterScores.value.skate += loot.val;
                     
                     let fatigueRecoverMsg = '';
                     if (loot.fatigueReset === 'full') { fatigue.value = 0; fatigueRecoverMsg = '疲勞全消'; }
@@ -1037,7 +1068,13 @@
                 if (c.isRest) { fatigue.value = Math.max(0, fatigue.value - 50); outcomeDesc = "體力大幅恢復。"; } 
                 else if (c.bad) { if (Math.random() > 0.6) { isLucky = false; photoData = c.bad; fatigue.value = Math.min(100, fatigue.value + photoData.fatigue); outcomeDesc = "發生了意外..."; } else { fatigue.value = Math.min(100, fatigue.value + photoData.fatigue); } } else { fatigue.value = Math.max(0, fatigue.value + photoData.fatigue); }
 
-                money.value += photoData.val; if (photoData.val > 0) spawnText(`+$${photoData.val}`, 'ft-money', 'money');
+                money.value += photoData.val; 
+                if (photoData.val > 0) spawnText(`+$${photoData.val}`, 'ft-money', 'money');
+                
+                // 記錄各章節獲利
+                if (phase.value === 'chapter1') chapterScores.value.land += photoData.val;
+                else if (phase.value === 'chapter2') chapterScores.value.sea += photoData.val;
+
                 let fatChangeText = c.isRest ? "-50%" : (photoData.fatigue > 0 ? `+${photoData.fatigue}%` : `${photoData.fatigue}%`);
                 spawnText(`疲勞 ${fatChangeText}`, photoData.fatigue > 0 ? 'ft-bad' : 'ft-good', 'hp');
                 if(orderCooldown.value>0) orderCooldown.value--;
@@ -1053,12 +1090,31 @@
                 else endTurnCheck(); 
             };
             
-            const buyFood = (f) => { money.value -= f.price; fatigue.value = Math.max(0, fatigue.value + f.fatigue); showOrder.value = false; orderCooldown.value = 1; spawnText(`-${f.price}`, 'ft-bad', 'money'); spawnText(`${f.effect}`, 'ft-good', 'hp'); };
+            const buyFood = (f) => { 
+                money.value -= f.price; 
+                // 購買食物成本記錄
+                if (phase.value === 'chapter1') chapterScores.value.land -= f.price;
+                else if (phase.value === 'chapter2') chapterScores.value.sea -= f.price;
 
+                fatigue.value = Math.max(0, fatigue.value + f.fatigue); 
+                showOrder.value = false; orderCooldown.value = 1; 
+                spawnText(`-${f.price}`, 'ft-bad', 'money'); 
+                spawnText(`${f.effect}`, 'ft-good', 'hp'); 
+            };
+
+            // [修正] 按鈕行為：若在 Karuizawa 結算，處理獎金並跳轉
             const handleParchmentAction = () => {
                 if (parchmentMode.value === 'settlement' && phase.value === 'karuizawa') {
-                    phase.value = 'meiji_intro'; parchmentMode.value = 'intro'; money.value += 5000; return;
+                    // 1. 計算並發放獎金 (x5)
+                    const earn = gameScore.value * 5;
+                    money.value += earn; 
+                    chapterScores.value.skate += earn;
+
+                    // 2. 跳轉涉谷，傳遞所有參數
+                    window.location.href = `shibuya.html?money=${money.value}&fatigue=${fatigue.value}&land=${chapterScores.value.land}&sea=${chapterScores.value.sea}&skate=${chapterScores.value.skate}`;
+                    return;
                 }
+                
                 if (parchmentMode.value === 'dinner_summary') {
                     phase.value = 'karuizawa';
                     parchmentMode.value = 'intro';
@@ -1118,7 +1174,7 @@
 
             const spawnFeedback = (x, icon, val) => { feedbackEffects.value.push({ id: Date.now(), x: x, y: 80, icon: icon, val: val }); setTimeout(() => feedbackEffects.value.shift(), 800); };
             
-            // ★★★ 暴走羊邏輯更新 (圖片版 + 向上衝 + 移除 transition) ★★★
+            // ★★★ 滑冰 Loop (修正結算與判定) ★★★
             const gameLoop = () => {
                 if(!gameRunning.value) return;
                 skatingSpeed.value = isFever.value ? 2.2 : 0.9; 
@@ -1126,79 +1182,47 @@
                 skatingDistance.value += move; 
                 trackOffset.value = (trackOffset.value + move) % 100; 
                 
-                            // [修改後] 包含金錢與疲勞度的完整傳送
-            if(skatingDistance.value >= maxDistance && !isFever.value) { 
-                gameRunning.value = false; 
-                
-                // 1. 保留原本的加錢邏輯
-                money.value += gameScore.value * 10; 
-
-                // 2. 提示訊息
-                alert(`滑冰挑戰成功！\n獲得獎金 $${gameScore.value * 10}\n準備前往東京涉谷...`);
-                
-                // 3. 【關鍵】帶著「錢」跟「疲勞」一起跳轉
-                // shibuya.html 是新檔案
-                // money 是錢
-                // fatigue 是疲勞 (明治神宮會用到)
-                window.location.href = `shibuya.html?money=${money.value}&fatigue=${fatigue.value}`;
-                
-                return; 
-            }
+                // 1. 抵達終點 -> 顯示結算羊皮紙
+                if(skatingDistance.value >= maxDistance && !isFever.value) { 
+                    gameRunning.value = false; 
+                    parchmentMode.value = 'settlement'; 
+                    showParchmentPhase.value = true; 
+                    return; 
+                }
  
-                
-                // 羊群生成 (更大隻, 更多)
+                // 羊群生成
                 if(isFever.value && Math.random() > 0.7) { 
                     stampedeSheep.value.push({ 
-                        id: Date.now() + Math.random(), 
-                        x: Math.random() * 90, 
-                        y: 110, // 從底部開始
-                        speed: 2.0 + Math.random() * 2.0, // 快速向上
-                        size: 80 + Math.random() * 100 // ★ 大尺寸
+                        id: Date.now() + Math.random(), x: Math.random() * 90, y: 110, 
+                        speed: 2.0 + Math.random() * 2.0, size: 80 + Math.random() * 100 
                     }); 
                 }
-                
-                // 羊群移動 (向上) - 完全 JS 控制
                 stampedeSheep.value.forEach((s, i) => { s.y -= s.speed; });
                 stampedeSheep.value = stampedeSheep.value.filter(s => s.y > -50); 
 
                 const now = Date.now(); const spawnRate = isFever.value ? 100 : Math.max(500, 1200 - (skatingSpeed.value * 400));
                 
-                // ★★★ 雙重掉落邏輯 (確保不重疊) ★★★
                 if(now - lastSpawnTime > spawnRate) { 
                     const lanes = [10, 30, 50, 70, 90]; 
                     const usedLanes = new Set();
-                    const loopCount = 2; // 一次生成 2 個
+                    const loopCount = 2; 
 
                     for(let k=0; k<loopCount; k++) {
-                        let laneIdx = -1;
-                        let safety = 0;
-                        do {
-                            laneIdx = Math.floor(Math.random() * lanes.length);
-                            safety++;
-                        } while(usedLanes.has(laneIdx) && safety < 10);
-                        
+                        let laneIdx = -1; let safety = 0;
+                        do { laneIdx = Math.floor(Math.random() * lanes.length); safety++; } while(usedLanes.has(laneIdx) && safety < 10);
                         if(!usedLanes.has(laneIdx)) {
                             usedLanes.add(laneIdx);
                             const x = lanes[laneIdx];
-                            laneState.value[laneIdx] = 'warn'; 
-                            setTimeout(() => laneState.value[laneIdx] = '', 500); 
-                            
+                            laneState.value[laneIdx] = 'warn'; setTimeout(() => laneState.value[laneIdx] = '', 500); 
                             let t='obstacle', i='🪨', cls='obstacle'; 
-                            if (isFever.value) { 
-                                t='item-coin'; i='💰'; cls='item-coin'; laneState.value[laneIdx] = 'gold'; 
-                            } else { 
+                            if (isFever.value) { t='item-coin'; i='💰'; cls='item-coin'; laneState.value[laneIdx] = 'gold'; } else { 
                                 let isReward = false; const r = Math.random(); 
-                                if (consecutiveObstacles.value >= 5) isReward = true; 
-                                else if (r > 0.65) isReward = true; 
-                                
+                                if (consecutiveObstacles.value >= 5) isReward = true; else if (r > 0.65) isReward = true; 
                                 if (isReward) { 
                                     consecutiveObstacles.value = 0; 
                                     if (Math.random() > 0.7) { t='item-heart'; i='❤️'; cls='item-heart'; laneState.value[laneIdx] = 'gold'; } 
                                     else { t='item-coin'; i='💰'; cls='item-coin'; laneState.value[laneIdx] = 'gold'; } 
-                                } else { 
-                                    consecutiveObstacles.value++; 
-                                    const obs = ['🪨', '🪵', '🐦‍⬛']; i = obs[Math.floor(Math.random()*obs.length)]; 
-                                } 
+                                } else { consecutiveObstacles.value++; const obs = ['🪨', '🪵', '🐦‍⬛']; i = obs[Math.floor(Math.random()*obs.length)]; } 
                             } 
                             gameObjects.value.push({id:now + k, x, y:-10, type:t, icon:i, cls, hit:false});
                         }
@@ -1206,286 +1230,46 @@
                     lastSpawnTime = now; 
                 }
                 
-                gameObjects.value.forEach((o, idx)=>{ o.y += (1.0 * skatingSpeed.value); const magnetStrength = 0.6 * gameBuffs.value.magnet; if(isFever.value && (o.type==='item-coin' || o.type==='item-heart')) { const dx = playerX.value - o.x; o.x += dx * magnetStrength; } const hitRange = isFever.value ? 40 : 15; if(!o.hit && o.y>75 && o.y<90 && Math.abs(o.x-playerX.value) < hitRange){ o.hit=true; if(o.type==='obstacle'){ if(!isFever.value){ isHit.value = true; isHurt.value = true; setTimeout(() => { isHit.value = false; isHurt.value = false; }, 400); skatingLife.value--; if(skatingLife.value<=0) { gameRunning.value = false; parchmentMode.value = 'settlement'; showParchmentPhase.value = true; } } else { gameScore.value += 2; spawnFeedback(o.x, '💥', '+2'); } } else if(o.type==='item-coin'){ gameScore.value+=10; spawnFeedback(o.x, '💰', '+10'); gameObjects.value.splice(idx,1); } else if(o.type==='item-heart'){ spawnFeedback(o.x, '❤️', '+20'); if(!isFever.value) { collectedHearts.value++; if(collectedHearts.value >= 3) { isFever.value = true; collectedHearts.value = 3; const feverTime = 5000 * gameBuffs.value.feverDuration; setTimeout(() => { isFever.value = false; collectedHearts.value = 0; stampedeSheep.value = []; }, feverTime); } } else { gameScore.value += 20; } gameObjects.value.splice(idx,1); } } });
+                gameObjects.value.forEach((o, idx)=>{ 
+                    o.y += (1.0 * skatingSpeed.value); 
+                    const magnetStrength = 0.6 * gameBuffs.value.magnet; 
+                    if(isFever.value && (o.type==='item-coin' || o.type==='item-heart')) { const dx = playerX.value - o.x; o.x += dx * magnetStrength; } 
+                    
+                    // [修正] 判定範圍放寬 (12)
+                    const hitRange = isFever.value ? 40 : 12; 
+                    
+                    if(!o.hit && o.y>75 && o.y<90 && Math.abs(o.x-playerX.value) < hitRange){ 
+                        o.hit=true; 
+                        if(o.type==='obstacle'){ 
+                            if(!isFever.value){ 
+                                isHit.value = true; isHurt.value = true; 
+                                setTimeout(() => { isHit.value = false; isHurt.value = false; }, 400); 
+                                skatingLife.value--; 
+                                
+                                // 2. 死亡 -> 顯示結算
+                                if(skatingLife.value<=0) { 
+                                    gameRunning.value = false; 
+                                    parchmentMode.value = 'settlement'; 
+                                    showParchmentPhase.value = true; 
+                                } 
+                            } else { gameScore.value += 2; spawnFeedback(o.x, '💥', '+2'); } 
+                        } else if(o.type==='item-coin'){ gameScore.value+=10; spawnFeedback(o.x, '💰', '+10'); gameObjects.value.splice(idx,1); } else if(o.type==='item-heart'){ spawnFeedback(o.x, '❤️', '+20'); if(!isFever.value) { collectedHearts.value++; if(collectedHearts.value >= 3) { isFever.value = true; collectedHearts.value = 3; const feverTime = 5000 * gameBuffs.value.feverDuration; setTimeout(() => { isFever.value = false; collectedHearts.value = 0; stampedeSheep.value = []; }, feverTime); } } else { gameScore.value += 20; } gameObjects.value.splice(idx,1); } 
+                    } 
+                });
                 gameObjects.value = gameObjects.value.filter(o=>o.y<110); requestAnimationFrame(gameLoop);
             };
 
             // =========================================
-            // ★★★ BOSS BATTLE LOGIC ★★★
+            // Boss Battle Logic (保留，避免 JS 錯誤)
             // =========================================
-            
-            const startBattlePrep = () => {
-                const maxHp = 10000 * (1 - (fatigue.value / 200));
-                const hasWatermelon = drawnCards.value.some(c => c.id === 'ur_watermelon');
-                const melonMulti = hasWatermelon ? 1.1 : 1.0;
-                
-                playerStats.value = {
-                    hp: Math.floor(maxHp * melonMulti) + (gameBuffs.value.bossHp ? 2000 : 0),
-                    maxHp: Math.floor(maxHp * melonMulti) + (gameBuffs.value.bossHp ? 2000 : 0),
-                    atk: 500 * melonMulti + (gameBuffs.value.bossAtk ? 25 : 0),
-                    def: 100 * melonMulti,
-                    atkBuff: 0, defBuff: 0,
-                    critNext: false, isInvincible: false
-                };
-                
-                bossStats.value = { 
-                    hp: 50000, maxHp: 50000, atk: 1500, turn: 1, 
-                    debuffs: { stun: 0, atkDown: 0, defDown: 0 } 
-                };
-                
-                const uniqueHand = [];
-                const ids = new Set();
-                battleHand.value = [];
-                activePassives.value = []; 
-
-                drawnCards.value.forEach(c => {
-                    if(!ids.has(c.id)) {
-                        // ★ 分流卡片 ★
-                        if(c.type === 'passive') {
-                            activePassives.value.push(c);
-                        } else {
-                            battleHand.value.push({ ...c, cd: 0 });
-                        }
-                        ids.add(c.id);
-                    }
-                });
-                
-                // ★★★ 加入保底普攻卡 (Basic Attack) ★★★
-                battleHand.value.push({
-                    id: 'basic_attack',
-                    name: '普通攻擊',
-                    rank: 'N',
-                    type: 'active',
-                    cd: 0,
-                    img: '', 
-                    desc: '基礎攻擊手段。',
-                    effectText: '造成基礎傷害。'
-                });
-                
-                battleSlots.value = [null, null, null];
-                phase.value = 'meiji_battle';
-                
-                setTimeout(runPassiveIntro, 500);
-            };
-            
-            const runPassiveIntro = async () => {
-                for (const card of activePassives.value) {
-                    passiveAnim.value = { show: true, text: `${card.name} 發動！`, card: card };
-                    // 執行初始效果
-                    if(card.id === 'ur_watermelon') { bossStats.value.debuffs.stun = 3; }
-                    if(card.id === 'sr_tree') { playerStats.value.hp = Math.min(playerStats.value.maxHp, playerStats.value.hp + 5000); }
-                    if(card.id === 'sr_well') { bossStats.value.hp -= Math.floor(bossStats.value.hp * 0.15); }
-                    if(card.id === 'r_charm_win') { playerStats.value.atk += 50; }
-                    if(card.id === 'r_charm_love') { playerStats.value.maxHp += 1000; playerStats.value.hp += 1000; }
-                    if(card.id === 'r_charm_bad') { playerStats.value.def += 50; }
-                    
-                    await new Promise(r => setTimeout(r, 1500));
-                    passiveAnim.value.show = false;
-                    await new Promise(r => setTimeout(r, 200));
-                }
-                turnAnimText.value = 'BATTLE START';
-                setTimeout(() => turnAnimText.value = '', 2000);
-            };
-            
-            const clickHandCard = (card, idx) => {
-                if(isBattleAnimating.value) return;
-                if(card.cd > 0) { return; }
-                openCardInspector(card); 
-            };
-            
-            const equipCard = (card) => {
-                const emptyIdx = battleSlots.value.findIndex(s => s === null);
-                if(emptyIdx === -1) { alert('出牌區已滿！'); return; }
-                battleSlots.value[emptyIdx] = card;
-                battleHand.value = battleHand.value.filter(c => c.id !== card.id);
-                showCardInspector.value = false;
-            };
-            
-            const removeCardFromSlot = (idx) => {
-                const card = battleSlots.value[idx];
-                if(!card) return;
-                battleSlots.value[idx] = null;
-                battleHand.value.push(card);
-            };
-            
-            const executeTurn = async () => {
-                // ★ 防止連點 ★
-                if (isBattleAnimating.value) return;
-
-                const cardsToPlay = battleSlots.value.filter(c => c !== null);
-                if(cardsToPlay.length === 0) {
-                    if(!confirm('確定不使用任何卡片直接結束回合？')) return;
-                }
-                
-                isBattleAnimating.value = true;
-                
-                // --- Player Phase ---
-                for(const card of cardsToPlay) {
-                    // ★ 標記正在飛行，觸發CSS動畫 ★
-                    card.isFlying = true;
-                    await new Promise(r => setTimeout(r, 350)); // 等待飛行撞擊
-
-                    let dmg = 0;
-                    if(card.id === 'basic_attack') dmg = 500; // 普攻傷害
-                    if(card.id === 'ssr_emperor') dmg = (bossStats.value.debuffs.atkDown > 0 || bossStats.value.debuffs.defDown > 0) ? 6000 : 3000;
-                    if(card.id === 'ssr_empress') { playerStats.value.hp = playerStats.value.maxHp; playerStats.value.isInvincible = true; spawnBattleText('+MAX', 'battle-float-text dmg-heal', 'player'); }
-                    if(card.id === 'ssr_susanoo') { dmg = 2000; bossStats.value.debuffs.atkDown = 3; }
-                    if(card.id === 'sr_sake') { playerStats.value.critNext = true; spawnBattleText('NEXT CRIT!', 'battle-float-text dmg-normal', 'player'); }
-                    if(card.id === 'sr_wine') { bossStats.value.debuffs.atkDown = 2; }
-                    if(card.id === 'sr_crow') { playerStats.value.isInvincible = true; }
-                    if(card.id === 'sr_miko') { dmg = 1000; /* 驅散未實作 */ }
-                    if(card.id === 'sr_festival') { 
-                        battleHand.value.forEach(c => { if(c.cd > 0) c.cd--; }); // 全隊 CD -1
-                        spawnBattleText('CD -1', 'battle-float-text dmg-normal', 'player');
-                    }
-                    if(card.id === 'r_arrow') dmg = 500;
-                    if(card.id === 'r_ema') playerStats.value.atkBuff = 30; 
-                    if(card.id === 'r_fortune_good') dmg = 500 + Math.random()*1500;
-                    if(card.id === 'r_fortune_bad') { dmg = 300; bossStats.value.debuffs.defDown = 2; }
-                    if(card.id === 'r_ladle') { playerStats.value.hp = Math.min(playerStats.value.maxHp, playerStats.value.hp + 300); spawnBattleText('+300', 'battle-float-text dmg-heal', 'player'); }
-                    if(card.id === 'r_pebble') dmg = 100;
-                    
-                    if(dmg > 0) {
-                        let totalDmg = Math.floor(dmg * (1 + playerStats.value.atkBuff/100));
-                        
-                        // 爆擊計算
-                        let isCrit = false;
-                        if(playerStats.value.critNext) {
-                            totalDmg *= 2;
-                            isCrit = true;
-                            playerStats.value.critNext = false; // 消耗爆擊狀態
-                        }
-                        
-                        bossStats.value.hp -= totalDmg;
-                        spawnBattleText(`-${totalDmg}`, isCrit ? 'battle-float-text dmg-crit' : 'battle-float-text dmg-normal', 'boss'); 
-                        
-                        // ★ Boss 受傷震動 ★
-                        const bossEl = document.getElementById('boss-target');
-                        if(bossEl) {
-                            bossEl.classList.remove('shake-hard', 'boss-hit-flash'); 
-                            void bossEl.offsetWidth; 
-                            bossEl.classList.add('shake-hard', 'boss-hit-flash');
-                        }
-                    }
-                    
-                    // 設定 CD
-                    card.cd = card.rank === 'SSR' ? (card.cdMax || 3) : (card.rank === 'SR' ? 2 : 1); 
-                    if(card.id === 'basic_attack') card.cd = 0; 
-                    
-                    // ★ 標記為剛使用，避免稍後 CD-- 誤傷 ★
-                    card.justUsed = true;
-
-                    battleHand.value.push(card);
-                    await new Promise(r => setTimeout(r, 600)); // 攻擊間隔
-                }
-                battleSlots.value = [null, null, null];
-                
-                if(bossStats.value.hp <= 0) {
-                    alert('VICTORY! 明治神宮的試煉通過！');
-                    phase.value = 'prologue'; 
-                    return;
-                }
-                
-                await new Promise(r => setTimeout(r, 1000));
-                turnAnimText.value = 'BOSS TURN';
-                await new Promise(r => setTimeout(r, 1500));
-                turnAnimText.value = '';
-                
-                // --- Boss Phase ---
-                if(bossStats.value.debuffs.stun > 0) {
-                    bossStats.value.debuffs.stun--;
-                    spawnBattleText('STUNNED', 'battle-float-text dmg-normal', 'boss');
-                } else {
-                    bossAI();
-                }
-                
-                // --- End Turn (Passives) ---
-                processTurnEndPassives();
-
-                // CD & Status Updates
-                battleHand.value.forEach(c => { 
-                    if(c.justUsed) {
-                        c.justUsed = false; // 本回合剛用的卡不減 CD
-                    } else if(c.cd > 0) {
-                        c.cd--; 
-                    }
-                });
-
-                if(playerStats.value.atkBuff > 0) playerStats.value.atkBuff = 0;
-                playerStats.value.isInvincible = false; // 無敵一回合後失效
-                
-                if(bossStats.value.debuffs.atkDown > 0) bossStats.value.debuffs.atkDown--;
-                if(bossStats.value.debuffs.defDown > 0) bossStats.value.debuffs.defDown--;
-                
-                bossStats.value.turn++;
-                isBattleAnimating.value = false;
-            };
-            
-            const bossAI = () => {
-                const turn = bossStats.value.turn;
-                let dmg = 0;
-                let actionName = '';
-                
-                if (turn <= 3 || turn === 6) {
-                    actionName = '普通攻擊';
-                    dmg = 1500;
-                } else if (turn === 4) {
-                    actionName = '靈力削弱';
-                    playerStats.value.atkBuff = -30; 
-                } else if (turn === 5) {
-                    actionName = '神域癒合';
-                    bossStats.value.hp = Math.min(bossStats.value.maxHp, bossStats.value.hp + 5000);
-                    spawnBattleText('+5000', 'battle-float-text dmg-heal', 'boss'); 
-                } else if (turn === 7) {
-                    actionName = '雷擊';
-                    dmg = 3000;
-                } else if (turn === 8) {
-                    actionName = '時空崩塌';
-                    if(!playerStats.value.isInvincible) {
-                        playerStats.value.hp = 1;
-                        spawnBattleText('HP -> 1', 'battle-float-text dmg-player', 'player');
-                        isHurt.value = true; 
-                        setTimeout(() => isHurt.value = false, 800);
-                    } else {
-                        spawnBattleText('IMMUNE', 'battle-float-text dmg-normal', 'player');
-                    }
-                } else {
-                    actionName = '狂暴攻擊';
-                    dmg = 2000 + (turn * 100);
-                }
-                
-                if (dmg > 0) {
-                    if(playerStats.value.isInvincible) {
-                        spawnBattleText('IMMUNE', 'battle-float-text dmg-normal', 'player');
-                    } else {
-                        const defMulti = (100 + playerStats.value.def) / 100;
-                        const bossAtkMulti = bossStats.value.debuffs.atkDown > 0 ? 0.7 : 1.0;
-                        const realDmg = Math.floor((dmg * bossAtkMulti) / defMulti);
-                        
-                        playerStats.value.hp -= realDmg;
-                        spawnBattleText(`-${realDmg}`, 'battle-float-text dmg-player', 'player');
-                        
-                        // ★ 玩家受傷特效 (紅框)
-                        isHurt.value = true; 
-                        setTimeout(() => isHurt.value = false, 500);
-                    }
-                }
-                
-                if (playerStats.value.hp <= 0) {
-                    alert('GAME OVER... 體力耗盡');
-                    location.reload();
-                }
-            };
-            
-            const processTurnEndPassives = () => {
-                activePassives.value.forEach(card => {
-                    if(card.id === 'sr_amazake') {
-                        const heal = Math.floor(playerStats.value.maxHp * 0.05);
-                        playerStats.value.hp = Math.min(playerStats.value.maxHp, playerStats.value.hp + heal);
-                        spawnBattleText(`+${heal}`, 'battle-float-text dmg-heal', 'player');
-                    }
-                });
-            };
+            const startBattlePrep = () => {}; 
+            const runPassiveIntro = async () => {};
+            const clickHandCard = (card, idx) => {};
+            const equipCard = (card) => {};
+            const removeCardFromSlot = (idx) => {};
+            const executeTurn = async () => {};
+            const bossAI = () => {};
+            const processTurnEndPassives = () => {};
 
             return {
                 phase, money, fatigue, time, windLv, windColor, windLabel, effects, 
