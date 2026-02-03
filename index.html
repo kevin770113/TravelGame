@@ -826,15 +826,16 @@
 
             const onsenOptions = ref([{ id:'onsen_entry', name:'汪泉閣露天風呂', cost:0, playCount:0, cover: imgPath+'hot-spring.png', bg: imgPath+'hot-spring.png', desc:'進入雪中秘湯，試試運氣。' }]);
             
+            // [修正] 溫泉數值調整
             const onsenLoot = [
-                { prob:0.2, img:imgPath+'onsen-outdoor-S.png', val:2000, name:'雪中秘湯 (S級)', fatigueReset:'full' }, 
-                { prob:0.4, img:imgPath+'onsen-window-A.png', val:1200, name:'雪見之窗 (A級)', fatigueReset:'half' }, 
-                { prob:0.4, img:imgPath+'onsen-steam-B.png', val:500, name:'暖呼呼白煙 (B級)', fatigueReset:'minor' }
+                { prob:0.2, img:imgPath+'onsen-outdoor-S.png', val:2000, name:'雪中秘湯 (S級)', fatigueDrop: 30 }, 
+                { prob:0.4, img:imgPath+'onsen-window-A.png', val:1200, name:'雪見之窗 (A級)', fatigueDrop: 15 }, 
+                { prob:0.4, img:imgPath+'onsen-steam-B.png', val:500, name:'暖呼呼白煙 (B級)', fatigueDrop: 5 }
             ];
             
             const menus = { chapter1: [{id:'waffle', name:'米奇鬆餅', icon:'🧇', price:150, fatigue:-10, effect:'-10% Fatigue'},{id:'mochi', name:'三眼怪麻糬', icon:'🍡', price:250, fatigue:-20, effect:'-20% Fatigue'},{id:'turkey', name:'煙燻火雞腿', icon:'🍗', price:500, fatigue:-40, effect:'-40% Fatigue'}], chapter2: [{id:'icecream', name:'海鹽冰淇淋', icon:'🍦', price:150, fatigue:-10, effect:'-10% Fatigue'},{id:'wine', name:'熱紅酒', icon:'🍷', price:300, fatigue:-25, effect:'-25% Fatigue'},{id:'chicken', name:'辣味燻雞腿', icon:'🍖', price:550, fatigue:-45, effect:'-45% Fatigue'}] };
             
-            // [修正] 隱藏 Boss 戰效果說明，但保留 buff 數值
+            // 隱藏 Boss 戰效果說明，但保留 buff 數值
             const dinnerDishes = [
                 { id:'d1', name:'熊肉火鍋 (S級)', price:1500, img:imgPath+'food-bear-S.png', rank:'S', lore:'用當地獵人捕獲的熊肉製成的鍋物，極度滋補。', effectText:'<b>[滑冰 小遊戲]</b><br>額外生命 <b>+1</b> (可多撞一次)', buff:{life:1, feverDuration:1, magnet:1, bossHp:0.2} },
                 { id:'d2', name:'精緻懷石 (S級)', price:1200, img:imgPath+'food-kaiseki-S.png', rank:'S', lore:'展現料理職人精神的藝術品，提升專注力。', effectText:'<b>[滑冰 小遊戲]</b><br>Fever 無敵衝刺時間 <b>加倍</b>', buff:{life:0, feverDuration:2, magnet:1, bossCrit:0.15} },
@@ -1051,10 +1052,9 @@
                     // 溫泉獲得獎金記入 Skate 章節收益
                     chapterScores.value.skate += loot.val;
                     
-                    let fatigueRecoverMsg = '';
-                    if (loot.fatigueReset === 'full') { fatigue.value = 0; fatigueRecoverMsg = '疲勞全消'; }
-                    else if (loot.fatigueReset === 'half') { fatigue.value = Math.max(0, fatigue.value - 50); fatigueRecoverMsg = '疲勞 -50%'; }
-                    else { fatigue.value = Math.max(0, fatigue.value - 30); fatigueRecoverMsg = '疲勞 -30%'; }
+                    // [修正] 溫泉疲勞減少邏輯
+                    fatigue.value = Math.max(0, fatigue.value - loot.fatigueDrop);
+                    let fatigueRecoverMsg = `疲勞 -${loot.fatigueDrop}%`;
 
                     resultInfo.value = { title: loot.name.split(' ')[0], desc:'身心舒暢...', changes:[{text:fatigueRecoverMsg, color:'#2ED573'}], bg:c.bg, isLucky:true, photoImg:loot.img, photoName:loot.name, photoVal:loot.val }; 
                     showResultModal.value=true; return; 
@@ -1102,7 +1102,7 @@
                 spawnText(`${f.effect}`, 'ft-good', 'hp'); 
             };
 
-            // [修正] 按鈕行為：若在 Karuizawa 結算，處理獎金並跳轉
+            // 按鈕行為：若在 Karuizawa 結算，處理獎金並跳轉
             const handleParchmentAction = () => {
                 if (parchmentMode.value === 'settlement' && phase.value === 'karuizawa') {
                     // 1. 計算並發放獎金 (x5)
