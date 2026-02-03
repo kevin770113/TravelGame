@@ -11,30 +11,96 @@
         /* --- 1. 全域設定 --- */
         :root {
             --primary: #FF6B8B; --secondary: #00B4D8; --accent: #FFD700;
+            --bg-dark: #121212; --text-main: #eee;
+            --rank-ur: #b336ff; --rank-ssr: #FFD700; --rank-sr: #3498db; --rank-r: #cd7f32;
             --suit-dia: #e74c3c; --suit-spd: #2c3e50; --suit-clb: #2f3640; --suit-hrt: #c0392b;
-            --bg-dark: #121212; --text-main: #333;
-            --rank-ur: #8e44ad; --rank-ssr: #e74c3c; --rank-sr: #f1c40f; --rank-r: #bdc3c7;
         }
         * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; padding: 0; font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #000; color: var(--text-main); height: 100dvh; width: 100vw; overflow: hidden; display: flex; justify-content: center; }
-        #app { width: 100%; max-width: 430px; height: 100dvh; position: relative; background: #fff; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
+        #app { width: 100%; max-width: 430px; height: 100dvh; position: relative; background: #000; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 0 30px rgba(0,0,0,0.8); }
 
         /* --- 2. 通用 UI --- */
         .shibuya-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 50; overflow: hidden; }
-        
-        /* 背景圖 */
         .game-bg { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
             background-size: cover; background-position: center; 
             z-index: 0; opacity: 1 !important; transition: all 0.5s ease; 
         }
 
-        /* Loading */
         .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 20000; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #fff; }
         .spinner { width: 50px; height: 50px; border: 5px solid #333; border-top: 5px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* 標題與按鈕 */
+        /* [UI] 暗黑玻璃擬態 (通用面板) */
+        .glass-panel {
+            width: 85%; max-width: 360px;
+            background: rgba(20, 20, 20, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.9);
+            border-radius: 12px; padding: 25px;
+            color: #fff; text-align: left;
+            position: relative; animation: fadeIn 0.3s ease-out;
+        }
+        .glass-title {
+            font-size: 22px; font-weight: 900; color: #FFD700;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.5);
+            padding-bottom: 10px; margin-bottom: 15px;
+            text-align: center;
+        }
+        .glass-content { font-size: 15px; line-height: 1.6; color: #eee; margin-bottom: 25px; }
+        .glass-btn {
+            background: linear-gradient(90deg, #FFD700, #FFA500);
+            color: #000; border: none; padding: 12px 30px;
+            font-size: 18px; font-weight: 900; border-radius: 30px;
+            cursor: pointer; width: 100%;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+            transition: 0.2s;
+        }
+        .glass-btn:active { transform: scale(0.95); }
+
+        /* [NEW] 最終結算全螢幕面板 */
+        .final-score-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(5, 5, 5, 0.98); z-index: 50000;
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+            padding: 40px 20px; animation: fadeIn 0.5s; overflow-y: auto;
+        }
+        .score-card {
+            width: 100%; max-width: 380px;
+            background: rgba(30, 30, 30, 0.6); border: 1px solid #FFD700;
+            border-radius: 15px; padding: 20px;
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.1);
+            margin-bottom: 80px; /* 留給按鈕空間 */
+        }
+        .score-section-title {
+            font-size: 14px; color: #FFD700; border-bottom: 1px solid #555; 
+            padding-bottom: 5px; margin: 15px 0 10px 0; text-transform: uppercase; letter-spacing: 2px;
+        }
+        .score-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 15px; color: #ccc;
+        }
+        .score-row:last-child { border-bottom: none; }
+        .score-val { font-family: 'Courier New', monospace; font-weight: bold; color: #fff; }
+        .score-total {
+            margin-top: 20px; padding-top: 15px; border-top: 2px solid #FFD700;
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 20px; font-weight: 900; color: #FFD700;
+        }
+        .total-num { font-size: 32px; text-shadow: 0 0 10px #FFD700; }
+
+        /* [NEW] 重新開始按鈕 (固定置底) */
+        .btn-restart-fixed {
+            position: fixed; bottom: 10%; left: 50%; transform: translateX(-50%);
+            width: 80%; max-width: 300px; padding: 15px;
+            background: #fff; color: #000; font-weight: bold; font-size: 20px;
+            border: none; border-radius: 30px; cursor: pointer;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.4); z-index: 50001;
+            animation: pulse 2s infinite;
+        }
+
         .game-header { position: absolute; top: 70px; left: 0; width: 100%; text-align: center; z-index: 60; pointer-events: none; }
         .header-hub { top: 40px; } 
         .game-title { color: #fff; text-shadow: 0 0 10px var(--primary); font-size: 28px; font-weight: 900; margin-bottom: 5px; }
@@ -50,9 +116,10 @@
 
         .btn-play { width: 80%; padding: 15px; border-radius: 30px; border: none; font-size: 18px; font-weight: bold; color: white; background: linear-gradient(45deg, var(--primary), #e66767); box-shadow: 0 0 20px rgba(255, 107, 139, 0.4); cursor: pointer; position: absolute; bottom: 50px; left: 10%; z-index: 100; transition: transform 0.2s; }
         .btn-play:active { transform: scale(0.95); }
-        .btn-exit-game { position: absolute; top: 15px; left: 15px; background: #e74c3c; color: white; border: none; padding: 8px 15px; border-radius: 20px; font-weight: bold; cursor: pointer; z-index: 5000; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
         
-        /* 圖鑑 */
+        /* [修正] 隱藏退出按鈕 */
+        .btn-exit-game { display: none !important; }
+        
         .btn-gallery { position: absolute; top: 15px; left: 15px; background: #333; color: #fff; border: 1px solid #888; padding: 5px 15px; border-radius: 20px; cursor: pointer; z-index: 200; font-size: 14px; }
         .gallery-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 15000; padding: 20px; overflow-y: auto; }
         .gallery-close { position: fixed; top: 20px; right: 20px; font-size: 30px; color: #fff; cursor: pointer; z-index: 15001; }
@@ -62,86 +129,69 @@
         .gallery-name { position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.7); color: #fff; font-size: 10px; text-align: center; padding: 2px; }
         .gallery-desc { position: absolute; bottom: 15px; width: 100%; text-align: center; font-size: 9px; color: #aaa; pointer-events: none; opacity: 0; } 
 
-        /* --- 3. 抽卡介面 (FGO Style 3-4-3) --- */
-        .gacha-container {
-            position: absolute; top: 100px; bottom: 100px; width: 100%;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            z-index: 10; padding: 10px; gap: 15px;
-        }
+        /* --- 抽卡 --- */
+        .gacha-container { position: absolute; top: 100px; bottom: 100px; width: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; padding: 10px; gap: 15px; }
         .gacha-row { display: flex; justify-content: center; gap: 10px; width: 100%; }
-        .gacha-card { 
-            width: 28%; max-width: 100px; aspect-ratio: 2/3; 
-            background: #222; border-radius: 6px; border: 2px solid #555; position: relative; 
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5); 
-            transform-style: preserve-3d; 
-            transition: transform 0.6s ease-in-out; 
-        }
+        .gacha-card { width: 28%; max-width: 100px; aspect-ratio: 2/3; background: #222; border-radius: 6px; border: 2px solid #555; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.5); transform-style: preserve-3d; transition: transform 0.6s ease-in-out; }
         .gacha-row.row-4 .gacha-card { width: 21%; }
-
-        .gacha-card .face, .gacha-card .back {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            backface-visibility: hidden; -webkit-backface-visibility: hidden;
-            border-radius: 4px; overflow: hidden;
-        }
-        .gacha-card .back {
-            background-image: url('images/card-back.png'); background-size: cover;
-            transform: rotateY(0deg); 
-        }
-        .gacha-card .face {
-            transform: rotateY(180deg);
-        }
+        .gacha-card .face, .gacha-card .back { position: absolute; top: 0; left: 0; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 4px; overflow: hidden; }
+        .gacha-card .back { background-image: url('images/card-back.png'); background-size: cover; transform: rotateY(0deg); }
+        .gacha-card .face { transform: rotateY(180deg); }
         .gacha-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .gacha-card.revealed { transform: rotateY(180deg); }
         
+        .rank-UR { border-color: #fff; animation: glow-rainbow 1.5s infinite linear; }
+        .rank-SSR { border-color: #FFD700; animation: glow-gold 2s infinite alternate; }
+        .rank-SR { border-color: #3498db; box-shadow: 0 0 10px #3498db; }
+        @keyframes glow-rainbow { 0% { box-shadow: 0 0 10px #ff0000; border-color: #ff0000; } 50% { box-shadow: 0 0 20px #00ff00; border-color: #00ff00; } 100% { box-shadow: 0 0 10px #0000ff; border-color: #0000ff; } }
+        @keyframes glow-gold { from { box-shadow: 0 0 5px #FFD700; } to { box-shadow: 0 0 20px #FFD700, 0 0 10px #fff; } }
         .card-badge { position: absolute; top: 0; right: 0; background: rgba(0,0,0,0.8); color: #fff; font-size: 10px; padding: 2px 4px; border-bottom-left-radius: 4px; font-weight: bold; z-index: 2; }
-        .rank-UR { border-color: var(--rank-ur); box-shadow: 0 0 15px var(--rank-ur); }
-        .rank-SSR { border-color: var(--rank-ssr); box-shadow: 0 0 10px var(--rank-ssr); }
 
-        /* 牌組構築 */
-        .deck-builder-container { position: absolute; top: 60px; bottom: 0; width: 100%; padding: 10px; overflow-y: auto; background: #f0f0f0; z-index: 55; }
-        .deck-zone { margin-bottom: 20px; background: #fff; border-radius: 10px; padding: 10px; border: 1px solid #ddd; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .zone-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; color: #333; font-weight: bold; border-bottom: 1px solid #eee; padding-bottom: 5px; }
-        .zone-limit { font-size: 12px; color: #888; }
-        .zone-limit.full { color: #e74c3c; font-weight: bold; }
+        .deck-builder-container { position: absolute; top: 60px; bottom: 0; width: 100%; padding: 10px; overflow-y: auto; background: #111; z-index: 55; }
+        .deck-zone { margin-bottom: 20px; background: #222; border-radius: 10px; padding: 10px; border: 1px solid #444; }
+        .zone-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; color: #fff; font-weight: bold; border-bottom: 1px solid #555; padding-bottom: 5px; }
         .zone-cards { display: flex; gap: 8px; flex-wrap: wrap; }
-        .deck-card { width: 60px; height: 84px; position: relative; cursor: pointer; transition: 0.2s; border-radius: 4px; overflow: hidden; border: 2px solid transparent; opacity: 0.5; filter: grayscale(1); }
-        .deck-card.selected { border-color: #2ED573; box-shadow: 0 0 10px #2ED573; transform: scale(1.05); opacity: 1; filter: grayscale(0); border-width: 3px; }
+        .deck-card { width: 60px; height: 84px; position: relative; border-radius: 4px; overflow: hidden; border: 1px solid #666; }
         .deck-card img { width: 100%; height: 100%; object-fit: cover; }
 
-        /* --- 4. 涉谷大廳 --- */
+        /* --- 涉谷大廳 --- */
         .hub-grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 30px 15px; padding: 120px 20px 80px 20px; height: 100%; width: 100%; position: relative; z-index: 2000; }
-        .hub-airship-item { 
-            display: flex; flex-direction: column; align-items: center; justify-content: flex-start; position: relative; 
-            animation: floatAirship 3s infinite ease-in-out alternate; 
-            min-height: 180px; 
-            cursor: pointer;
-        }
+        .hub-airship-item { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; position: relative; animation: floatAirship 3s infinite ease-in-out alternate; min-height: 180px; cursor: pointer; }
         @keyframes floatAirship { from { transform: translateY(0); } to { transform: translateY(-8px); } }
         .airship-visual { width: 140px; height: auto; z-index: 10; margin-bottom: -5px; }
         .airship-visual img { width: 100%; display: block; min-height: 50px; } 
         .airship-cables { width: 80px; height: 20px; border-left: 2px solid #555; border-right: 2px solid #555; margin-top: -5px; z-index: 5; }
         .hub-card { width: 110px; height: 150px; background: #fff; border-radius: 10px; border: 3px solid #333; box-shadow: 0 5px 15px rgba(0,0,0,0.2); display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; z-index: 6; position: relative; top: -5px; }
+        
         .hub-card.cleared { filter: grayscale(1); opacity: 0.8; }
         .hub-card.cleared::after { content: 'CLEARED'; position: absolute; color: #2ED573; font-weight: 900; font-size: 20px; transform: rotate(-30deg); border: 3px solid #2ED573; padding: 5px; }
+        
+        .hub-card.failed { filter: grayscale(1) brightness(0.5); pointer-events: none; }
+        .hub-card.failed::after { content: 'FAILED'; position: absolute; color: #ff0000; font-weight: 900; font-size: 24px; transform: rotate(30deg); border: 4px solid #ff0000; padding: 5px; text-shadow: 0 0 5px #000; }
+
         .card-corner { position: absolute; font-family: 'Courier New', monospace; font-weight: bold; font-size: 16px; line-height: 1; }
         .top-left { top: 5px; left: 5px; display: flex; flex-direction: column; align-items: center; }
         .bottom-right { bottom: 5px; right: 5px; transform: rotate(180deg); display: flex; flex-direction: column; align-items: center; }
         .hub-main-icon { font-size: 50px; margin-bottom: 5px; }
         .hub-label { font-weight: bold; font-size: 14px; color: #333; margin-top: 5px; }
-        .suit-dia { color: var(--suit-dia); } .suit-spd { color: var(--suit-spd); } .suit-clb { color: var(--suit-clb); } .suit-hrt { color: var(--suit-hrt); }
+        .suit-dia { color: #e74c3c !important; } .suit-spd { color: #2c3e50 !important; } .suit-clb { color: #2f3640 !important; } .suit-hrt { color: #c0392b !important; }
 
-        /* 銀座 (Spd) - HUD 分層垂直排列 */
-        .spd-canvas-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 999; display: block; }
-        .spd-hud { 
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            z-index: 20; pointer-events: none; 
-            display: flex; flex-direction: column; align-items: center; 
-            padding-top: 20px; 
+        /* [修正] 大廳的結局按鈕也需要固定 */
+        .btn-hub-final {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            width: 80%; max-width: 300px; padding: 15px;
+            background: #fff; color: #000; font-weight: bold; font-size: 20px;
+            border: none; border-radius: 30px; cursor: pointer;
+            box-shadow: 0 5px 20px rgba(255,255,255,0.3); z-index: 9999;
+            animation: pulse 1.5s infinite;
         }
+
+        /* 銀座 (Spd) */
+        .spd-canvas-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 999; display: block; }
+        .spd-hud { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 20; pointer-events: none; display: flex; flex-direction: column; align-items: center; padding-top: 20px; }
         .spd-hud .game-header-static { text-align: center; margin-bottom: 10px; color: #fff; }
         .spd-hud .title { font-size: 24px; font-weight: 900; text-shadow: 0 0 5px #000; }
         .spd-hud .subtitle { font-size: 12px; letter-spacing: 2px; color: #ddd; }
-
         .spd-boss-hp { width: 80%; height: 15px; background: #333; border: 2px solid #fff; border-radius: 10px; overflow: hidden; margin-bottom: 10px; }
         .spd-boss-fill { height: 100%; background: #c0392b; width: 100%; transition: width 0.2s; }
         .spd-player-hp { position: absolute; bottom: 40px; width: 80%; height: 15px; background: #333; border: 2px solid #2ED573; border-radius: 10px; overflow: hidden; }
@@ -149,61 +199,59 @@
         .spd-warning { position: absolute; top: 40%; left: 0; width: 100%; padding: 20px 0; background: rgba(255, 0, 0, 0.4); text-align: center; color: #fff; font-size: 36px; font-weight: 900; opacity: 0; text-shadow: 0 0 10px #ff0000; letter-spacing: 5px; pointer-events: none; }
         .spd-warning.active { animation: flashRed 0.5s infinite; }
 
-        /* 神籤 (Clb) - [回退 Flexbox 版] */
-        .clb-game-container {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            display: flex; flex-direction: column; 
-            justify-content: space-between; /* 撐開上下 */
-            align-items: center;
-            padding-bottom: 20px; 
-            z-index: 20; pointer-events: none;
+        /* 神籤 (Clb) - [GRID 完美置中] */
+        .clb-center-stage {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 240px; height: 300px;
+            display: grid; place-items: center; /* 核心 */
+            z-index: 30; pointer-events: none;
         }
-        
-        .clb-header-spacer { height: 120px; width: 100%; }
+        .clb-layer { grid-area: 1 / 1; justify-self: center; align-self: center; }
 
-        /* 籤筒區域：佔據中間剩餘空間，自動置中 */
-        .clb-draw-area { 
-            position: relative; pointer-events: auto; text-align: center; 
-            flex-grow: 1; 
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-        }
-        .btn-draw-deck { width: 160px; height: 220px; background: #c0392b; border: 6px solid #f1c40f; border-radius: 15px; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 10px 25px rgba(0,0,0,0.6); animation: pulse 3s infinite; }
-        .btn-draw-deck .label { font-size: 32px; font-weight: 900; color: #f1c40f; writing-mode: vertical-rl; text-shadow: 2px 2px 0 #000; border: 4px solid #f1c40f; padding: 10px; }
-        
-        .clb-current-paper { width: 100px; height: 100px; margin-top: 20px; position: relative; }
-        .clb-result-show { width: 120px; height: 180px; background: #fff; border: 4px solid #000; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 40px; font-weight: 900; margin: 0 auto; box-shadow: 0 0 20px rgba(255,255,255,0.8); animation: popIn 0.3s; position: absolute; left: 50%; transform: translateX(-50%); }
-        .result-good { color: #FFD700; border-color: #FFD700; text-shadow: 1px 1px 0 #000; }
-        .result-bad { color: #e84118; border: none; background: transparent; box-shadow: none; } 
-        
-        .clb-bad-content { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 100%; text-align: center; z-index: 5; }
-        .clb-bad-text { font-size: 100px; font-weight: 900; color: #e84118; text-shadow: 2px 2px 0 #000; animation: shake 0.5s; line-height: 1; }
-        .clb-bad-emoji { font-size: 80px; filter: drop-shadow(0 0 10px rgba(255,255,255,0.5)); animation: popIn 0.3s; }
-        @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
-
-        /* 籤架固定在底部 */
-        .clb-rack { 
+        .btn-draw-deck { 
+            width: 160px; height: 220px; 
+            background: #c0392b; border: 6px solid #f1c40f; 
+            border-radius: 15px; display: flex; flex-direction: column; justify-content: center; align-items: center; 
+            cursor: pointer; box-shadow: 0 10px 25px rgba(0,0,0,0.6); animation: pulse 3s infinite;
             pointer-events: auto;
-            display: flex; justify-content: center; gap: 15px; 
-            margin-bottom: 30px; 
         }
-        .clb-slot { width: 70px; height: 100px; position: relative; background: rgba(139, 69, 19, 0.4); border: 4px solid #8b4513; border-radius: 8px; cursor: pointer; box-shadow: inset 0 0 10px #000; overflow: visible; }
-        .clb-slot-item { font-size: 40px; width: 100%; text-align: center; position: absolute; left: 0; text-shadow: 0 0 5px #000; transition: 0.3s; font-weight: 900; color: #e84118; }
+        .btn-draw-deck .label { 
+            font-size: 32px; font-weight: 900; color: #f1c40f; 
+            writing-mode: vertical-rl; text-shadow: 2px 2px 0 #000; 
+            border: 4px solid #f1c40f; padding: 10px; 
+        }
         
-        .btn-deadlock {
-            position: absolute; bottom: 150px; left: 50%; transform: translateX(-50%);
-            width: 280px; height: 80px;
-            background: #ff0000; border: 5px solid #fff; border-radius: 20px;
-            color: #fff; font-size: 24px; font-weight: 900;
-            box-shadow: 0 0 50px rgba(255,0,0,0.8);
-            z-index: 1000; cursor: pointer; animation: pulse 0.5s infinite; pointer-events: auto;
-        }
+        .clb-result-good { font-size: 100px; font-weight: 900; color: #FFD700; text-shadow: 0 0 30px #FFD700; animation: dissolve-gold 1.5s forwards; }
+        @keyframes dissolve-gold { 0% { opacity: 0; transform: scale(0.5); } 20% { opacity: 1; transform: scale(1.5); } 100% { opacity: 0; transform: scale(2.5) translateY(-150px); filter: blur(4px); } }
 
-        /* 謊言 (Hrt) */
+        .clb-result-bad-text { font-size: 100px; font-weight: 900; color: #e84118; text-shadow: 0 0 20px #000; animation: shake 0.5s; z-index: 10; }
+        .clb-ghost-fire { 
+            width: 140px; height: 140px; 
+            background: radial-gradient(circle, rgba(75, 0, 130, 0.9) 0%, rgba(0,0,0,0) 70%); 
+            border-radius: 50%; display: flex; justify-content: center; align-items: center; 
+            animation: ghost-float 2s infinite ease-in-out; z-index: 20; 
+            pointer-events: auto; 
+        }
+        .clb-bad-emoji { font-size: 80px; z-index: 25; filter: drop-shadow(0 0 10px #8e44ad); }
+        @keyframes ghost-float { 0% { transform: translateY(0); opacity: 0.9; } 50% { transform: translateY(-10px); opacity: 1; } 100% { transform: translateY(0); opacity: 0.9; } }
+
+        .miko-text { position: absolute; top: 30%; width: 100%; text-align: center; font-size: 36px; font-weight: 900; color: #fff; text-shadow: 0 0 10px #e74c3c, 0 0 20px #c0392b; font-family: '楷體', 'Courier New', serif; animation: fadeUp 2s forwards; z-index: 100; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(-50px); } }
+
+        .clb-rack { position: absolute; bottom: 140px; width: 100%; display: flex; justify-content: center; gap: 15px; z-index: 20; }
+        .clb-slot { width: 70px; height: 100px; position: relative; background: rgba(139, 69, 19, 0.6); border: 4px solid #8b4513; border-radius: 8px; display: flex; flex-direction: column-reverse; align-items: center; cursor: pointer; box-shadow: inset 0 0 10px #000; overflow: visible; }
+        .clb-slot-item { font-size: 40px; width: 100%; text-align: center; position: absolute; text-shadow: 0 0 5px #000; transition: 0.3s; color: #e84118; }
+        .fire-particle { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); font-size: 100px; color: #e67e22; filter: drop-shadow(0 0 20px #e74c3c); animation: particle-boom 0.6s forwards; z-index: 200; pointer-events: none; }
+        @keyframes particle-boom { 0% { transform: translateX(-50%) scale(0.2); opacity: 0; } 30% { transform: translateX(-50%) scale(1.5); opacity: 1; } 100% { transform: translateX(-50%) scale(2.5); opacity: 0; filter: blur(5px); } }
+
+        .btn-exit { position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%); width: 200px; background: #27ae60; border: none; padding: 12px; border-radius: 30px; color: #fff; font-weight: bold; font-size: 18px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); z-index: 50; }
+
+        /* 謊言 (Hrt) - [修正] 移除怪圈與花色 */
         .hrt-status-bar { position: absolute; top: 60px; width: 100%; text-align: center; font-size: 18px; font-weight: bold; padding: 10px; background: rgba(0,0,0,0.8); color: #fff; z-index: 60; border-top: 1px solid #555; border-bottom: 1px solid #555; }
         .hrt-boss-area { position: absolute; top: 110px; width: 100%; display: flex; flex-direction: column; align-items: center; z-index: 5; }
         .hrt-boss-hand { display: flex; gap: 5px; margin-bottom: 10px; }
         .hrt-boss-card-back { width: 40px; height: 60px; background: #b00; border: 1px solid #fff; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
-        .hrt-boss-img { width: 160px; filter: drop-shadow(0 0 20px rgba(232, 65, 24, 0.4)); }
         
         .hrt-chamber-container { position: absolute; top: 55%; left: 10px; transform: translateY(-50%); display: flex; flex-direction: column; align-items: center; z-index: 60; background: rgba(0,0,0,0.8); padding: 10px; border-radius: 10px; border: 2px solid #555; }
         .hrt-chamber-visual { width: 60px; height: 60px; border-radius: 50%; border: 2px solid #aaa; position: relative; margin-bottom: 5px; }
@@ -214,24 +262,29 @@
         .dot-5 { transform: rotate(240deg) translate(22px); } .dot-6 { transform: rotate(300deg) translate(22px); }
         .hrt-info-text { margin-top: 5px; color: #fff; font-family: monospace; font-size: 11px; text-align: center; }
         
-        .hrt-center-pile { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100px; height: 140px; display: flex; justify-content: center; align-items: center; z-index: 20; }
+        /* [修正] 強制移除怪圈 */
+        .hrt-center-pile { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100px; height: 140px; display: flex; justify-content: center; align-items: center; z-index: 20; border: none !important; box-shadow: none !important; background: transparent !important; }
         .hrt-played-card { width: 90px; height: 135px; background: #fff; border-radius: 8px; border: 2px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.8); display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 40px; font-weight: bold; animation: popIn 0.3s; }
         .hrt-played-card.back { background: #b00; background-image: repeating-linear-gradient(45deg, #a00 0, #a00 10px, #b00 10px, #b00 20px); }
         
         .hrt-hand-area { position: absolute; bottom: 20px; width: 100%; display: flex; justify-content: center; gap: -5px; z-index: 30; pointer-events: auto; }
         .hrt-card { width: 60px; height: 90px; background: #fff; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: bold; font-family: 'Courier New', serif; cursor: pointer; transition: 0.2s; box-shadow: -2px 0 5px rgba(0,0,0,0.5); border: 1px solid #ccc; margin: 0 2px; }
         .hrt-card.selected { transform: translateY(-30px); border: 3px solid var(--suit-hrt); z-index: 40; }
+        /* [修正] 強制顏色 */
         .suit-red { color: #e74c3c !important; } .suit-black { color: #2c3e50 !important; }
         
-        .hrt-btn-container { position: absolute; bottom: 150px; left: 0; width: 100%; display: flex; justify-content: center; gap: 20px; z-index: 100; pointer-events: auto; }
-        .hrt-action-btn { padding: 10px 30px; background: var(--suit-hrt); color: white; border: none; font-size: 18px; font-weight: bold; border-radius: 30px; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
-        .btn-trigger-fix { position: absolute; bottom: 150px; left: 50%; transform: translateX(-50%); background: #000; border: 3px solid #FF4757; color: #FF4757; font-size: 24px; padding: 15px 40px; border-radius: 50px; box-shadow: 0 0 30px #FF4757; z-index: 5000 !important; pointer-events: auto !important; cursor: pointer; animation: pulse 1s infinite; }
+        .hrt-btn-container { position: absolute; bottom: 130px; left: 0; width: 100%; display: flex; justify-content: center; gap: 20px; z-index: 10000; pointer-events: auto; }
+        .hrt-action-btn { padding: 12px 35px; background: var(--suit-hrt); color: white; border: 2px solid #fff; font-size: 18px; font-weight: bold; border-radius: 30px; cursor: pointer; box-shadow: 0 5px 20px rgba(0,0,0,0.8); }
+        .btn-trigger-fix { position: absolute; bottom: 130px; left: 50%; transform: translateX(-50%); background: #000; border: 3px solid #FF4757; color: #FF4757; font-size: 24px; padding: 15px 40px; border-radius: 50px; box-shadow: 0 0 30px #FF4757; z-index: 10000 !important; pointer-events: auto !important; cursor: pointer; animation: pulse 1s infinite; }
 
-        /* Overlays & FX */
-        .tutorial-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 3000; display: flex; justify-content: center; align-items: center; }
-        .parchment-box { width: 85%; max-width: 350px; background: #f3e5ab; border: 8px solid #8b4513; border-radius: 5px; padding: 20px; position: relative; text-align: left; color: #5d4037; font-family: 'Georgia', serif; }
+        /* [新增] 刪除線樣式 (Diamond) */
+        .strike-num { text-decoration: line-through; opacity: 0.5; color: #ff4757; }
+
+        /* Overlays */
+        .tutorial-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 3000; display: flex; justify-content: center; align-items: center; }
         .custom-alert-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 9999; display: flex; justify-content: center; align-items: center; animation: fadeIn 0.2s; }
         .custom-alert-box { width: 80%; max-width: 320px; background: rgba(20, 20, 20, 0.95); border: 2px solid #fff; border-radius: 10px; padding: 20px; text-align: center; color: #fff; }
+        .custom-alert-box img { max-width: 100%; display: block; margin: 0 auto; }
         .money-popup { position: absolute; left: 50%; top: 40%; font-size: 40px; font-weight: 900; z-index: 2000; pointer-events: none; text-shadow: 2px 2px 0 #000; }
         .money-plus { color: #FFD700; animation: moveUp 1s forwards; }
         .money-minus { color: #FF4757; animation: moveDown 1s forwards; }
@@ -248,29 +301,34 @@
         @keyframes gun-recoil { 0% { transform: scale(1) rotate(0deg); } 20% { transform: scale(1.1) rotate(-10deg); } 100% { transform: scale(1) rotate(0deg); } }
         @keyframes pulseCount { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: 0.8; } 100% { transform: scale(1); opacity: 0; } }
         @keyframes pulse { 0% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(1.05); } 100% { transform: translate(-50%, -50%) scale(1); } }
+        @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
         
-        /* 技能欄：移到右上角 */
-        .skill-bar { position: absolute; top: 80px; right: 10px; width: 60px; display: flex; flex-direction: column; gap: 10px; z-index: 2000; pointer-events: none; }
-        .skill-card-ingame { width: 60px; height: 84px; background: #222; border: 2px solid #fff; border-radius: 5px; position: relative; overflow: hidden; cursor: pointer; box-shadow: 0 0 10px #000; transition: 0.3s; pointer-events: auto; }
-        .skill-card-ingame:active { transform: scale(0.9); }
-        .skill-card-ingame img { width: 100%; height: 100%; object-fit: cover; }
-        .skill-card-ingame.used { opacity: 0; pointer-events: none; transform: translateX(50px); }
+        .buff-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 3500; display: flex; flex-direction: column; align-items: center; color: #fff; padding: 20px; overflow-y: auto; animation: fadeIn 0.3s; }
+        .buff-title { font-size: 24px; font-weight: 900; color: #FFD700; margin: 30px 0 20px 0; border-bottom: 2px solid #FFD700; padding-bottom: 10px; }
+        .buff-list { width: 100%; max-width: 350px; display: flex; flex-direction: column; gap: 15px; margin-bottom: 40px; }
+        .buff-item { display: flex; align-items: center; background: #222; padding: 10px; border-radius: 8px; border: 1px solid #444; }
+        .buff-icon { width: 50px; height: 70px; margin-right: 15px; border-radius: 4px; overflow: hidden; border: 1px solid #888; flex-shrink: 0; }
+        .buff-icon img { width: 100%; height: 100%; object-fit: cover; }
+        .buff-info { flex-grow: 1; }
+        .buff-name { font-weight: bold; color: #FFD700; font-size: 16px; margin-bottom: 4px; }
+        .buff-desc { color: #ccc; font-size: 13px; line-height: 1.4; }
+        .btn-confirm-buff { background: #2ED573; color: #000; border: none; padding: 15px 40px; font-size: 20px; font-weight: 900; border-radius: 30px; cursor: pointer; margin-bottom: 20px; box-shadow: 0 0 20px rgba(46, 213, 115, 0.4); }
 
-        /* Dia K */
         .dia-screen { position: absolute; top: 130px; left: 10%; width: 80%; height: 100px; background: rgba(0,0,0,0.9); border: 2px solid var(--suit-dia); border-radius: 10px; display: flex; justify-content: center; align-items: center; gap: 10px; z-index: 10; }
         .dia-digit { width: 40px; height: 60px; background: #111; color: var(--suit-dia); font-family: monospace; font-size: 32px; font-weight: bold; display: flex; justify-content: center; align-items: center; border: 1px solid #333; }
         .dia-digit.locked { color: #2ED573; border-color: #2ED573; }
         .dia-history { position: absolute; top: 250px; left: 10%; width: 80%; height: calc(100% - 250px - 260px); overflow-y: auto; background: rgba(0,0,0,0.7); padding: 10px; font-family: monospace; color: #fff; font-size: 16px; border-radius: 5px; z-index: 10; }
         .dia-row { display: flex; justify-content: space-between; margin-bottom: 5px; border-bottom: 1px solid #444; padding-bottom: 2px; }
         .dia-keypad { position: absolute; bottom: 10px; left: 5%; width: 90%; height: 240px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; z-index: 100; }
-        .key-btn { background: rgba(0, 40, 80, 0.8); border: 1px solid var(--suit-dia); color: #fff; display: flex; justify-content: center; align-items: center; font-size: 24px; font-weight: bold; border-radius: 10px; }
+        .key-btn { background: rgba(0, 40, 80, 0.8); border: 1px solid var(--suit-dia); color: #fff; display: flex; justify-content: center; align-items: center; font-size: 24px; font-weight: bold; border-radius: 10px; transition: 0.2s; }
+        .key-btn.disabled { opacity: 0.3; pointer-events: none; background: #222; border-color: #444; }
     </style>
 </head>
 <body>
 <div id="app">
     <div v-if="moneyAnim" class="money-popup" :class="{'money-plus': moneyAnim.includes('+'), 'money-minus': moneyAnim.includes('-')}">{{ moneyAnim }}</div>
-    <div v-if="luckyAnim" class="lucky-popup"><div class="lucky-text">大吉</div></div>
     <div v-if="damageAnim" class="damage-flash"></div>
+    <div v-if="clbState.showMiko" class="miko-text">神樂女巫發動拔除</div>
     
     <div v-if="isLoading" class="loading-overlay">
         <div class="spinner"></div>
@@ -279,7 +337,52 @@
 
     <div v-if="countdown !== null" class="countdown-overlay"><div class="countdown-text">{{ countdown === 0 ? 'GO!' : countdown }}</div></div>
     <div v-if="customAlert.show" class="custom-alert-overlay"><div class="custom-alert-box"><div class="alert-msg" v-html="customAlert.message"></div><button class="alert-btn" @click="closeAlert">確定</button></div></div>
-    <div v-if="showTutorial" class="tutorial-overlay"><div class="parchment-box"><div class="tut-title" :class="{'title-clb': activeGame === 'clb'}">{{ tutorialData.title }}</div><div class="tut-content" v-html="tutorialData.desc"></div><button class="tut-btn" @click="confirmStart">開始挑戰</button></div></div>
+    
+    <div v-if="showTutorial" class="tutorial-overlay">
+        <div class="glass-panel">
+            <div class="glass-title" :class="{'title-clb': activeGame === 'clb'}">{{ tutorialData.title }}</div>
+            <div class="glass-content" v-html="tutorialData.desc"></div>
+            <button class="glass-btn" @click="showBuffConfirmPage">下一步：確認裝備效果</button>
+        </div>
+    </div>
+
+    <div v-if="showBuffConfirm" class="buff-overlay">
+        <div class="buff-title">本關卡生效效果</div>
+        <div class="buff-list">
+            <div v-if="activeSkills.length === 0" style="text-align:center; color:#888;">無特殊效果</div>
+            <div v-for="card in activeSkills" :key="card.uid" class="buff-item">
+                <div class="buff-icon"><img :src="card.img"></div>
+                <div class="buff-info">
+                    <div class="buff-name">{{ card.name }}</div>
+                    <div class="buff-desc">{{ getPassiveDesc(card) }}</div>
+                </div>
+            </div>
+        </div>
+        <button class="btn-confirm-buff" @click="confirmStart">戰鬥開始 (Start)</button>
+    </div>
+
+    <div v-if="phase === 'final_score'" class="final-score-overlay">
+        <div class="score-card">
+            <div style="text-align:center; margin-bottom:20px; font-size:24px; font-weight:900; color:#FFD700;">最終財務報告</div>
+            
+            <div class="score-section-title">PART 1: 旅程篇</div>
+            <div class="score-row"><span>Disney Land 獎金</span><span class="score-val">+${{ travelScores.land }}</span></div>
+            <div class="score-row"><span>Disney Sea 獎金</span><span class="score-val">+${{ travelScores.sea }}</span></div>
+            <div class="score-row"><span>輕井澤滑冰 獎金</span><span class="score-val">+${{ travelScores.skate }}</span></div>
+            
+            <div class="score-section-title">PART 2: 涉谷篇</div>
+            <div class="score-row"><span>推理神算 獎金</span><span class="score-val">+${{ games.dia.earned }}</span></div>
+            <div class="score-row"><span>銀座武力 獎金</span><span class="score-val">+${{ games.spd.earned }}</span></div>
+            <div class="score-row"><span>淺草神籤 獎金</span><span class="score-val">+${{ games.clb.earned }}</span></div>
+            <div class="score-row"><span>心理博弈 獎金</span><span class="score-val">+${{ games.hrt.earned }}</span></div>
+            
+            <div class="score-total">
+                <span>最終總資產</span>
+                <span class="total-num">${{ money }}</span>
+            </div>
+        </div>
+        <button class="btn-restart-fixed" @click="hardReset">重新開始冒險</button>
+    </div>
 
     <div v-if="showingGallery" class="gallery-overlay">
         <div class="gallery-close" @click="showingGallery=false">×</div>
@@ -321,11 +424,11 @@
     <div v-if="phase === 'meiji_result'" class="shibuya-container" style="background:#111;">
         <div class="game-header header-game" style="top:20px;">
             <div class="game-title">獲得卡片</div>
-            <div class="game-subtitle">PREPARE YOUR DECK</div>
+            <div class="game-subtitle">TAP CARD TO VIEW INFO</div>
         </div>
         <div class="gacha-container">
             <div class="gacha-row">
-                <div v-for="card in drawnCards.slice(0,3)" :key="card.uid" class="gacha-card" :class="{'revealed': card.revealed}" @click="showCardDetail(card)">
+                <div v-for="card in drawnCards.slice(0,3)" :key="card.uid" class="gacha-card" :class="['rank-'+card.rank, {'revealed': card.revealed}]" @click="showCardDetail(card)">
                     <div class="back"></div>
                     <div class="face">
                         <img :src="card.img">
@@ -334,7 +437,7 @@
                 </div>
             </div>
             <div class="gacha-row row-4">
-                <div v-for="card in drawnCards.slice(3,7)" :key="card.uid" class="gacha-card" :class="{'revealed': card.revealed}" @click="showCardDetail(card)">
+                <div v-for="card in drawnCards.slice(3,7)" :key="card.uid" class="gacha-card" :class="['rank-'+card.rank, {'revealed': card.revealed}]" @click="showCardDetail(card)">
                     <div class="back"></div>
                     <div class="face">
                         <img :src="card.img">
@@ -343,7 +446,7 @@
                 </div>
             </div>
             <div class="gacha-row">
-                <div v-for="card in drawnCards.slice(7,10)" :key="card.uid" class="gacha-card" :class="{'revealed': card.revealed}" @click="showCardDetail(card)">
+                <div v-for="card in drawnCards.slice(7,10)" :key="card.uid" class="gacha-card" :class="['rank-'+card.rank, {'revealed': card.revealed}]" @click="showCardDetail(card)">
                     <div class="back"></div>
                     <div class="face">
                         <img :src="card.img">
@@ -358,21 +461,21 @@
     <div v-if="phase === 'deck_build'" class="shibuya-container">
         <div class="game-header" style="top:10px;">
             <div class="game-title" style="color:#333; text-shadow:none; font-size:20px;">配置你的卡片</div>
-            <div class="game-subtitle" style="color:#666;">TAP TO VIEW DETAILS</div>
+            <div class="game-subtitle" style="color:#2ED573; font-weight:bold;">PASSIVE SKILLS - NO LIMIT</div>
         </div>
         
         <div class="deck-builder-container">
             <div class="deck-zone" v-for="suit in ['dia','spd','clb','hrt']" :key="suit">
                 <div class="zone-header">
                     <span><i class="fas" :class="getSuitIconClass(suit)"></i> {{ getZoneName(suit) }}</span>
-                    <span class="zone-limit" :class="{full: getZoneCount(suit) > 3}">{{ getZoneCount(suit) }}/3</span>
+                    <span class="zone-limit" style="color:#2ED573;">{{ getZoneCount(suit) }} Active</span>
                 </div>
                 <div class="zone-cards">
                     <div v-for="card in getCardsBySuit(suit)" :key="card.uid" class="deck-card" 
-                         :class="{selected: card.selected, disabled: !card.selected && getZoneCount(suit) >= 3}"
-                         @click="toggleCardSelection(card, suit)">
+                         :class="['rank-'+card.rank]"
+                         @click="showCardDetail(card)">
                         <img :src="card.img">
-                        <div style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:10;" @click.stop="toggleCardSelection(card, suit)" @contextmenu.prevent="showCardDetail(card)"></div>
+                        <div style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:10;" @click.stop="showCardDetail(card)" @contextmenu.prevent="showCardDetail(card)"></div>
                     </div>
                 </div>
             </div>
@@ -396,41 +499,41 @@
             <div class="hub-airship-item" @click="enterGame('dia')">
                 <div class="airship-visual"><img src="images/ui-airship-header.png" alt="Airship"></div>
                 <div class="airship-cables"></div>
-                <div class="hub-card hub-dia" :class="{cleared: games.dia.cleared}">
-                    <div class="card-corner top-left"><span class="suit-dia">♦</span><span>K</span></div>
-                    <div class="hub-main-icon suit-dia">♦</div><div class="hub-label">推理神算</div>
-                    <div class="card-corner bottom-right"><span class="suit-dia">♦</span><span>K</span></div>
+                <div class="hub-card hub-dia" :class="{cleared: games.dia.cleared, failed: games.dia.attempts >= 3}">
+                    <div class="card-corner top-left"><span class="suit-dia" style="color:#e74c3c">♦</span><span>K</span></div>
+                    <div class="hub-main-icon suit-dia" style="color:#e74c3c">♦</div><div class="hub-label">推理神算</div>
+                    <div class="card-corner bottom-right"><span class="suit-dia" style="color:#e74c3c">♦</span><span>K</span></div>
                 </div>
             </div>
             <div class="hub-airship-item" @click="enterGame('spd')">
                 <div class="airship-visual"><img src="images/ui-airship-header.png" alt="Airship"></div>
                 <div class="airship-cables"></div>
-                <div class="hub-card hub-spd" :class="{cleared: games.spd.cleared}">
-                    <div class="card-corner top-left"><span class="suit-spd">♠</span><span>Q</span></div>
-                    <div class="hub-main-icon suit-spd">♠</div><div class="hub-label">武力威脅</div>
-                    <div class="card-corner bottom-right"><span class="suit-spd">♠</span><span>Q</span></div>
+                <div class="hub-card hub-spd" :class="{cleared: games.spd.cleared, failed: games.spd.attempts >= 3}">
+                    <div class="card-corner top-left"><span class="suit-spd" style="color:#2c3e50">♠</span><span>Q</span></div>
+                    <div class="hub-main-icon suit-spd" style="color:#2c3e50">♠</div><div class="hub-label">武力威脅</div>
+                    <div class="card-corner bottom-right"><span class="suit-spd" style="color:#2c3e50">♠</span><span>Q</span></div>
                 </div>
             </div>
             <div class="hub-airship-item" @click="enterGame('clb')">
                 <div class="airship-visual"><img src="images/ui-airship-header.png" alt="Airship"></div>
                 <div class="airship-cables"></div>
-                <div class="hub-card hub-clb" :class="{cleared: games.clb.cleared}">
-                    <div class="card-corner top-left"><span class="suit-clb">♣</span><span>J</span></div>
-                    <div class="hub-main-icon suit-clb">♣</div><div class="hub-label">神籤</div>
-                    <div class="card-corner bottom-right"><span class="suit-clb">♣</span><span>J</span></div>
+                <div class="hub-card hub-clb" :class="{cleared: games.clb.cleared, failed: games.clb.attempts >= 3}">
+                    <div class="card-corner top-left"><span class="suit-clb" style="color:#2f3640">♣</span><span>J</span></div>
+                    <div class="hub-main-icon suit-clb" style="color:#2f3640">♣</div><div class="hub-label">神籤</div>
+                    <div class="card-corner bottom-right"><span class="suit-clb" style="color:#2f3640">♣</span><span>J</span></div>
                 </div>
             </div>
             <div class="hub-airship-item" @click="enterGame('hrt')">
                 <div class="airship-visual"><img src="images/ui-airship-header.png" alt="Airship"></div>
                 <div class="airship-cables"></div>
-                <div class="hub-card hub-hrt" :class="{cleared: games.hrt.cleared}">
-                    <div class="card-corner top-left"><span class="suit-hrt">♥</span><span>K</span></div>
-                    <div class="hub-main-icon suit-hrt">♥</div><div class="hub-label">謊言</div>
-                    <div class="card-corner bottom-right"><span class="suit-hrt">♥</span><span>K</span></div>
+                <div class="hub-card hub-hrt" :class="{cleared: games.hrt.cleared, failed: games.hrt.attempts >= 3}">
+                    <div class="card-corner top-left"><span class="suit-hrt" style="color:#c0392b">♥</span><span>K</span></div>
+                    <div class="hub-main-icon suit-hrt" style="color:#c0392b">♥</div><div class="hub-label">謊言</div>
+                    <div class="card-corner bottom-right"><span class="suit-hrt" style="color:#c0392b">♥</span><span>K</span></div>
                 </div>
             </div>
         </div>
-        <button v-if="allGamesCleared" class="btn-return" style="position:absolute; bottom:20px; left:10%; width:80%; z-index:100; animation:pulse 1s infinite;" @click="finishGame">
+        <button v-if="allGamesCleared" class="btn-hub-final" @click="showFinalScore">
             前往最終結局 <i class="fas fa-crown"></i>
         </button>
     </div>
@@ -438,12 +541,6 @@
     <div v-if="phase.startsWith('game_')" class="shibuya-container">
         <div class="game-bg" :style="{backgroundImage: 'url(images/' + (activeGame==='spd'?'bg-ginza.png':(activeGame==='dia'?'bg-qfront.png':(activeGame==='clb'?'bg-asakusa.png':'bg-shibuya-sky.png'))) + ')'}"></div>
         
-        <div class="skill-bar">
-            <div v-for="card in activeSkills" :key="card.uid" class="skill-card-ingame" :class="{used: card.used}" @click="useSkill(card)">
-                <img :src="card.img" onerror="this.style.visibility='hidden'">
-            </div>
-        </div>
-
         <div class="game-money-display">${{ currentBonus }}</div>
 
         <div v-if="activeGame === 'dia'" style="width:100%; height:100%;">
@@ -458,13 +555,16 @@
             </div>
             <div class="dia-history">
                 <div v-for="(h, i) in diaState.history" :key="i" class="dia-row">
-                    <span>{{ h.guess }}</span><span :style="{color: h.a === 4 ? '#2ED573' : '#fff'}">{{ h.a }}A {{ h.b }}B</span>
+                    <div>
+                        <span v-for="(digit, dIdx) in h.guess.split('')" :key="dIdx" :class="{ 'strike-num': dIdx === h.strikeIndex }">{{ digit }}</span>
+                    </div>
+                    <span :style="{color: h.a === 4 ? '#2ED573' : '#fff'}">{{ h.a }}A {{ h.b }}B</span>
                 </div>
             </div>
             <div class="dia-keypad">
-                <div v-for="n in 9" :key="n" class="key-btn" @click="diaInput(n)">{{ n }}</div>
+                <div v-for="n in 9" :key="n" class="key-btn" :class="{disabled: diaState.disabledKeys.includes(n)}" @click="diaInput(n)">{{ n }}</div>
                 <div class="key-btn" style="background:#c0392b" @click="diaDel"><i class="fas fa-backspace"></i></div>
-                <div class="key-btn" @click="diaInput(0)">0</div>
+                <div class="key-btn" :class="{disabled: diaState.disabledKeys.includes(0)}" @click="diaInput(0)">0</div>
                 <div class="key-btn" style="background:var(--suit-dia)" @click="diaSubmit"><i class="fas fa-check"></i></div>
             </div>
         </div>
@@ -477,53 +577,41 @@
                     <div class="title">銀座 武力威脅</div>
                 </div>
                 <div class="spd-boss-hp"><div class="spd-boss-fill" :style="{width: spdState.bossHpPercent + '%'}"></div></div>
-                
                 <div class="spd-player-hp"><div class="spd-player-fill" :style="{width: spdState.playerHpPercent + '%', background: spdState.playerHpPercent < 30 ? '#FF4757' : '#2ED573'}"></div></div>
             </div>
             <div class="spd-warning" :class="{active: spdState.warning}">⚠️ DANGER ⚠️<br><span style="font-size:20px">Boss Attack Incoming</span></div>
         </div>
 
-        <div v-if="activeGame === 'clb'" class="clb-game-container">
-            <div class="clb-header-spacer">
-                <div class="game-header header-game" style="position:static; margin-top:20px;">
-                    <div class="game-subtitle">{{ currentGameData.subtitle }}</div>
-                    <div class="game-title" style="color:#2f3640">{{ currentGameData.title }}</div>
-                </div>
+        <div v-if="activeGame === 'clb'" class="clb-center-stage">
+            <div v-if="!clbState.currentPaper && clbState.deck.length > 0" class="btn-draw-deck" @click="clbDraw">
+                <div class="label">御神籤</div>
             </div>
 
-            <div class="clb-draw-area">
-                <div v-if="!clbState.currentPaper && clbState.deck.length > 0" class="btn-draw-deck" @click="clbDraw">
-                    <div class="label">御神籤</div>
-                </div>
-
-                <div v-if="clbState.currentPaper" class="clb-current-paper">
-                    <div v-if="clbState.revealed">
-                        <div v-if="clbState.currentPaper.type === 'good'" class="clb-result-show result-good">大吉</div>
-                        <div v-else class="clb-result-show result-bad"></div>
-                    </div>
-                    
-                    <div v-if="clbState.showText || clbState.showEmoji" class="clb-bad-content">
-                        <div v-if="clbState.showText" class="clb-bad-text">凶</div>
-                        <div v-if="clbState.showEmoji" class="clb-bad-emoji">
-                            <i class="fas" :class="clbState.currentPaper.icon" style="color:#e84118;"></i>
-                        </div>
-                    </div>
-                </div>
-                <div style="margin-top:10px; color:#333; font-weight:bold; text-shadow:1px 1px 0 #fff;">剩餘: {{ clbState.deck.length }}</div>
-            </div>
-
-            <div class="clb-rack">
-                <div v-for="(cell, i) in clbState.grid" :key="i" class="clb-slot" @click="clbPlace(i)">
-                    <div v-for="(p, idx) in cell" :key="idx" class="clb-slot-item" :style="{bottom: (idx * 15) + 'px', zIndex: idx}">
-                        <i v-if="p.type==='bad'" class="fas" :class="p.icon" style="color:#e84118;"></i>
+            <div v-if="clbState.currentPaper" class="clb-current-paper">
+                <div v-if="clbState.revealed && clbState.currentPaper.type === 'good'" class="clb-layer clb-result-good">吉</div>
+                
+                <div v-if="clbState.revealed && clbState.currentPaper.type === 'bad'">
+                    <div v-if="clbState.showText" class="clb-layer clb-result-bad-text">凶</div>
+                    <div v-if="clbState.showEmoji" class="clb-layer clb-ghost-fire">
+                        <i class="fas clb-bad-emoji" :class="clbState.currentPaper.icon" style="color:#e84118;"></i>
                     </div>
                 </div>
             </div>
-            
-            <button v-if="clbState.deadlock" class="btn-deadlock" @click="clbForcePay">
-                花錢消災<br><span style="font-size:16px">$3000</span>
-            </button>
         </div>
+        <div v-if="activeGame === 'clb'" style="position:absolute; top:65%; width:100%; text-align:center; color:#888; font-weight:bold;">剩餘: {{ clbState.deck.length }}</div>
+
+        <div v-if="activeGame === 'clb'" class="clb-rack">
+            <div v-for="(cell, i) in clbState.grid" :key="i" class="clb-slot" @click="clbPlace(i)">
+                <div v-if="cell.isBurning" class="fire-particle"><i class="fas fa-fire"></i></div>
+                <div v-for="(p, idx) in cell.items" :key="idx" class="clb-slot-item" :style="{bottom: (idx * 20) + 'px', zIndex: idx}">
+                    <i class="fas" :class="p.icon" style="color:#e84118;"></i>
+                </div>
+            </div>
+        </div>
+        
+        <button v-if="activeGame === 'clb' && clbState.deadlock" class="btn-exit" @click="clbForcePay">
+            <i class="fas fa-fire"></i> 花錢消災 ($500)
+        </button>
 
         <div v-if="activeGame === 'hrt'" style="width:100%; height:100%;">
             <div class="game-header header-game">
@@ -537,8 +625,7 @@
                 <div class="hrt-boss-hand">
                     <div v-for="n in hrtState.bossHandCount" :key="n" class="hrt-boss-card-back"></div>
                 </div>
-                <img src="images/boss-queen.png" class="hrt-boss-img" style="border-radius:50%; width:100px; margin-top:10px; border:2px solid #fff;">
-            </div>
+                </div>
             
             <div class="hrt-chamber-container">
                 <div class="hrt-chamber-visual">
@@ -548,8 +635,6 @@
                 </div>
                 <div class="hrt-info-text">
                     實彈: 1 | 空包: {{ hrtState.chamberCount - 1 }}
-                    <br>
-                    擊發率: {{ Math.round((1/hrtState.chamberCount)*100) }}%
                 </div>
             </div>
 
@@ -584,48 +669,42 @@
 <script>
 const { createApp, nextTick } = Vue;
 
-// --- 1. 卡片資料庫 (修復：花色統一使用英文代碼) ---
-// 這裡的 suit 對應 HTML 裡的 getSuitIconClass
+// --- 1. 卡片資料庫 ---
 const gachaPool = [
     // UR
-    { id:'ur1', name:'傳說中的西瓜', rank:'UR', suit:'🌈', img:'images/card-ur-watermelon.png', skill:'時空凍結 (全關卡最強效果)' },
-    
-    // Heart (hrt)
-    { id:'h1', name:'昭憲皇太后', rank:'SSR', suit:'hrt', img:'images/card-ssr-empress.png', skill:'透視 (100%看穿謊言)' },
-    { id:'h2', name:'奉納清酒樽', rank:'SR', suit:'hrt', img:'images/card-sr-sake.png', skill:'吐真言 (Boss下回必說實話)' },
-    { id:'h3', name:'奉納葡萄酒', rank:'SR', suit:'hrt', img:'images/card-sr-wine.png', skill:'微醺 (被抓謊時免除懲罰)' },
-    { id:'h4', name:'緣結守', rank:'R', suit:'hrt', img:'images/card-r-charm-love.png', skill:'和局 (雙方Pass無事發生)' },
-    { id:'h5', name:'鳥居鞠躬', rank:'R', suit:'hrt', img:'images/card-r-bow.png', skill:'放棄 (強制Boss不抓謊)' },
-
-    // Spade (spd)
-    { id:'s1', name:'明治天皇', rank:'SSR', suit:'spd', img:'images/card-ssr-emperor.png', skill:'皇道光炮 (全畫面清場)' },
-    { id:'s2', name:'建速須佐之男', rank:'SSR', suit:'spd', img:'images/card-ssr-susanoo.png', skill:'十拳劍陣 (無敵護體)' },
-    { id:'s3', name:'夫婦楠', rank:'SR', suit:'spd', img:'images/card-sr-tree.png', skill:'連結 (回復50% HP)' },
-    { id:'s4', name:'甜酒', rank:'SR', suit:'spd', img:'images/card-sr-amazake.png', skill:'暖身 (移動速度提升)' },
-    { id:'s5', name:'代代木之森', rank:'SR', suit:'spd', img:'images/card-sr-forest.png', skill:'護盾 (抵擋3次傷害)' },
-    { id:'s6', name:'破魔矢', rank:'R', suit:'spd', img:'images/card-r-arrow.png', skill:'飛彈 (發射追蹤箭)' },
-    { id:'s7', name:'洗手舍水杓', rank:'R', suit:'spd', img:'images/card-r-ladle.png', skill:'回復 (回復20% HP)' },
-
-    // Club (clb)
-    { id:'c1', name:'稻荷大神', rank:'SSR', suit:'clb', img:'images/card-ssr-inari.png', skill:'豐收 (凶籤全部變吉)' },
-    { id:'c2', name:'清正井之龍', rank:'SR', suit:'clb', img:'images/card-sr-well.png', skill:'沖刷 (消除所有同種凶籤)' },
-    { id:'c3', name:'神樂巫女', rank:'SR', suit:'clb', img:'images/card-sr-miko.png', skill:'淨化 (重洗目前凶籤)' },
-    { id:'c4', name:'厄除守', rank:'R', suit:'clb', img:'images/card-r-charm-bad.png', skill:'消除 (消除1張凶籤)' },
-    { id:'c5', name:'大吉籤', rank:'R', suit:'clb', img:'images/card-r-fortune.png', skill:'幸運 (直接獲得$500)' },
-    { id:'c6', name:'兇籤', rank:'R', suit:'clb', img:'images/card-r-fortune-bad.png', skill:'轉化 (手牌凶變吉)' },
-
-    // Diamond (dia)
-    { id:'d1', name:'大鳥居之靈', rank:'SSR', suit:'dia', img:'images/card-ssr-torii.png', skill:'神域 (鎖定1個正確數字)' },
-    { id:'d2', name:'八咫烏', rank:'SR', suit:'dia', img:'images/card-sr-crow.png', skill:'導引 (刪除3個錯誤數字)' },
-    { id:'d3', name:'御苑菖蒲花', rank:'SR', suit:'dia', img:'images/card-sr-iris.png', skill:'花語 (提示正確數字數量)' },
-    { id:'d4', name:'勝守', rank:'R', suit:'dia', img:'images/card-r-charm-win.png', skill:'機會 (增加2次猜測)' },
-    { id:'d5', name:'合格繪馬', rank:'R', suit:'dia', img:'images/card-r-ema.png', skill:'提示 (提示首位範圍)' },
-    { id:'d6', name:'御朱印帳', rank:'R', suit:'dia', img:'images/card-r-book.png', skill:'紀錄 (標示上次錯誤)' },
-
-    // All (🌈)
-    { id:'a1', name:'鎮座百年祭', rank:'SR', suit:'🌈', img:'images/card-sr-festival.png', skill:'祭典 (通關金錢+50%)' },
-    { id:'a2', name:'5円硬幣', rank:'R', suit:'🌈', img:'images/card-r-coin.png', skill:'結緣 (獲得隨機金錢)' },
-    { id:'a3', name:'參道小石子', rank:'R', suit:'🌈', img:'images/card-r-pebble.png', skill:'投擲 (干擾敵人)' }
+    { id:'ur1', name:'傳說中的西瓜', rank:'UR', suit:'🌈', img:'images/card-ur-watermelon.png', skill:'【時空支配】Spd敵速減半 / Dia猜錯不扣錢 / Hrt起手4張(2Q) / Clb吉籤率80%' },
+    // Heart
+    { id:'h1', name:'昭憲皇太后', rank:'SSR', suit:'hrt', img:'images/card-ssr-empress.png', skill:'【心眼】50% 機率直接顯示 Boss 真實手牌。' },
+    { id:'h2', name:'奉納清酒樽', rank:'SR', suit:'hrt', img:'images/card-sr-sake.png', skill:'【酒後真言】Boss 說謊機率大幅降低 (20%)。' },
+    { id:'h3', name:'奉納葡萄酒', rank:'SR', suit:'hrt', img:'images/card-sr-wine.png', skill:'【優雅】左輪手槍判定時，實彈機率減半。' },
+    { id:'h4', name:'緣結守', rank:'R', suit:'hrt', img:'images/card-r-charm-love.png', skill:'【和平主義】Boss 抓謊機率大幅降低 (<10%)。' },
+    { id:'h5', name:'鳥居鞠躬', rank:'R', suit:'hrt', img:'images/card-r-bow.png', skill:'【禮節】每回合若持有 Q，獲得 $200。' },
+    // Spade
+    { id:'s1', name:'明治天皇', rank:'SSR', suit:'spd', img:'images/card-ssr-emperor.png', skill:'【皇威】子彈變為「雙排貫穿雷射」，傷害 1.5 倍。' },
+    { id:'s2', name:'建速須佐之男', rank:'SSR', suit:'spd', img:'images/card-ssr-susanoo.png', skill:'【剛體】受到傷害減半，且不會被擊退。' },
+    { id:'s3', name:'夫婦楠', rank:'SR', suit:'spd', img:'images/card-sr-tree.png', skill:'【共生】每秒自動回復 2% HP。' },
+    { id:'s4', name:'甜酒', rank:'SR', suit:'spd', img:'images/card-sr-amazake.png', skill:'【微醺步伐】移動速度提升 30%。' },
+    { id:'s5', name:'代代木之森', rank:'SR', suit:'spd', img:'images/card-sr-forest.png', skill:'【森林守護】開局獲得 3 層絕對抵擋護盾。' },
+    { id:'s6', name:'破魔矢', rank:'R', suit:'spd', img:'images/card-r-arrow.png', skill:'【追蹤術】子彈自動追蹤 Boss (傷害 0.9倍)。' },
+    { id:'s7', name:'洗手舍水杓', rank:'R', suit:'spd', img:'images/card-r-ladle.png', skill:'【淨化】擊殺敵人時回復 5% HP。' },
+    { id:'a3', name:'參道小石子', rank:'R', suit:'spd', img:'images/card-r-pebble.png', skill:'【彈藥節奏】每 5 發單發後射出一發雙排彈。' },
+    // Club
+    { id:'c1', name:'稻荷大神', rank:'SSR', suit:'clb', img:'images/card-ssr-inari.png', skill:'【豐收神】吉籤獲得獎金變為 3 倍。' },
+    { id:'c2', name:'清正井之龍', rank:'SR', suit:'clb', img:'images/card-sr-well.png', skill:'【龍神加護】凶籤只要 2 張相同即可消除。' },
+    { id:'c3', name:'神樂巫女', rank:'SR', suit:'clb', img:'images/card-sr-miko.png', skill:'【祓除】每抽 5 次籤，隨機銷毀一張場上凶籤。' },
+    { id:'c4', name:'厄除守', rank:'R', suit:'clb', img:'images/card-r-charm-bad.png', skill:'【替身】籤架容量擴充 +1 格。' },
+    { id:'c5', name:'大吉籤', rank:'R', suit:'clb', img:'images/card-r-fortune.png', skill:'【幸運兒】吉籤機率提升至 50%。' },
+    { id:'c6', name:'兇籤', rank:'R', suit:'clb', img:'images/card-r-fortune-bad.png', skill:'【逆轉】死局時自動觸發一次全消除 (限1次)。' },
+    // Diamond
+    { id:'d1', name:'大鳥居之靈', rank:'SSR', suit:'dia', img:'images/card-ssr-torii.png', skill:'【天啟】開局自動填入並鎖定 1 個正確答案。' },
+    { id:'d2', name:'八咫烏', rank:'SR', suit:'dia', img:'images/card-sr-crow.png', skill:'【導引】隨機封鎖 3 個錯誤數字鍵。' },
+    { id:'d3', name:'御苑菖蒲花', rank:'SR', suit:'dia', img:'images/card-sr-iris.png', skill:'【花語】完全猜錯 (0A0B) 時不消耗次數/獎金。' },
+    { id:'d4', name:'勝守', rank:'R', suit:'dia', img:'images/card-r-charm-win.png', skill:'【強運】猜錯扣除金額減半。' },
+    { id:'d5', name:'合格繪馬', rank:'R', suit:'dia', img:'images/card-r-ema.png', skill:'【及格線】開局提示是否包含 0 或 9。' },
+    { id:'d6', name:'御朱印帳', rank:'R', suit:'dia', img:'images/card-r-book.png', skill:'【覆盤】歷史紀錄會隨機劃掉 1 個錯誤數字。' },
+    // All
+    { id:'a1', name:'鎮座百年祭', rank:'SR', suit:'🌈', img:'images/card-sr-festival.png', skill:'【繁榮】通關獎金固定 x1.5 倍。' },
+    { id:'a2', name:'5円硬幣', rank:'R', suit:'🌈', img:'images/card-r-coin.png', skill:'【零用錢】進入關卡直接獲得 $500。' }
 ];
 
 const app = createApp({
@@ -634,43 +713,41 @@ const app = createApp({
             gachaPool: gachaPool,
             phase: 'loading', 
             money: 0, 
+            initialMoney: 0, 
             fatigue: 0,
             isLoading: true,
             showingGallery: false,
-            
-            // UI 特效
+            travelScores: { land: 0, sea: 0, skate: 0 },
             moneyAnim: null, luckyAnim: false, damageAnim: false, countdown: null,
             showTutorial: false, tutorialData: { title:'', desc:'' },
+            showBuffConfirm: false,
             customAlert: { show:false, message:'', callback:null },
-            showStageClear: false, clearRank: 'A', currentBonus: 50000,
-            
-            // 抽卡
-            inventory: [],
-            drawnCards: [],
-            allRevealed: false,
-            
-            // 遊戲資料
-            activeGame: null,
-            games: { dia:{cleared:false}, spd:{cleared:false}, clb:{cleared:false}, hrt:{cleared:false} },
-            activeSkills: [],
-            
-            // 關卡狀態
-            diaState: { answer:[], input:[], history:[], locked:[false,false,false,false] },
-            spdState: { bossHpPercent:100, playerHpPercent:100, warning:false },
-            spdGame: { active:false, bullets:[], enemies:[], particles:[], imgs:{}, loaded:{p:false,b:false,e:false}, width:400, height:600 },
-            
-            // [復原] 淺草神籤狀態 (使用舊版結構)
-            clbState: { 
-                grid:[[],[],[]], deck:[], currentPaper:null, revealed:false, 
-                showText:false, showEmoji:false, deadlock:false, hasPaid: false,
-                badTypes:['ghost','bolt','virus','heart-broken','money-bill-wave'] 
+            showStageClear: false, clearRank: 'A', 
+            currentBonus: 5000, 
+            inventory: [], drawnCards: [], allRevealed: false, activeGame: null,
+            games: { 
+                dia:{cleared:false, attempts:0, earned:0}, 
+                spd:{cleared:false, attempts:0, earned:0}, 
+                clb:{cleared:false, attempts:0, earned:0}, 
+                hrt:{cleared:false, attempts:0, earned:0} 
             },
-            
-            hrtState: { phase:'idle', hand:[], bossHandCount:8, chamberCount:6, gunActive:false, isShooting:false, bossIsLying:false }
+            activeSkills: [],
+            diaState: { answer:[], input:[], history:[], locked:[false,false,false,false], disabledKeys:[] },
+            spdState: { bossHpPercent:100, playerHpPercent:100, warning:false },
+            spdGame: { active:false, bullets:[], enemies:[], particles:[], imgs:{}, loaded:{p:false,b:false,e:false}, width:400, height:600, shotCount:0, shield:0, bossWakeUpTime: 0 },
+            clbState: { grid:[{items:[], isBurning:false},{items:[], isBurning:false},{items:[], isBurning:false},{items:[], isBurning:false}], deck:[], currentPaper:null, revealed:false, showText:false, showEmoji:false, deadlock:false, hasPaid: false, drawCount: 0, rackLimit: 3, hasAutoCleared: false, showMiko: false, badTypes:['ghost','bolt','virus','heart-broken','money-bill-wave'] },
+            hrtState: { phase:'idle', hand:[], bossHandCount:8, chamberCount:6, gunActive:false, isShooting:false, bossIsLying:false, currentDealer: 'player' }
         };
     },
     computed: {
-        allGamesCleared() { return this.games.dia.cleared && this.games.spd.cleared && this.games.clb.cleared && this.games.hrt.cleared; },
+        // [修正] 按鈕顯示邏輯：只要關卡「通關」或「失敗3次」就算結束
+        allGamesCleared() { 
+            const isDone = (g) => g.cleared || g.attempts >= 3;
+            return isDone(this.games.dia) && 
+                   isDone(this.games.spd) && 
+                   isDone(this.games.clb) && 
+                   isDone(this.games.hrt);
+        },
         hrtStatusText() {
             if (this.hrtState.phase==='player_turn') return "🔴 輪到你：請出牌";
             if (this.hrtState.phase==='boss_thinking') return "🔴 輪到你：Boss 思考中...";
@@ -691,11 +768,12 @@ const app = createApp({
     },
     mounted() {
         const params = new URLSearchParams(window.location.search);
-        const m = params.get('money'); const f = params.get('fatigue');
-        if (m) this.money = parseInt(m); if (f) this.fatigue = parseInt(f);
-
+        const m = params.get('money');
+        const f = params.get('fatigue');
+        this.travelScores = { land: parseInt(params.get('land') || 0), sea: parseInt(params.get('sea') || 0), skate: parseInt(params.get('skate') || 0) };
+        if (m) { this.money = parseInt(m); this.initialMoney = parseInt(m); }
+        if (f) this.fatigue = parseInt(f);
         this.preloadIntroAssets();
-        // 銀座全螢幕偵測
         window.addEventListener('resize', this.resizeCanvas);
     },
     methods: {
@@ -709,466 +787,233 @@ const app = createApp({
         },
         async preloadShibuyaAssets() {
             this.isLoading = true;
-            const imagesToLoad = [
-                'images/bg-shibuya.png', 'images/ui-airship-header.png',
-                'images/bg-ginza.png', 'images/bg-qfront.png', 'images/bg-asakusa.png', 'images/bg-shibuya-sky.png',
-                'images/sheep-top.png', 'images/boss-swat.png', 'images/enemy-drone.png',
-                'images/boss-queen.png', 'images/prop-revolver.png'
-            ];
+            const imagesToLoad = ['images/bg-shibuya.png', 'images/ui-airship-header.png', 'images/bg-ginza.png', 'images/bg-qfront.png', 'images/bg-asakusa.png', 'images/bg-shibuya-sky.png', 'images/sheep-top.png', 'images/boss-swat.png', 'images/enemy-drone.png', 'images/boss-queen.png', 'images/prop-revolver.png'];
             await this.preloadImages(imagesToLoad);
             this.isLoading = false;
             this.phase = 'shibuya_hub';
         },
-        preloadImages(list) {
-            return Promise.all(list.map(src => new Promise(resolve => {
-                const img = new Image();
-                img.onload = img.onerror = resolve;
-                img.src = src;
-            })));
-        },
-
-        // --- Helpers ---
+        preloadImages(list) { return Promise.all(list.map(src => new Promise(resolve => { const img = new Image(); img.onload = img.onerror = resolve; img.src = src; }))); },
         getSuitIconClass(suit) { const map = { dia:'fa-gem', spd:'fa-skull-crossbones', clb:'fa-star', hrt:'fa-heart-broken' }; return map[suit] || ''; },
         getZoneName(suit) { const map = { dia:'推理', spd:'武力', clb:'神籤', hrt:'心理' }; return map[suit] || suit; },
         showMoneyEffect(txt) { this.moneyAnim = txt; setTimeout(()=>this.moneyAnim=null, 1000); },
         showAlert(msg, cb) { this.customAlert.message=msg; this.customAlert.callback=cb; this.customAlert.show=true; },
         closeAlert() { this.customAlert.show=false; if(this.customAlert.callback) { const cb=this.customAlert.callback; this.customAlert.callback=null; cb(); } },
         getCardColorClass(card) { if(!card) return ''; return ['♥','♦'].includes(card.suit)?'suit-red':'suit-black'; },
-        getSkillSuitLabel(suit) {
-            const map = { 'dia':'推理神算', 'spd':'武力威脅', 'clb':'淺草神籤', 'hrt':'心理博弈', '🌈':'所有關卡' };
-            return map[suit] || '通用';
-        },
-        showCardDetail(card) { 
-            this.showAlert(`
-                <img src="${card.img}" style="width:120px; border-radius:5px; margin-bottom:10px;" onerror="this.style.visibility='hidden'">
-                <div style="font-size:18px; font-weight:bold; margin-bottom:5px;">${card.name}</div>
-                <div style="color:#aaa; font-size:12px; margin-bottom:10px;">適用於: ${this.getSkillSuitLabel(card.suit)}</div>
-                <div style="color:#FFD700; font-size:14px;">${card.skill}</div>
-            `, null); 
-        },
+        getSkillSuitLabel(suit) { const map = { 'dia':'推理神算', 'spd':'武力威脅', 'clb':'淺草神籤', 'hrt':'心理博弈', '🌈':'所有關卡' }; return map[suit] || '通用'; },
+        showCardDetail(card) { this.showAlert(`<img src="${card.img}" style="width:120px; border-radius:5px; margin-bottom:10px;" onerror="this.style.visibility='hidden'"><div style="font-size:18px; font-weight:bold; margin-bottom:5px;">${card.name}</div><div style="color:#aaa; font-size:12px; margin-bottom:10px;">適用於: ${this.getSkillSuitLabel(card.suit)}</div><div style="color:#FFD700; font-size:14px;">${card.skill}</div>`, null); },
         showGallery() { this.showingGallery = true; },
+        getPassiveDesc(card) { return card.skill; },
+        hasPassive(id) { return this.activeSkills.some(c => c.id === id); },
 
-        // --- 抽卡系統 (0.1秒延遲 + 同步翻轉) ---
         drawGacha() {
-            const results = [];
-            const ownedIds = new Set(this.inventory.map(c => c.id));
-            let pool = gachaPool.filter(c => !ownedIds.has(c.id));
-            if (pool.length < 10) pool = gachaPool;
-
+            const results = []; const ownedIds = new Set(this.inventory.map(c => c.id));
+            let pool = gachaPool.filter(c => !ownedIds.has(c.id)); if (pool.length < 10) pool = gachaPool;
             const fatigueFactor = this.fatigue > 80 ? 0.5 : 1;
-
             for(let i=0; i<10; i++) {
-                let subPool = [];
-                const r = Math.random();
+                let subPool = []; const r = Math.random();
                 if(r < 0.03 * fatigueFactor) subPool = pool.filter(c=>c.rank==='UR');
                 else if(r < 0.18 * fatigueFactor) subPool = pool.filter(c=>c.rank==='SSR');
                 else if(r < 0.63) subPool = pool.filter(c=>c.rank==='SR');
                 else subPool = pool.filter(c=>c.rank==='R');
-
                 if(subPool.length === 0) subPool = pool;
                 const card = subPool[Math.floor(Math.random() * subPool.length)];
-                
-                // 預設 revealed: false (顯示卡背)
                 results.push({ ...card, uid: Date.now()+i, selected: true, used: false, revealed: false });
                 pool = pool.filter(c => c.id !== card.id);
                 if(pool.length === 0) pool = gachaPool;
             }
-
-            this.drawnCards = results;
-            this.inventory.push(...results);
-            
-            // 畫面瞬間切換 (卡背)
-            this.phase = 'meiji_result'; 
-            this.allRevealed = false;
-
-            // 0.1秒後同步翻轉
-            nextTick(() => {
-                setTimeout(() => {
-                    this.drawnCards.forEach(c => c.revealed = true);
-                    this.allRevealed = true;
-                }, 100); 
-            });
+            this.drawnCards = results; this.inventory.push(...results);
+            this.phase = 'meiji_result'; this.allRevealed = false;
+            nextTick(() => { setTimeout(() => { this.drawnCards.forEach(c => c.revealed = true); this.allRevealed = true; }, 100); });
         },
-
-        enterDeckBuild() {
-            this.phase = 'deck_build';
-            // 自動選擇前三張
-            ['dia','spd','clb','hrt'].forEach(s => {
-                const cards = this.getCardsBySuit(s);
-                cards.forEach((c, i) => c.selected = (i<3));
-            });
-        },
-        
-        // [修復] 分類邏輯：使用英文代碼比對
-        getCardsBySuit(code) {
-            if (code === 'all') return this.inventory.filter(c => c.suit === '🌈');
-            return this.inventory.filter(c => c.suit === code);
-        },
-        getZoneCount(code) { 
-            return this.inventory.filter(c => c.suit === code && c.selected).length; 
-        },
-        toggleCardSelection(card, code) {
-            if(card.selected) card.selected = false;
-            else {
-                if(this.getZoneCount(code) < 3) card.selected = true;
-                else {
-                    const sel = this.getCardsBySuit(code).filter(c=>c.selected);
-                    if(sel.length>0) sel[0].selected = false;
-                    card.selected = true;
-                }
-            }
-        },
-        enterHub() { 
-            this.preloadShibuyaAssets(); 
-            this.phase = 'shibuya_hub'; // 確保背景圖正確顯示
-        },
+        enterDeckBuild() { this.phase = 'deck_build'; this.inventory.forEach(c => c.selected = true); },
+        getCardsBySuit(code) { if (code === 'all') return this.inventory.filter(c => c.suit === '🌈'); return this.inventory.filter(c => c.suit === code); },
+        getZoneCount(code) { return this.inventory.filter(c => c.suit === code && c.selected).length; },
+        toggleCardSelection(card, code) { this.showCardDetail(card); }, 
+        enterHub() { this.preloadShibuyaAssets(); this.phase = 'shibuya_hub'; },
 
         enterGame(gid) {
             if(this.games[gid].cleared) return;
+            if(this.games[gid].attempts >= 3) { this.showAlert(`<div style="color:red; font-size:24px; font-weight:bold;">ACCESS DENIED</div><br>此區域已被封鎖。<br>(挑戰失敗已達 3 次)`, null); return; }
             this.activeGame = gid;
             const intro = { 
-                dia: { title:'♦ 推理神算', desc:'<ul><li><b>目標：</b>猜出 4 位不重複數字</li><li><b>規則：</b>A=位置對數字對，B=數字對位置錯。</li></ul>' }, 
-                spd: { title:'♠ 銀座 武力威脅', desc:'<ul><li><b>目標：</b>將 Boss 血量歸零。</li><li><b>操作：</b>拖曳綿羊閃避，自動射擊。</li></ul>' },
-                clb: { title:'♣ 淺草 神籤試煉', desc:'<ul><li><b>目標：</b>清空籤筒。</li><li><b>規則：</b>吉籤加錢，凶籤分類消除。</li><li><b>死局：</b>若無處可放，需花錢消災。</li></ul>' },
-                hrt: { title:'♥ 心理博弈', desc:'<ul><li><b>目標：</b>清空手牌或擊敗 Boss。</li><li><b>規則：</b>出牌必須宣稱是 Q。抓謊失敗需接受左輪判定。</li></ul>' }
+                dia: { title:'♦ 推理神算', desc:'<b>【遊戲目標】</b> 猜出 4 位不重複的數字密碼。<br><br><b>【規則說明】</b><br>• A = 數字對且位置對<br>• B = 數字對但位置錯<br>• 請依據歷史紀錄推理出正確答案。<br><br><b><span style="color:#ff4757">【警告】</span></b><br>每關僅有 3 次挑戰機會，失敗 3 次將永久封鎖！' }, 
+                spd: { title:'♠ 銀座 武力威脅', desc:'<b>【遊戲目標】</b> 在彈幕中存活並擊敗 Boss。<br><br><b>【操作說明】</b><br>• 拖曳綿羊：移動角色<br>• 放開手指：停止移動<br>• 攻擊：角色會自動射擊<br><br><b><span style="color:#ff4757">【警告】</span></b><br>每關僅有 3 次挑戰機會，失敗 3 次將永久封鎖！' },
+                clb: { title:'♣ 淺草 神籤試煉', desc:'<b>【遊戲目標】</b> 清空籤筒中的 30 支籤。<br><br><b>【操作說明】</b><br>• 點擊中央籤筒抽籤。<br>• <span style="color:#FFD700">大吉</span>：+$100 獎金。<br>• <span style="color:#e84118">凶籤</span>：需手動拖曳至下方籤架分類。<br>• 消除：集齊 3 個相同凶籤可消除 (+$50)。<br><br><b><span style="color:#ff4757">【警告】</span></b><br>若籤架已滿且無處可放，即為死局，需花費 $500 消災。' },
+                hrt: { title:'♥ 心理博弈', desc:'<b>【遊戲目標】</b> 清空手牌或讓 Boss 生命歸零。<br><br><b>【規則說明】</b><br>• 出牌：必須宣稱自己出的是 <span style="color:#e74c3c">Q</span>。<br>• 抓謊：如果你覺得對方沒出 Q，可以抓謊 (Liar)。<br>• 判定：抓謊失敗或被抓到說謊，將面臨左輪手槍判定。<br><br><b><span style="color:#ff4757">【警告】</span></b><br>每關僅有 3 次挑戰機會，失敗 3 次將永久封鎖！' }
             };
             this.tutorialData = intro[gid];
+            this.activeSkills = this.inventory.filter(c => c.selected && (c.suit===this.activeGame || c.suit==='🌈'));
             this.showTutorial = true;
         },
+        showBuffConfirmPage() { this.showTutorial = false; this.showBuffConfirm = true; },
         confirmStart() {
-            this.showTutorial = false;
-            this.phase = 'game_' + this.activeGame;
-            this.currentBonus = 50000;
-            // 篩選技能卡
-            this.activeSkills = this.inventory.filter(c => c.selected && !c.used && (c.suit===this.activeGame || c.suit==='🌈'));
-            
-            if(this.activeGame==='spd') {
-                this.countdown = 3;
-                const t = setInterval(()=>{ 
-                    this.countdown--; 
-                    if(this.countdown < 0){ clearInterval(t); this.countdown = null; nextTick(()=>this.spdInit()); } 
-                }, 1000);
-            } else if(this.activeGame==='dia') this.diaInit();
+            this.showBuffConfirm = false; this.phase = 'game_' + this.activeGame; this.currentBonus = 5000;
+            if (this.hasPassive('a2')) { this.money += 500; this.showMoneyEffect("+$500"); } 
+            if(this.activeGame==='spd') { this.countdown = 3; const t = setInterval(()=>{ this.countdown--; if(this.countdown < 0){ clearInterval(t); this.countdown = null; nextTick(()=>this.spdInit()); } }, 1000); } 
+            else if(this.activeGame==='dia') this.diaInit();
             else if(this.activeGame==='clb') this.clbInit();
             else if(this.activeGame==='hrt') this.hrtInit();
         },
-        
-        // [修復] 返回大廳
-        returnToHub() { 
-            this.phase='shibuya_hub'; 
-            this.activeGame=null; 
-            this.spdGame.active=false;
-            this.showStageClear = false; // 關閉結算視窗
+        handleGameFail() {
+            const gid = this.activeGame; this.games[gid].attempts++; const left = 3 - this.games[gid].attempts;
+            let msg = `任務失敗...<br>剩餘挑戰機會: ${left} 次`;
+            if (left <= 0) msg = `<span style="color:red; font-weight:bold;">任務失敗。<br>此區域已永久封鎖。</span>`;
+            this.showAlert(msg, () => { this.returnToHub(); });
         },
-        finishGame() { this.showAlert("恭喜完全通關！感謝遊玩。", ()=>{ window.location.href='index.html'; }); },
-
-        useSkill(card) {
-            if(card.used) return;
-            let ok = false;
-            if(card.id==='ur1') { ok=true; if(this.activeGame==='dia') this.diaState.locked=[true,true,true,true]; if(this.activeGame==='spd') this.spdState.bossHpPercent=1; if(this.activeGame==='hrt'){this.hrtState.bossIsLying=true; this.showAlert("西瓜之力：Boss 正在說謊!", null);} }
-            else if(card.id==='a1') { this.currentBonus=Math.floor(this.currentBonus*1.5); this.showMoneyEffect("獎金UP"); ok=true; }
-            else if(card.id==='a2') { this.money+=1000; this.showMoneyEffect("+1000"); ok=true; }
-            
-            if(this.activeGame==='dia' && card.rank!=='R') { 
-                const idx = this.diaState.locked.findIndex(x=>!x);
-                if(idx!==-1) { this.diaState.locked[idx]=true; this.diaState.input[idx]=this.diaState.answer[idx]; ok=true; }
-            }
-            if(this.activeGame==='spd' && (card.rank==='SSR'||card.id==='s3'||card.id==='s7')) {
-                this.spdState.playerHpPercent = Math.min(100, this.spdState.playerHpPercent+50); ok=true;
-            }
-            if(this.activeGame==='clb' && this.clbState.currentPaper && this.clbState.currentPaper.type==='bad') {
-                this.clbState.currentPaper={type:'good', icon:'fa-star'}; 
-                this.clbState.showText = false; this.clbState.showEmoji = false;
-                this.showAlert("轉禍為福！變吉籤了！", ()=>this.clbDrawResult()); 
-                ok=true;
-            }
-            if(this.activeGame==='hrt' && card.rank==='SSR') { this.showAlert(`透視：Boss 手牌是 [${this.hrtState.lastPlayedCard?this.hrtState.lastPlayedCard.rank:'?'}]`, null); ok=true; }
-            if(ok) card.used = true;
+        returnToHub() { this.phase='shibuya_hub'; this.activeGame=null; this.spdGame.active=false; this.showStageClear=false; },
+        showFinalScore() { this.phase = 'final_score'; },
+        hardReset() { window.location.href = 'index.html'; },
+        stageClear(gid) { 
+            if (this.hasPassive('a1')) { this.currentBonus = Math.floor(this.currentBonus * 1.5); }
+            if (gid === 'spd') { const hpFactor = this.spdState.playerHpPercent / 100; this.currentBonus = Math.floor(5000 * hpFactor); }
+            this.games[gid].cleared = true; this.games[gid].earned = this.currentBonus; this.money += this.currentBonus; this.showStageClear = true; 
+            if (this.currentBonus >= 5000) this.clearRank = 'S'; else if (this.currentBonus >= 4000) this.clearRank = 'A'; else if (this.currentBonus >= 2500) this.clearRank = 'B'; else this.clearRank = 'C';
         },
 
-        stageClear(gid) { this.games[gid].cleared=true; this.money+=this.currentBonus; this.showStageClear=true; this.clearRank = this.currentBonus>=40000?'S':'B'; },
-
-        // --- Game 1: Dia (修復) ---
+        // --- DIA ---
         diaInit() {
-            const n=[0,1,2,3,4,5,6,7,8,9]; 
-            this.diaState.answer=[]; 
-            for(let i=0;i<4;i++) this.diaState.answer.push(n.splice(Math.floor(Math.random()*n.length),1)[0]);
-            this.diaState.input=[]; 
-            this.diaState.history=[]; 
-            this.diaState.locked=[false,false,false,false];
+            const n=[0,1,2,3,4,5,6,7,8,9]; this.diaState.answer=[]; for(let i=0;i<4;i++) this.diaState.answer.push(n.splice(Math.floor(Math.random()*n.length),1)[0]);
+            this.diaState.input=[]; this.diaState.history=[]; this.diaState.locked=[false,false,false,false]; this.diaState.disabledKeys = [];
+            if (this.hasPassive('d1')) { this.diaState.input[0] = this.diaState.answer[0]; this.diaState.locked[0] = true; }
+            if (this.hasPassive('d5')) { const has0=this.diaState.answer.includes(0); const has9=this.diaState.answer.includes(9); setTimeout(()=>this.showAlert(`繪馬提示：答案中${has0?'包含':'不含'} 0，${has9?'包含':'不含'} 9。`, null), 500); }
+            if (this.hasPassive('d2')) { const wrongKeys = []; for(let k=0; k<=9; k++) { if (!this.diaState.answer.includes(k)) wrongKeys.push(k); } for (let i = wrongKeys.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [wrongKeys[i], wrongKeys[j]] = [wrongKeys[j], wrongKeys[i]]; } this.diaState.disabledKeys = wrongKeys.slice(0, 3); }
         },
         diaInput(n) { if(this.diaState.input.length<4) this.diaState.input.push(n); },
         diaDel() { if(this.diaState.input.length>0 && !this.diaState.locked[this.diaState.input.length-1]) this.diaState.input.pop(); },
         diaSubmit() {
             if(this.diaState.input.length!==4) return;
-            if(new Set(this.diaState.input).size!==4) { this.showAlert("數字不能重複", ()=>{ this.diaState.input=[]; }); return; }
-            let a=0,b=0;
-            for(let i=0;i<4;i++) { if(this.diaState.input[i]==this.diaState.answer[i]) a++; else if(this.diaState.answer.includes(this.diaState.input[i])) b++; }
-            this.diaState.history.unshift({ guess:this.diaState.input.join(''), a, b });
+            if(new Set(this.diaState.input).size!==4) { this.showAlert("數字不能重複", ()=>{ this.diaState.input=this.diaState.input.filter((_,i)=>this.diaState.locked[i]); }); return; }
+            let a=0,b=0; for(let i=0;i<4;i++) { if(this.diaState.input[i]==this.diaState.answer[i]) a++; else if(this.diaState.answer.includes(this.diaState.input[i])) b++; }
+            let strikeIdx = -1;
+            if (this.hasPassive('d6')) { let wrongIndices = []; this.diaState.input.forEach((num, idx) => { if (!this.diaState.answer.includes(num)) wrongIndices.push(idx); }); if (wrongIndices.length > 0) { strikeIdx = wrongIndices[Math.floor(Math.random() * wrongIndices.length)]; } }
+            let historyItem = { guess:this.diaState.input.join(''), a, b, strikeIndex: strikeIdx };
+            this.diaState.history.unshift(historyItem);
             if(a===4) this.stageClear('dia');
-            else { this.currentBonus = Math.max(0, this.currentBonus-2000); this.diaState.input = this.diaState.input.filter((_,i)=>this.diaState.locked[i]); }
-        },
-
-        // --- Game 2: Spd (全螢幕 + Boss限制) ---
-        resizeCanvas() {
-            const cvs = this.$refs.spdCanvas;
-            if(cvs && this.spdGame.active) {
-                cvs.width = window.innerWidth;
-                cvs.height = window.innerHeight;
-                this.spdGame.width = window.innerWidth;
-                this.spdGame.height = window.innerHeight;
+            else {
+                let penalty = 2000; if (this.hasPassive('ur1')) penalty = 0; else if (this.hasPassive('d4')) penalty = 1000; if (this.hasPassive('d3') && a===0 && b===0) penalty = 0;
+                this.currentBonus = Math.max(0, this.currentBonus - penalty); if (penalty > 0) this.showMoneyEffect(`-${penalty}`);
+                this.diaState.input = this.diaState.input.filter((_,i)=>this.diaState.locked[i]); 
             }
         },
+
+        // --- SPD ---
+        resizeCanvas() { const cvs = this.$refs.spdCanvas; if(cvs && this.spdGame.active) { cvs.width = window.innerWidth; cvs.height = window.innerHeight; this.spdGame.width = window.innerWidth; this.spdGame.height = window.innerHeight; } },
         spdInit() {
             this.spdState.bossHpPercent=100; this.spdState.playerHpPercent=100; this.spdState.warning=false;
-            const cvs = this.$refs.spdCanvas; if(!cvs) return;
-            this.spdGame.ctx = cvs.getContext('2d'); this.spdGame.active=true;
-            
-            this.resizeCanvas();
-
-            const imgs={p:new Image(), b:new Image(), e:new Image()};
-            imgs.p.src='images/sheep-top.png'; imgs.b.src='images/boss-swat.png'; imgs.e.src='images/enemy-drone.png';
-            this.spdGame.imgs=imgs; this.spdGame.loaded={p:false,b:false,e:false};
-            imgs.p.onload=()=>this.spdGame.loaded.p=true; imgs.b.onload=()=>this.spdGame.loaded.b=true; imgs.e.onload=()=>this.spdGame.loaded.e=true;
-
-            this.spdGame.player={x:this.spdGame.width/2, y:this.spdGame.height - 150}; 
-            this.spdGame.boss={x:this.spdGame.width/2, y:200, dir:1, state:'idle', timer:0, isHit:0};
-            this.spdGame.bullets=[]; this.spdGame.enemies=[]; this.spdGame.particles=[]; this.spdGame.lastShot=0;
-            
-            const move=(e)=>{ 
-                if(!this.spdGame.active) return;
-                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                this.spdGame.player.x = clientX;
-                this.spdGame.player.y = clientY;
-            };
+            const cvs = this.$refs.spdCanvas; if(!cvs) return; this.spdGame.ctx = cvs.getContext('2d'); this.spdGame.active=true; this.resizeCanvas();
+            const imgs={p:new Image(), b:new Image(), e:new Image()}; imgs.p.src='images/sheep-top.png'; imgs.b.src='images/boss-swat.png'; imgs.e.src='images/enemy-drone.png';
+            this.spdGame.imgs=imgs; this.spdGame.loaded={p:false,b:false,e:false}; imgs.p.onload=()=>this.spdGame.loaded.p=true; imgs.b.onload=()=>this.spdGame.loaded.b=true; imgs.e.onload=()=>this.spdGame.loaded.e=true;
+            this.spdGame.player={x:this.spdGame.width/2, y:this.spdGame.height - 150}; this.spdGame.boss={x:this.spdGame.width/2, y:200, dir:1, state:'idle', timer:0, isHit:0};
+            this.spdGame.bullets=[]; this.spdGame.enemies=[]; this.spdGame.particles=[]; this.spdGame.lastShot=0; this.spdGame.shotCount = 0;
+            this.spdGame.shield = this.hasPassive('s5') ? 3 : 0; this.spdGame.bossWakeUpTime = Date.now() + 2000;
+            const move=(e)=>{ if(!this.spdGame.active) return; const clientX = e.touches ? e.touches[0].clientX : e.clientX; const clientY = e.touches ? e.touches[0].clientY : e.clientY; this.spdGame.player.x = clientX; this.spdGame.player.y = clientY; };
             cvs.addEventListener('touchmove', move); cvs.addEventListener('mousemove', move);
             requestAnimationFrame(this.spdLoop);
         },
         spdLoop() {
             if(!this.spdGame.active || this.phase!=='game_spd') return;
-            const ctx=this.spdGame.ctx, G=this.spdGame;
-            ctx.clearRect(0,0,G.width,G.height);
-
-            // Player
-            if(G.loaded.p) ctx.drawImage(G.imgs.p, G.player.x-60, G.player.y-60, 120, 120);
-            else { ctx.fillStyle='cyan'; ctx.beginPath(); ctx.arc(G.player.x, G.player.y, 20, 0, Math.PI*2); ctx.fill(); }
-
-            // Boss Move (限制 Y > 180)
-            G.boss.x += G.boss.dir * 3;
-            if(G.boss.x > G.width - 50 || G.boss.x < 50) G.boss.dir *= -1;
-            if(G.boss.y < 180) G.boss.y = 180; // 空氣牆
+            const ctx=this.spdGame.ctx, G=this.spdGame; ctx.clearRect(0,0,G.width,G.height);
+            const bossSpeedFactor = this.hasPassive('ur1') ? 0.5 : 1.0;
+            if(G.loaded.p) ctx.drawImage(G.imgs.p, G.player.x-60, G.player.y-60, 120, 120); else { ctx.fillStyle='cyan'; ctx.beginPath(); ctx.arc(G.player.x, G.player.y, 20, 0, Math.PI*2); ctx.fill(); }
+            if (G.shield > 0) { ctx.strokeStyle = '#2ED573'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(G.player.x, G.player.y, 70, 0, Math.PI*2); ctx.stroke(); }
             
-            G.boss.timer++;
-            if(G.boss.state === 'idle') {
-                if(G.boss.timer > 80) { G.boss.state = Math.random()>0.5 ? 'scatter' : 'snipe'; G.boss.timer = 0; this.spdState.warning = true; }
-            } else if (G.boss.state === 'scatter') {
-                if (G.boss.timer % 15 === 0 && G.boss.timer < 60) {
-                    for(let i=-2; i<=2; i++) G.bullets.push({x:G.boss.x, y:G.boss.y+40, vx:i*3, vy:5, type:'b', r:6});
-                }
-                if (G.boss.timer > 90) { G.boss.state='idle'; G.boss.timer=0; this.spdState.warning=false; }
-            } else if (G.boss.state === 'snipe') {
-                if (G.boss.timer === 40) {
-                    const dx = G.player.x - G.boss.x; const dy = G.player.y - G.boss.y; const d = Math.hypot(dx, dy);
-                    G.bullets.push({x:G.boss.x, y:G.boss.y+40, vx:(dx/d)*12, vy:(dy/d)*12, type:'b_snipe', r:12});
-                }
-                if (G.boss.timer > 70) { G.boss.state='idle'; G.boss.timer=0; this.spdState.warning=false; }
+            G.boss.x += G.boss.dir * 3 * bossSpeedFactor; if(G.boss.x > G.width - 50 || G.boss.x < 50) G.boss.dir *= -1; if(G.boss.y < 180) G.boss.y = 180; 
+            if (Date.now() > G.bossWakeUpTime) {
+                G.boss.timer++;
+                if(G.boss.state === 'idle') { if(G.boss.timer > 80) { G.boss.state = Math.random()>0.5 ? 'scatter' : 'snipe'; G.boss.timer = 0; this.spdState.warning = true; } } 
+                else if (G.boss.state === 'scatter') { if (G.boss.timer % 15 === 0 && G.boss.timer < 60) for(let i=-2; i<=2; i++) G.bullets.push({x:G.boss.x, y:G.boss.y+40, vx:i*3*bossSpeedFactor, vy:5*bossSpeedFactor, type:'b', r:6}); if (G.boss.timer > 90) { G.boss.state='idle'; G.boss.timer=0; this.spdState.warning=false; } } 
+                else if (G.boss.state === 'snipe') { if (G.boss.timer === 40) { const dx = G.player.x - G.boss.x; const dy = G.player.y - G.boss.y; const d = Math.hypot(dx, dy); G.bullets.push({x:G.boss.x, y:G.boss.y+40, vx:(dx/d)*12*bossSpeedFactor, vy:(dy/d)*12*bossSpeedFactor, type:'b_snipe', r:12}); } if (G.boss.timer > 70) { G.boss.state='idle'; G.boss.timer=0; this.spdState.warning=false; } }
             }
-
-            // Draw Boss
-            if(G.loaded.b) ctx.drawImage(G.imgs.b, G.boss.x-40, G.boss.y-40, 80, 80);
-            else { ctx.fillStyle='red'; ctx.fillRect(G.boss.x-40,G.boss.y-40,80,80); }
-            if(G.boss.isHit > 0) {
-                ctx.globalCompositeOperation = 'source-atop'; ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.beginPath(); ctx.arc(G.boss.x, G.boss.y, 40, 0, Math.PI*2); ctx.fill(); ctx.globalCompositeOperation = 'source-over';
-                G.boss.isHit--;
-            }
-
-            // Bullets
+            if(G.loaded.b) ctx.drawImage(G.imgs.b, G.boss.x-40, G.boss.y-40, 80, 80); else { ctx.fillStyle='red'; ctx.fillRect(G.boss.x-40,G.boss.y-40,80,80); }
+            if(G.boss.isHit > 0) { ctx.globalCompositeOperation = 'source-atop'; ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.beginPath(); ctx.arc(G.boss.x, G.boss.y, 40, 0, Math.PI*2); ctx.fill(); ctx.globalCompositeOperation = 'source-over'; G.boss.isHit--; }
             if(Date.now()-G.lastShot > 150) { 
-                G.bullets.push({x:G.player.x, y:G.player.y-40, vx:0, vy:-25, type:'p', r:5}); 
-                G.lastShot=Date.now(); 
+                G.shotCount++; let fired = false;
+                if (this.hasPassive('s1')) { G.bullets.push({x:G.player.x-10, y:G.player.y-40, vx:0, vy:-30, type:'p_laser', r:5, dmg:1.5}); G.bullets.push({x:G.player.x+10, y:G.player.y-40, vx:0, vy:-30, type:'p_laser', r:5, dmg:1.5}); fired = true; }
+                else if (this.hasPassive('a3')) { if (G.shotCount % 6 === 0) { G.bullets.push({x:G.player.x-10, y:G.player.y-40, vx:0, vy:-25, type:'p', r:5, dmg:1}); G.bullets.push({x:G.player.x+10, y:G.player.y-40, vx:0, vy:-25, type:'p', r:5, dmg:1}); } else { G.bullets.push({x:G.player.x, y:G.player.y-40, vx:0, vy:-25, type:'p', r:5, dmg:1}); } fired = true; }
+                if (!fired) { let dmg = this.hasPassive('s6') ? 0.9 : 1.0; let type = this.hasPassive('s6') ? 'p_homing' : 'p'; G.bullets.push({x:G.player.x, y:G.player.y-40, vx:0, vy:-25, type:type, r:5, dmg:dmg}); } G.lastShot=Date.now(); 
             }
-
             for(let i=G.bullets.length-1; i>=0; i--) {
-                const b = G.bullets[i]; b.x+=b.vx; b.y+=b.vy;
-                if(b.type==='p') {
-                    ctx.fillStyle='#00FFFF'; ctx.shadowBlur=10; ctx.shadowColor='#00FFFF'; ctx.fillRect(b.x-5, b.y, 10, 30); ctx.shadowBlur=0;
-                    if(Math.hypot(b.x-G.boss.x, b.y-G.boss.y) < 40) {
-                        this.spdState.bossHpPercent -= 0.5; G.bullets.splice(i,1); G.boss.isHit=5;
-                        this.createExplosion(b.x, b.y, '#FFFF00');
-                        continue;
-                    }
-                    for(let j=0; j<G.enemies.length; j++) {
-                        if(Math.hypot(b.x-G.enemies[j].x, b.y-G.enemies[j].y) < 25) {
-                            G.enemies.splice(j,1); G.bullets.splice(i,1);
-                            this.createExplosion(b.x, b.y, '#FF0000');
-                            break;
-                        }
-                    }
+                const b = G.bullets[i]; if (b.type === 'p_homing') { const target = G.boss; const angle = Math.atan2(target.y - b.y, target.x - b.x); b.vx += Math.cos(angle) * 1; b.vy += Math.sin(angle) * 1; } b.x+=b.vx; b.y+=b.vy;
+                if(b.type.startsWith('p')) {
+                    ctx.fillStyle='#00FFFF'; ctx.shadowBlur=10; ctx.shadowColor='#00FFFF'; if (b.type==='p_laser') ctx.fillRect(b.x-3, b.y, 6, 40); else ctx.fillRect(b.x-5, b.y, 10, 30); ctx.shadowBlur=0;
+                    if(Math.hypot(b.x-G.boss.x, b.y-G.boss.y) < 40) { let damage = 0.5 * (b.dmg || 1); this.spdState.bossHpPercent -= damage; if (b.type !== 'p_laser') G.bullets.splice(i,1); G.boss.isHit=5; this.createExplosion(b.x, b.y, '#FFFF00'); continue; }
+                    for(let j=0; j<G.enemies.length; j++) { if(Math.hypot(b.x-G.enemies[j].x, b.y-G.enemies[j].y) < 25) { G.enemies.splice(j,1); if (b.type !== 'p_laser') G.bullets.splice(i,1); this.createExplosion(b.x, b.y, '#FF0000'); if (this.hasPassive('s7')) this.spdState.playerHpPercent = Math.min(100, this.spdState.playerHpPercent + 5); break; } }
                 } else {
                     ctx.fillStyle = b.type==='b_snipe'?'#FF0000':'#FF5500'; ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI*2); ctx.fill();
-                    if(Math.hypot(b.x-G.player.x, b.y-G.player.y) < 20+b.r) { 
-                        this.spdState.playerHpPercent -= (b.type==='b_snipe'?20:5);
-                        this.damageAnim=true; setTimeout(()=>this.damageAnim=false,200);
-                        G.bullets.splice(i,1);
-                    }
+                    if(Math.hypot(b.x-G.player.x, b.y-G.player.y) < 20+b.r) { if (G.shield > 0) { G.shield--; this.showMoneyEffect("Block!"); } else { let dmg = (b.type==='b_snipe'?20:5); if (this.hasPassive('s2')) dmg *= 0.5; this.spdState.playerHpPercent -= dmg; this.damageAnim=true; setTimeout(()=>this.damageAnim=false,200); } G.bullets.splice(i,1); }
                 }
                 if(b.y<-50 || b.y>G.height+50 || b.x<-50 || b.x>G.width+50) G.bullets.splice(i,1);
             }
-
-            // Enemies
             if(G.enemies.length < 2 && Math.random()<0.02) G.enemies.push({x:Math.random()*(G.width-40)+20, y:-20});
             for(let i=G.enemies.length-1; i>=0; i--) {
-                const e = G.enemies[i]; e.y+=3;
-                if(G.loaded.e) ctx.drawImage(G.imgs.e, e.x-20, e.y-20, 40, 40); else { ctx.fillStyle='orange'; ctx.beginPath(); ctx.arc(e.x,e.y,20,0,Math.PI*2); ctx.fill(); }
-                if(Math.hypot(e.x-G.player.x, e.y-G.player.y) < 40) {
-                    this.spdState.playerHpPercent-=10; this.damageAnim=true; setTimeout(()=>this.damageAnim=false,200); G.enemies.splice(i,1);
-                } else if(e.y>G.height) G.enemies.splice(i,1);
+                const e = G.enemies[i]; e.y+=3; if(G.loaded.e) ctx.drawImage(G.imgs.e, e.x-20, e.y-20, 40, 40); else { ctx.fillStyle='orange'; ctx.beginPath(); ctx.arc(e.x,e.y,20,0,Math.PI*2); ctx.fill(); }
+                if(Math.hypot(e.x-G.player.x, e.y-G.player.y) < 40) { if (G.shield > 0) { G.shield--; } else { let dmg = 10; if (this.hasPassive('s2')) dmg *= 0.5; this.spdState.playerHpPercent -= dmg; this.damageAnim=true; setTimeout(()=>this.damageAnim=false,200); } G.enemies.splice(i,1); } else if(e.y>G.height) G.enemies.splice(i,1);
             }
-
-            // Particles
-            for(let i=G.particles.length-1; i>=0; i--) {
-                const p = G.particles[i]; p.x+=p.vx; p.y+=p.vy; p.life--;
-                ctx.fillStyle=p.color; ctx.globalAlpha=p.life/20; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill(); ctx.globalAlpha=1;
-                if(p.life<=0) G.particles.splice(i,1);
-            }
-
-            if(this.spdState.bossHpPercent<=0) { G.active=false; this.stageClear('spd'); }
-            else if(this.spdState.playerHpPercent<=0) { G.active=false; this.showAlert("任務失敗... HP歸零", ()=>{ this.money-=10000; this.returnToHub(); }); }
+            if (this.hasPassive('s3') && G.boss.timer % 60 === 0) this.spdState.playerHpPercent = Math.min(100, this.spdState.playerHpPercent + 2);
+            for(let i=G.particles.length-1; i>=0; i--) { const p = G.particles[i]; p.x+=p.vx; p.y+=p.vy; p.life--; ctx.fillStyle=p.color; ctx.globalAlpha=p.life/20; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill(); ctx.globalAlpha=1; if(p.life<=0) G.particles.splice(i,1); }
+            if(this.spdState.bossHpPercent<=0) { G.active=false; this.stageClear('spd'); } 
+            else if(this.spdState.playerHpPercent<=0) { G.active=false; this.handleGameFail(); } 
             else requestAnimationFrame(this.spdLoop);
         },
-        createExplosion(x, y, color) {
-            for(let i=0; i<8; i++) this.spdGame.particles.push({ x: x, y: y, vx: (Math.random()-0.5)*12, vy: (Math.random()-0.5)*12, life: 20, color: color, size: Math.random()*4+2 });
-        },
+        createExplosion(x, y, color) { for(let i=0; i<8; i++) this.spdGame.particles.push({ x: x, y: y, vx: (Math.random()-0.5)*12, vy: (Math.random()-0.5)*12, life: 20, color: color, size: Math.random()*4+2 }); },
 
-        // --- Game 3: Clb (復刻舊版：15籤 + 互斥流程) ---
+        // --- CLB ---
         clbInit() { 
-            this.clbState.deck=[]; 
-            // 依照舊檔：15支籤，前6支吉，後9支凶
-            for(let i=0;i<15;i++) {
-                if(i<6) this.clbState.deck.push({type:'good',icon:'fa-star'});
-                else {
-                    const badTypes = this.clbState.badTypes; 
-                    const subtype = badTypes[Math.floor(Math.random()*badTypes.length)];
-                    this.clbState.deck.push({type:'bad', subtype:subtype, icon:'fa-'+subtype});
-                }
-            }
-            this.clbState.deck.sort(()=>Math.random()-0.5); 
-            this.clbState.grid=[[],[],[]]; 
-            this.clbState.deadlock = false;
-            this.clbState.hasPaid = false;
+            this.clbState.deck=[]; let goodRatio = 0.3; if (this.hasPassive('ur1')) goodRatio = 0.8; else if (this.hasPassive('c5')) goodRatio = 0.5;
+            const total = 30; const goodCount = Math.floor(total * goodRatio);
+            for(let i=0;i<total;i++) { if(i<goodCount) this.clbState.deck.push({type:'good',icon:'fa-star'}); else { const badTypes = this.clbState.badTypes; const subtype = badTypes[Math.floor(Math.random()*badTypes.length)]; this.clbState.deck.push({type:'bad', subtype:subtype, icon:'fa-'+subtype}); } }
+            this.clbState.deck.sort(()=>Math.random()-0.5); this.clbState.rackLimit = this.hasPassive('c4') ? 4 : 3;
+            this.clbState.grid = []; for(let i=0; i<this.clbState.rackLimit; i++) this.clbState.grid.push({items:[], isBurning:false});
+            this.clbState.deadlock = false; this.clbState.hasPaid = false; this.clbState.drawCount = 0; this.clbState.hasAutoCleared = false; this.clbState.showMiko = false;
         },
         clbDraw() {
             if(this.clbState.currentPaper || this.clbState.deck.length===0 || this.clbState.deadlock) return;
-            this.clbState.currentPaper = this.clbState.deck.pop();
-            this.clbState.revealed = false; 
-            this.clbState.showText = false;
-            this.clbState.showEmoji = false;
-
-            // 0.5秒後翻開顯示文字
-            setTimeout(()=>{
-                this.clbState.revealed=true;
-                this.clbDrawResult();
-            }, 500);
+            this.clbState.currentPaper = this.clbState.deck.pop(); this.clbState.revealed = false; this.clbState.showText = false; this.clbState.showEmoji = false; this.clbState.drawCount++;
+            if (this.hasPassive('c3') && this.clbState.drawCount % 5 === 0) { const occupiedIndices = this.clbState.grid.map((g,i)=>g.items.length>0?i:-1).filter(i=>i!==-1); if (occupiedIndices.length > 0) { const idx = occupiedIndices[Math.floor(Math.random()*occupiedIndices.length)]; this.clbState.grid[idx].items.pop(); this.clbState.showMiko = true; setTimeout(() => { this.clbState.showMiko = false; }, 2000); } }
+            setTimeout(()=>{ this.clbState.revealed=true; this.clbDrawResult(); }, 500);
         },
         clbDrawResult() {
-            if(this.clbState.currentPaper.type==='good') { 
-                // 大吉：加錢 -> 動畫 -> 消失
-                this.money+=1000; 
-                this.showMoneyEffect("+1000"); 
-                this.luckyAnim=true; 
-                setTimeout(()=>{this.luckyAnim=false; this.clbState.currentPaper=null; this.checkClbEnd();}, 1000); 
-            } else {
-                // 凶籤：先字 -> 0.5秒後 -> Emoji
-                this.clbState.showText = true; 
-                this.clbState.showEmoji = false;
-                
-                setTimeout(()=>{ 
-                    this.clbState.showText = false; 
-                    this.clbState.showEmoji = true; 
-                    this.checkClbDeadlock(); 
-                }, 500);
-            }
+            if(this.clbState.currentPaper.type==='good') { let bonus = this.hasPassive('c1') ? 300 : 100; this.currentBonus += bonus; this.showMoneyEffect(`+$${bonus}`); setTimeout(()=>{ this.clbState.currentPaper=null; this.checkClbEnd(); }, 1500); } 
+            else { this.clbState.showText = true; this.clbState.showEmoji = false; setTimeout(()=>{ this.clbState.showEmoji = true; }, 800); setTimeout(()=>{ this.clbState.showText = false; this.checkClbDeadlock(); }, 1500); }
         },
         clbPlace(i) {
-            // 必須等 Emoji 出現才能放
             if(!this.clbState.currentPaper || this.clbState.currentPaper.type==='good' || !this.clbState.showEmoji) return;
-            const p = this.clbState.currentPaper;
-            const slot = this.clbState.grid[i];
-            
-            // 檢查是否同類
-            if(slot.length > 0 && slot[0].subtype !== p.subtype) { 
-                this.showAlert("類型不同！", null); 
-                return; 
-            }
-            
-            slot.push(p); 
-            this.clbState.currentPaper=null; 
-            this.clbState.deadlock=false;
-            // 湊齊3個消除
-            if(slot.length>=3) { 
-                this.clbState.grid[i]=[]; 
-                this.currentBonus+=3000; 
-                this.showMoneyEffect("+3000"); 
-            }
+            const p = this.clbState.currentPaper; const slot = this.clbState.grid[i];
+            if(slot.items.length > 0 && slot.items[0].subtype !== p.subtype) { this.showAlert("類型不同！", null); return; }
+            slot.items.push(p); this.clbState.currentPaper=null; this.clbState.deadlock=false; let matchCount = this.hasPassive('c2') ? 2 : 3;
+            if(slot.items.length >= matchCount) { slot.isBurning = true; setTimeout(() => { slot.items = []; slot.isBurning = false; this.currentBonus += 50; this.showMoneyEffect("+50"); }, 600); }
             this.checkClbEnd();
         },
         checkClbDeadlock() {
-            const p = this.clbState.currentPaper;
-            if (!p || p.type !== 'bad') return;
-            
-            let canPlace = false;
-            for(let i=0; i<3; i++) {
-                const slot = this.clbState.grid[i];
-                if (slot.length === 0 || slot[0].subtype === p.subtype) {
-                    canPlace = true;
-                    break;
-                }
-            }
-            if (!canPlace) {
-                this.clbState.deadlock = true; 
-            }
+            const p = this.clbState.currentPaper; if (!p || p.type !== 'bad') return;
+            let canPlace = false; for(let i=0; i<this.clbState.grid.length; i++) { const slot = this.clbState.grid[i]; if (slot.items.length === 0 || slot.items[0].subtype === p.subtype) { canPlace = true; break; } }
+            if (!canPlace) { if (this.hasPassive('c6') && !this.clbState.hasAutoCleared) { this.showAlert("兇籤效果發動：逆轉死局！全部消除！", ()=>{ this.clbState.grid.forEach(g => g.items=[]); this.clbState.hasAutoCleared = true; }); } else { this.clbState.deadlock = true; } }
         },
-        clbForcePay() {
-            if(this.money < 3000) { this.showAlert("錢不夠... 只能重來", ()=>this.returnToHub()); return; }
-            this.money -= 3000;
-            this.showMoneyEffect("-3000");
-            this.clbState.currentPaper = null; 
-            this.clbState.deadlock = false;
-            this.clbState.hasPaid = true;
-            this.checkClbEnd();
-        },
-        checkClbEnd() { 
-            if(this.clbState.deck.length===0 && !this.clbState.currentPaper) {
-                this.stageClear('clb'); 
-            }
-        },
+        clbForcePay() { if(this.currentBonus < 500) { this.showAlert("獎金不足 $500，無法消災...", ()=>this.handleGameFail()); return; } this.currentBonus -= 500; this.showMoneyEffect("-500"); this.clbState.currentPaper = null; this.clbState.deadlock = false; this.clbState.hasPaid = true; this.checkClbEnd(); },
+        checkClbEnd() { if(this.clbState.deck.length===0 && !this.clbState.currentPaper) { this.stageClear('clb'); } },
 
-        // --- Game 4: Hrt (移除 JOKER) ---
+        // --- HRT ---
         hrtInit() {
             this.hrtState.phase='player_turn';
             const ranks = ['K','J','10','9','8','7','6','5','4','3','2','A'];
-            const pHand = ['Q','Q']; 
-            for(let i=0; i<6; i++) pHand.push(ranks[Math.floor(Math.random()*ranks.length)]);
-            
-            this.hrtState.hand = pHand.sort(()=>Math.random()-0.5).map((r,i)=>({
-                rank:r, suit:['♥','♦','♠','♣'][Math.floor(Math.random()*4)], id:i
-            }));
-            
-            this.hrtState.bossHandCount = 8; 
-            this.hrtState.chamberCount = 6;
-            this.hrtState.selectedCard = null;
+            let pHand;
+            if (this.hasPassive('ur1')) { pHand = ['Q','Q','K','A']; } else { pHand = ['Q','Q']; for(let i=0; i<6; i++) pHand.push(ranks[Math.floor(Math.random()*ranks.length)]); }
+            this.hrtState.hand = pHand.sort(()=>Math.random()-0.5).map((r,i)=>({ rank:r, suit:['♥','♦','♠','♣'][Math.floor(Math.random()*4)], id:i }));
+            this.hrtState.bossHandCount = 8; this.hrtState.chamberCount = 6; this.hrtState.selectedCard = null;
+            if (this.hasPassive('h5')) { this.money += 200; this.showMoneyEffect("禮節 +200"); }
         },
         hrtSelectCard(i) { this.hrtState.selectedCard=i; },
         hrtPlayCard() {
             if(this.hrtState.selectedCard===null) return;
             const c=this.hrtState.hand.splice(this.hrtState.selectedCard,1)[0];
-            this.hrtState.lastPlayedCard={...c,isBack:true}; this.hrtState.selectedCard=null; this.hrtState.phase='boss_thinking';
-            
+            this.hrtState.lastPlayedCard={...c,isBack:true}; 
+            this.hrtState.selectedCard=null; 
+            this.hrtState.phase='boss_thinking';
+            this.hrtState.currentDealer = 'player'; // Player played
+
             setTimeout(()=>{
                 const isTruth = (c.rank==='Q');
-                const catchRate = isTruth ? 0.3 : 0.7;
-                
+                let catchRate = isTruth ? 0.3 : 0.7; if (this.hasPassive('h4')) catchRate = 0.1;
                 if(Math.random() < catchRate) { 
                     this.showAlert("Boss: LIAR! (翻牌)", ()=>{ 
                         if(isTruth) { this.showAlert("Boss 抓錯了！你出的是 Q！", ()=>this.hrtReactionOutcome('boss_fail')); } 
@@ -1176,50 +1021,65 @@ const app = createApp({
                     }); 
                 } else { 
                     this.showAlert("Boss: Pass.", ()=>{ 
-                        this.hrtState.phase='player_reaction'; 
-                        this.hrtState.bossHandCount--; 
-                        this.hrtState.bossIsLying=Math.random()<0.5;
+                        if(this.hrtState.hand.length === 0) { this.stageClear('hrt'); return; }
+                        this.hrtBossPlaysCard(); 
                     }); 
                 }
             }, 1000);
+        },
+        hrtBossPlaysCard() {
+            if(this.hrtState.bossHandCount <= 0) { this.showAlert("Boss 手牌用盡！你贏了！", ()=>this.stageClear('hrt')); return; }
+            this.hrtState.phase='player_reaction'; 
+            this.hrtState.bossHandCount--; 
+            let lieRate = this.hasPassive('h2') ? 0.2 : 0.5; 
+            this.hrtState.bossIsLying = Math.random() < lieRate;
+            this.hrtState.currentDealer = 'boss'; // Boss played
+            this.hrtState.lastPlayedCard = { rank:'?', isBack:true, suit:'' }; 
+            if (this.hasPassive('h1') && Math.random() < 0.5) { let truth = this.hrtState.bossIsLying ? "假牌 (非Q)" : "真牌 (Q)"; this.showAlert(`【心眼發動】Boss 這張是 ${truth}`, null); }
         },
         hrtReaction(call) {
             if(call) { 
                 if(this.hrtState.bossIsLying) { this.showAlert("抓到了！Boss 在說謊！", ()=>this.hrtReactionOutcome('boss_fail')); } 
                 else { this.showAlert("抓錯了！Boss 真的出了 Q！", ()=>this.hrtReactionOutcome('player_fail')); }
-            } else { 
-                this.hrtState.phase='player_turn'; 
-            }
+            } else { this.hrtState.phase='player_turn'; if (this.hasPassive('h5')) { this.money += 200; this.showMoneyEffect("+200"); } }
         },
-        hrtReactionOutcome(type) {
-            this.hrtState.phase='trigger'; 
-            this.hrtState.target = (type==='player_fail') ? 'player' : 'boss';
-        },
+        hrtReactionOutcome(type) { this.hrtState.phase='trigger'; this.hrtState.target = (type==='player_fail') ? 'player' : 'boss'; },
         hrtTrigger() {
             this.hrtState.isShooting=true;
             setTimeout(()=>{
-                if(Math.random()<(1/this.hrtState.chamberCount)) { 
-                    this.showAlert("BANG!", ()=>{ 
+                let risk = 1 / this.hrtState.chamberCount; if (this.hasPassive('h3') && this.hrtState.target === 'player') risk *= 0.5;
+                if(Math.random() < risk) { 
+                    let victim = this.hrtState.target==='boss' ? 'Boss' : '你';
+                    this.showAlert(`BANG! 實彈發射！\n${victim} 倒下了...`, ()=>{ 
                         if(this.hrtState.target==='boss') this.stageClear('hrt'); 
-                        else { this.money=Math.floor(this.money/2); this.returnToHub(); } 
+                        else { this.handleGameFail(); } 
                     }); 
                 } else { 
-                    this.showAlert("Click... 空包彈", ()=>{ 
-                        this.hrtState.chamberCount--; this.hrtState.isShooting=false; 
-                        this.hrtState.phase = (this.hrtState.target==='player') ? 'player_reaction' : 'player_turn';
-                        if(this.hrtState.phase === 'player_reaction') {
-                             this.hrtState.bossHandCount--; 
-                             this.hrtState.bossIsLying=Math.random()<0.5;
+                    this.hrtState.chamberCount--; 
+                    this.showAlert(`Click... 是空包彈。\n(彈巢剩餘: ${this.hrtState.chamberCount} 發)`, ()=>{ 
+                        this.hrtState.isShooting=false; 
+                        // Logic Fix: Alternating turns
+                        if (this.hrtState.currentDealer === 'player') {
+                            this.hrtBossPlaysCard();
+                        } else {
+                            this.hrtState.phase = 'player_turn';
+                            if (this.hasPassive('h5')) { this.money += 200; this.showMoneyEffect("+200"); }
                         }
                     }); 
                 }
             }, 500);
         },
 
-        stageClear(gid) { this.games[gid].cleared=true; this.money+=this.currentBonus; this.showStageClear=true; this.clearRank = this.currentBonus>=40000?'S':'B'; }
+        stageClear(gid) { 
+            if (this.hasPassive('a1')) { this.currentBonus = Math.floor(this.currentBonus * 1.5); }
+            if (gid === 'spd') { const hpFactor = this.spdState.playerHpPercent / 100; this.currentBonus = Math.floor(5000 * hpFactor); }
+            this.games[gid].cleared = true; this.games[gid].earned = this.currentBonus; this.money += this.currentBonus; this.showStageClear = true; 
+            if (this.currentBonus >= 5000) this.clearRank = 'S'; else if (this.currentBonus >= 4000) this.clearRank = 'A'; else if (this.currentBonus >= 2500) this.clearRank = 'B'; else this.clearRank = 'C';
+        }
     }
 });
 app.mount('#app');
 </script>
 </body>
 </html>
+
