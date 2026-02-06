@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>冬日時空冒險 (Final Fix)</title>
+    <title>冬日時空冒險 (Global Ver.)</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -20,15 +20,47 @@
         body { margin: 0; padding: 0; font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #000; color: var(--text-main); height: 100dvh; width: 100vw; overflow: hidden; display: flex; justify-content: center; }
         #app { width: 100%; max-width: 430px; height: 100dvh; position: relative; background: #1a1a1a; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
 
+        /* --- [v35.0 新增] 圓形語言切換按鈕 --- */
+        .lang-toggle-btn {
+            position: absolute;
+            top: 70px; /* 避開狀態列 (0~60px) */
+            left: 15px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid #FFD700;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            z-index: 900; /* 確保在背景之上，但在彈窗之下 */
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            transition: 0.2s;
+        }
+        .lang-toggle-btn:active { transform: scale(0.9); }
+        .lang-indicator {
+            position: absolute;
+            bottom: -5px;
+            right: -5px;
+            font-size: 10px;
+            background: #FF4757;
+            color: #fff;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-weight: bold;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+        }
+
         /* --- 隱藏測試與狀態列 --- */
         .debug-panel { 
             position: fixed; top: 80px; left: 10px; z-index: 9999; 
             display: none !important; /* 強制隱藏 */
             flex-direction: column; gap: 5px; opacity: 0.3; transition: 0.3s; pointer-events: auto; 
         }
-        .debug-panel:hover { opacity: 1; }
-        .debug-btn { background: rgba(0, 0, 0, 0.8); border: 1px solid #ff4757; color: #fff; padding: 5px 8px; font-size: 10px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        
         .status-bar { height: 60px; background: rgba(0,0,0,0.9); backdrop-filter: blur(5px); display: flex; justify-content: space-between; align-items: center; padding: 0 15px; z-index: 20; border-bottom: 1px solid rgba(255,255,255,0.1); flex-shrink: 0; }
         .stat-box { display: flex; flex-direction: column; align-items: center; width: 70px; position: relative; }
         .stat-val { font-size: 14px; font-weight: bold; }
@@ -42,24 +74,13 @@
         .dmg-heal { color: #2ED573; font-size: 40px; text-shadow: 0 0 10px #2ED573; animation: floatUp 1.5s forwards; }
         
         @keyframes floatUp { 0% { opacity: 0; transform: translateY(10px) scale(0.5); } 15% { opacity: 1; transform: translateY(0) scale(1.2); } 100% { opacity: 0; transform: translateY(-120px) scale(1); } }
-        @keyframes damagePopCrit { 
-            0% { opacity: 0; transform: translate(-50%, 0) scale(0.5); } 
-            20% { opacity: 1; transform: translate(-50%, -40px) scale(1.5); } 
-            40% { transform: translate(-30%, -60px) scale(1.2); }
-            100% { opacity: 0; transform: translate(20%, 50px) scale(1); } 
-        }
+        @keyframes damagePopCrit { 0% { opacity: 0; transform: translate(-50%, 0) scale(0.5); } 20% { opacity: 1; transform: translate(-50%, -40px) scale(1.5); } 40% { transform: translate(-30%, -60px) scale(1.2); } 100% { opacity: 0; transform: translate(20%, 50px) scale(1); } }
         
         .ft-money { color: var(--accent); } .ft-bad { color: var(--danger); } .ft-good { color: var(--safe); }
         .damage-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: radial-gradient(circle, transparent 50%, rgba(255, 71, 87, 0.6) 100%); pointer-events: none; z-index: 1500; opacity: 0; transition: opacity 0.1s; }
         .damage-overlay.active { opacity: 1; animation: flashRed 0.2s infinite alternate; }
-        
-        .shake-effect { animation: shake 0.4s ease-in-out; }
-        .screen-shake { animation: shake 0.5s ease-in-out; }
-        .shake-hard { animation: shakeHard 0.3s ease-in-out !important; }
-        .boss-hit-flash { animation: flashWhite 0.15s ease-out !important; }
-        
-        @keyframes flashRed { from { opacity: 0.5; } to { opacity: 0.8; } }
-        @keyframes flashWhite { 0% { filter: brightness(10) sepia(1) hue-rotate(-50deg); transform: scale(1.1); } 100% { filter: none; transform: scale(1); } }
+        .shake-effect { animation: shake 0.4s ease-in-out; } .screen-shake { animation: shake 0.5s ease-in-out; } .shake-hard { animation: shakeHard 0.3s ease-in-out !important; } .boss-hit-flash { animation: flashWhite 0.15s ease-out !important; }
+        @keyframes flashRed { from { opacity: 0.5; } to { opacity: 0.8; } } @keyframes flashWhite { 0% { filter: brightness(10) sepia(1) hue-rotate(-50deg); transform: scale(1.1); } 100% { filter: none; transform: scale(1); } }
         @keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-5px);color:var(--danger)} 40%,80%{transform:translateX(5px)} }
         @keyframes shakeHard { 0%,100%{transform:translate(0,0)} 25%{transform:translate(-15px, 10px)} 50%{transform:translate(15px, -10px)} 75%{transform:translate(-15px, -10px)} }
 
@@ -72,30 +93,25 @@
         .stage-desc { font-size: 15px; color: #ccc; line-height: 1.5; margin-bottom: 20px; min-height: 45px; }
         .stage-tags { display: flex; gap: 10px; margin-bottom: 15px; }
         .tag { background: rgba(255,255,255,0.15); padding: 5px 10px; border-radius: 15px; font-size: 12px; display: flex; align-items: center; }
-        
         .btn-play { width: 100%; padding: 16px; border-radius: 30px; border: none; font-size: 18px; font-weight: bold; color: white; background: linear-gradient(45deg, var(--primary), #e66767); box-shadow: 0 5px 20px rgba(255, 107, 139, 0.4); cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 10px; }
         .btn-play:disabled { filter: grayscale(1); opacity: 0.5; cursor: not-allowed; background: #555; box-shadow: none; }
-        
-        /* DPA Button */
         .btn-dpa { width: 100%; padding: 12px; border-radius: 30px; border: 2px solid #a55eea; font-size: 16px; font-weight: bold; color: white; background: rgba(50, 0, 100, 0.8); cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 10px; backdrop-filter: blur(5px); transition: 0.3s; }
         .btn-dpa i { color: #FFD700; }
         .btn-dpa:disabled { opacity: 0.6; cursor: not-allowed; border-color: #444; background: rgba(60,60,60,0.8); color: #aaa; }
         .btn-dpa:disabled i { color: #aaa; }
 
-        /* --- 手牌區 --- */
+        /* --- 手牌區 & 導航 --- */
         .deck-area { height: 190px; background: #151515; border-top: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; padding: 10px 0; z-index: 10; flex-shrink: 0; }
         .card-scroller { flex-grow: 1; display: flex; overflow-x: auto; padding: 0 20px; gap: 15px; align-items: center; scrollbar-width: none; }
         .mini-card { flex: 0 0 140px; height: 160px; background: var(--card-bg); border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.2s; cursor: pointer; overflow: hidden; position: relative; }
         .mini-card img { position: absolute; top:0; left:0; width:100%; height:100%; object-fit: cover; opacity: 0.4; z-index: 0; }
         .mini-card.active { border-color: var(--primary); transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
         .mini-card.active img { opacity: 0.6; }
-
-        /* --- 底部導航 --- */
         .bottom-nav { height: calc(70px + env(safe-area-inset-bottom)); background: #111; border-top: 1px solid #333; display: flex; justify-content: space-around; align-items: flex-start; z-index: 30; padding-bottom: env(safe-area-inset-bottom); flex-shrink: 0; }
         .nav-btn { color: #666; display: flex; justify-content: center; align-items: center; font-size: 24px; padding: 15px; width: 33%; cursor: pointer; transition: 0.2s; }
         .nav-btn.active { color: var(--primary); transform: scale(1.1); }
 
-        /* --- 載入與視窗 --- */
+        /* --- 其他 Modal 與 遊戲元素 --- */
         .loading-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #09090b; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.8s ease-out; }
         .loading-content { text-align: center; color: #ECEFF4; }
         .loading-icon { font-size: 40px; color: var(--primary); margin-bottom: 20px; animation: spinSlow 4s linear infinite; }
@@ -108,12 +124,8 @@
         .video-start-btn { position: absolute; z-index: 2010; color: #fff; font-size: 20px; cursor: pointer; border: 1px solid rgba(255,255,255,0.3); padding: 15px 30px; border-radius: 30px; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); }
         .video-visible { opacity: 1 !important; }
 
-        /* --- Modals --- */
         .ticket-modal { background: #fff; color: #333; width: 85%; max-width: 320px; border-radius: 10px; padding: 20px; text-align: center; border: 2px dashed #333; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5); animation: zoomIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .ticket-title { font-size: 24px; font-weight: 900; margin-bottom: 10px; border-bottom: 2px solid #eee; padding-bottom: 10px; letter-spacing: 1px; color: #e67e22; }
-        .ticket-info h2 { margin: 10px 0; color: #333; }
-        .ticket-info p { color: #666; font-size: 14px; margin-bottom: 20px; }
-        
         .countdown-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
         .countdown-text { font-size: 120px; font-weight: 900; color: #FFD700; text-shadow: 0 0 30px #FF4757; font-family: 'Arial Black', sans-serif; animation: popIn 0.9s infinite; }
         
@@ -135,11 +147,11 @@
         .modal-mask { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 100; display: flex; align-items: flex-end; }
         .order-panel { width: 100%; background: #222; border-radius: 20px 20px 0 0; padding: 20px; animation: slideUp 0.3s ease-out; max-height: 70dvh; overflow-y: auto; padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
 
-        /* --- 滑冰遊戲 --- */
+        /* 滑冰 & Gacha & Battle UI (保持原樣，僅省略部分重複定義以節省空間) */
         .game-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; background: url('images/ice-skating.png') no-repeat center center; background-size: cover; overflow: hidden; z-index: 50; touch-action: none; }
         .game-hud { position: absolute; top: 70px; left: 15px; right: 15px; z-index: 60; pointer-events: none; }
         .game-score-board { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); border: 2px solid #ffd700; border-radius: 20px; padding: 8px 25px; color: #fff; font-size: 22px; font-weight: 900; text-shadow: 0 0 5px #000; z-index: 1000; display: flex; align-items: center; gap: 10px; white-space: nowrap; }
-        .life-container { display: flex; gap: 5px; z-index: 1001; position: relative; } /* [修正] Z-index */
+        .life-container { display: flex; gap: 5px; z-index: 1001; position: relative; }
         .life-container .fa-heart { color: #ff4757; font-size: 24px; filter: drop-shadow(0 0 5px rgba(255, 71, 87, 0.5)); transition: 0.3s; }
         .life-container .fa-heart.lost { color: #2d3436; transform: scale(0.8); opacity: 0.3; }
         .game-canvas { width: 100%; height: 100%; position: relative; perspective: 600px; overflow: hidden; z-index: 10; }
@@ -150,36 +162,26 @@
         .sprite-wrapper { position: absolute; bottom: 15%; z-index: 20; display:flex; justify-content:center; align-items:center; transform: translateX(-50%); pointer-events: none; }
         .sheep-img { width: 100px; height: 100px; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.5)); transition: width 0.3s, height 0.3s; }
         .sheep-img.fever { width: 500px; height: 500px; animation: rainbow-flash 0.5s infinite; } 
-        
-        /* 暴走羊 (移除 transition 以便 JS 控制) */
         .stampede-item { position: absolute; z-index: 8; pointer-events: none; transition: none !important; filter: drop-shadow(0 0 10px rgba(255,255,255,0.5)); }
-        
-        .player { animation: waddle 0.3s infinite alternate; }
-        .player.hit { animation: blinkRed 0.5s infinite; }
+        .player { animation: waddle 0.3s infinite alternate; } .player.hit { animation: blinkRed 0.5s infinite; }
         .hit-effect { position: absolute; top: -60px; left: 50%; transform: translateX(-50%); font-size: 60px; animation: popUp 0.3s forwards; z-index: 30; pointer-events: none; }
         .feedback-item { position: absolute; font-weight: 900; font-size: 28px; color: gold; z-index: 40; animation: floatUpText 0.8s forwards; text-shadow: 0 0 5px black; pointer-events: none; white-space: nowrap; }
         .game-obj { position: absolute; width: 70px; height: 70px; display: flex; align-items: center; justify-content: center; font-size: 45px; transition: top 0.1s linear; z-index: 9; }
-        .obstacle { filter: drop-shadow(0 5px 5px rgba(0,0,0,0.5)); } 
-        .item-coin { text-shadow: 0 0 15px gold; animation: spin 1s infinite linear; }
-        .item-heart { animation: pulse 0.5s infinite; color: #ff4757; text-shadow: 0 0 10px red; }
-        .fever-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, transparent 50%, rgba(255, 215, 0, 0.3) 100%); pointer-events: none; z-index: 8; animation: pulse 0.5s infinite; display: none; }
-        .fever-mode .fever-overlay { display: block; }
+        .obstacle { filter: drop-shadow(0 5px 5px rgba(0,0,0,0.5)); } .item-coin { text-shadow: 0 0 15px gold; animation: spin 1s infinite linear; } .item-heart { animation: pulse 0.5s infinite; color: #ff4757; text-shadow: 0 0 10px red; }
+        .fever-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, transparent 50%, rgba(255, 215, 0, 0.3) 100%); pointer-events: none; z-index: 8; animation: pulse 0.5s infinite; display: none; } .fever-mode .fever-overlay { display: block; }
         
-        /* --- Gacha & Effects --- */
         .gacha-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 300; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .gacha-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; background-position: center; opacity: 0.6; }
         .gacha-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; width: 95%; max-width: 400px; margin-bottom: 20px; z-index: 10; position: relative; }
         .gacha-card { aspect-ratio: 2/3; background: #222; border-radius: 5px; position: relative; overflow: hidden; animation: flipIn 0.6s ease-out backwards; cursor: pointer; border: 2px solid #555; }
         .gacha-card.slow-reveal { animation: flipIn 1.5s ease-out backwards; }
         .gacha-card img { width: 100%; height: 100%; object-fit: cover; }
-        
         .gacha-card.rank-UR { border-color: var(--rank-ur); box-shadow: 0 0 15px var(--rank-ur); animation: flipIn 2s ease-out backwards, glow-rainbow 1.5s infinite linear 2s; }
         .gacha-card.rank-SSR { border-color: var(--rank-ssr); box-shadow: 0 0 10px var(--rank-ssr); animation: flipIn 1.5s ease-out backwards, glow-gold 2s infinite alternate 1.5s; }
         .gacha-card.rank-SR { border-color: var(--rank-sr); box-shadow: 0 0 5px var(--rank-sr); }
         .gacha-card.rank-R { border-color: var(--rank-r); }
         .gacha-card .rank-badge { position: absolute; top: 2px; right: 2px; font-size: 10px; font-weight: bold; background: rgba(0,0,0,0.7); padding: 2px 4px; border-radius: 3px; color: #fff; z-index: 2; }
 
-        /* Dinner Shop Styles */
         .dinner-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 290; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .dinner-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; width: 90%; max-width: 400px; z-index: 10; }
         .dinner-card { aspect-ratio: 3/4; background: #222; border: 2px solid #555; border-radius: 10px; overflow: hidden; position: relative; cursor: pointer; transition: 0.3s; }
@@ -188,7 +190,6 @@
         .dinner-card .info { height: 30%; background: rgba(0,0,0,0.8); display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff; padding: 5px; }
         .dinner-card .price { color: var(--accent); font-weight: bold; margin-top: 2px; }
 
-        /* --- Inspector & Library --- */
         .inspector-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 2000; background: rgba(0,0,0,0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; animation: fadeIn 0.3s; }
         .inspector-card { width: 220px; aspect-ratio: 2/3; border-radius: 10px; overflow: hidden; box-shadow: 0 0 30px rgba(255,255,255,0.2); margin-bottom: 20px; position: relative; }
         .inspector-card img { width: 100%; height: 100%; object-fit: cover; }
@@ -201,80 +202,53 @@
         .close-inspector { margin-top: 20px; background: #444; border: 1px solid #666; color: #fff; padding: 10px 30px; border-radius: 20px; cursor: pointer; }
         .inspector-btn-buy { margin-top: 20px; background: #e67e22; border: none; color: white; padding: 12px 30px; border-radius: 30px; font-size: 18px; font-weight: bold; cursor: pointer; width: 100%; }
         .inspector-btn-buy:disabled { background: #555; cursor: not-allowed; opacity: 0.6; }
-
         .library-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 10px; overflow-y: auto; max-height: 60vh; }
         .library-item { aspect-ratio: 2/3; background: #333; border-radius: 5px; cursor: pointer; position: relative; }
         .library-item img { width: 100%; height: 100%; object-fit: cover; border-radius: 5px; }
 
-        /* ★★★ BOSS BATTLE UI (Final Layout) ★★★ */
+        /* Battle UI */
         .battle-container { position: absolute; top:0; left:0; width:100%; height:100%; z-index: 1000; overflow:hidden; background: #000; }
         .battle-bg { position: absolute; top:0; left:0; width:100%; height:100%; background: url('images/battle-bg.png') no-repeat center center; background-size: cover; opacity: 0.7; }
-        
-        /* New Info Button */
         .info-btn { position: absolute; left: 15px; top: 40%; width: 40px; height: 40px; background: rgba(0,0,0,0.6); border: 2px solid #fff; border-radius: 50%; color: #fff; display: flex; justify-content: center; align-items: center; z-index: 20; cursor: pointer; }
-        
-        /* 1. Boss Area (Top 35%) */
         .battle-boss-area { position: absolute; top: 2%; width: 100%; height: 35%; text-align: center; z-index: 10; display: flex; flex-direction: column; align-items: center; }
         .boss-img { height: 75%; object-fit: contain; filter: drop-shadow(0 0 15px rgba(255,255,255,0.2)); animation: floatBoss 3s infinite ease-in-out; }
         .boss-status-icons { display: flex; justify-content: center; gap: 5px; margin-top: 5px; min-height: 24px; }
         .status-icon { background: rgba(0,0,0,0.7); border: 1px solid #fff; border-radius: 4px; padding: 2px 5px; font-size: 12px; color: #fff; display: flex; align-items: center; gap: 3px; }
         .hp-bar-container { width: 220px; height: 12px; background: #333; border-radius: 6px; overflow: hidden; border: 1px solid #555; position: relative; margin-top: 5px; }
         .hp-fill { height: 100%; background: linear-gradient(to right, #e74c3c, #c0392b); transition: width 0.5s; }
-        
-        /* ★ 特效層 */
         .vfx-layer { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events: none; z-index: 15; }
         .vfx-slash { position: absolute; top:50%; left:50%; width:100%; height:5px; background: #fff; transform: translate(-50%, -50%) rotate(-45deg); box-shadow: 0 0 20px #fff; animation: slashAnim 0.2s forwards; }
         @keyframes slashAnim { 0% { width:0; opacity:1; } 50% { width:120%; opacity:1; } 100% { width:120%; opacity:0; } }
-        
-        /* 2. Player Stats (Mid-Top 10%) - Independent */
         .battle-player-area { position: absolute; top: 38%; width: 100%; height: 10%; display: flex; flex-direction: column; align-items: center; z-index: 10; }
-        
-        /* 3. Slot Area (Middle 15%) */
         .battle-slot-area { position: absolute; top: 50%; width: 100%; height: 15%; display: flex; justify-content: center; align-items: center; gap: 10px; z-index: 10; }
         .slot { width: 65px; height: 95px; border: 2px dashed rgba(255,255,255,0.3); border-radius: 5px; display: flex; justify-content: center; align-items: center; background: rgba(0,0,0,0.3); position: relative; }
         .slot.filled { border-style: solid; border-color: #FFD700; background: rgba(0,0,0,0.5); }
         .slot-img { width: 100%; height: 100%; object-fit: cover; border-radius: 3px; }
-        /* ★★★ GO Button Disabled Style ★★★ */
         .battle-btn-go { width: 60px; height: 60px; border-radius: 50%; background: #2ED573; border: 3px solid #fff; color: #fff; font-weight: 900; font-size: 18px; cursor: pointer; box-shadow: 0 0 15px rgba(46, 213, 115, 0.6); display: flex; justify-content: center; align-items: center; margin-left: 10px; transition: 0.3s; }
         .battle-btn-go.disabled { background: #555; border-color: #777; color: #aaa; box-shadow: none; cursor: not-allowed; }
-        
-        /* ★★★ 新增：右側被動卡欄位 (顯示正在生效的被動卡) ★★★ */
         .battle-passive-area { position: absolute; right: 10px; top: 20%; width: 50px; display: flex; flex-direction: column; gap: 10px; z-index: 15; }
         .passive-icon { width: 50px; height: 75px; border: 2px solid #00B4D8; border-radius: 4px; overflow: hidden; box-shadow: 0 0 10px #00B4D8; animation: pulseGlow 2s infinite alternate; cursor: pointer; }
         .passive-icon img { width: 100%; height: 100%; object-fit: cover; }
-
-        /* 4. Hand Area (Bottom 35%) */
         .battle-hand-area { position: absolute; bottom: 0; width: 100%; height: 35%; z-index: 20; display: flex; justify-content: center; align-items: flex-end; perspective: 1000px; pointer-events: none; transition: transform 0.5s; padding-bottom: 20px; }
         .battle-hand-area.hidden { transform: translateY(100%); }
         .battle-card { position: absolute; bottom: 20px; width: 90px; height: 130px; background: #222; border: 2px solid #555; border-radius: 6px; transform-origin: bottom center; transition: all 0.3s; cursor: pointer; box-shadow: -2px 2px 10px rgba(0,0,0,0.5); pointer-events: auto; }
         .battle-card img { width: 100%; height: 100%; object-fit: cover; border-radius: 4px; }
-        
-        /* Basic Attack Card Style */
         .basic-card-content { width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #333; color: #fff; border-radius: 4px; }
         .basic-card-content i { font-size: 40px; color: #ECEFF4; }
         .basic-card-content span { font-size: 12px; margin-top: 10px; font-weight: bold; }
-        
-        /* 卡片投擲動畫 Class (JS動態加入) */
         .card-thrown { animation: throwToBoss 0.3s forwards ease-in !important; z-index: 200 !important; }
         @keyframes throwToBoss { 100% { bottom: 60%; transform: scale(0.2) rotate(360deg); opacity: 0; } }
-        
         .battle-card.hovered { transform: translateY(-40px) scale(1.3) !important; z-index: 100; box-shadow: 0 0 20px rgba(255,255,255,0.5); border-color: #FFD700; }
-        
         .battle-card.cooldown { filter: grayscale(1) brightness(0.5); pointer-events: none; }
         .cooldown-overlay { position: absolute; top:0; left:0; width:100%; height:100%; display: flex; justify-content: center; align-items: center; font-size: 32px; font-weight: 900; color: #fff; text-shadow: 0 0 5px #000; }
-        
         .passive-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); z-index: 2000; display: flex; flex-direction: column; justify-content: center; align-items: center; animation: fadeIn 0.5s; pointer-events: none; }
         .passive-text { font-size: 24px; font-weight: bold; color: #FFD700; margin-top: 20px; text-shadow: 0 0 10px #e67e22; text-align: center; }
-        
         .turn-indicator { position: absolute; top: 40%; left: 0; width: 100%; text-align: center; font-size: 40px; font-weight: 900; color: #fff; text-shadow: 0 0 20px #000; opacity: 0; pointer-events: none; z-index: 100; }
         .turn-anim { animation: turnFlash 2s ease-in-out; }
-        
-        /* Battle Detail Modal */
         .battle-detail-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 3000; display: flex; justify-content: center; align-items: center; padding: 20px; animation: fadeIn 0.3s; }
         .battle-detail-box { background: #222; border: 2px solid #555; border-radius: 10px; padding: 20px; width: 100%; color: #fff; }
         .detail-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #444; font-size: 14px; }
         .detail-title { color: #FFD700; font-weight: bold; margin-bottom: 10px; font-size: 18px; border-bottom: 2px solid #FFD700; padding-bottom: 5px; }
-
         @keyframes floatBoss { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
         @keyframes pulseGlow { from { box-shadow: 0 0 10px 2px #00B4D8; transform: scale(1); } to { box-shadow: 0 0 20px 8px #00B4D8; transform: scale(1.05); } }
         @keyframes turnFlash { 0% { opacity:0; transform: scale(0.5); } 20% { opacity:1; transform: scale(1.2); } 80% { opacity:1; transform: scale(1); } 100% { opacity:0; transform: scale(1.5); } }
@@ -296,17 +270,22 @@
 <body>
 <div id="app" :class="[screenEffectClass, {'screen-shake': isHit, 'shake-hard': isFever}]">
     
+    <div class="lang-toggle-btn" @click="toggleLang">
+        <i class="fas fa-language"></i>
+        <div class="lang-indicator">{{ currentLang.toUpperCase() }}</div>
+    </div>
+
     <div class="damage-overlay" :class="{active: isHurt}"></div>
 
     <div class="loading-screen" :style="{ opacity: isLoading ? 1 : 0, pointerEvents: isLoading ? 'auto' : 'none' }">
         <div class="loading-content">
             <i class="fas fa-snowflake loading-icon"></i>
-            <div class="loading-text">Loading Memories...</div>
+            <div class="loading-text">{{ t('loading') }}</div>
             <div class="loading-bar-bg"><div class="loading-bar-fill" :style="{width: loadingProgress + '%'}"></div></div>
         </div>
     </div>
     <div v-if="showVideoModal" class="video-overlay">
-        <div v-if="showManualBtn" class="video-start-btn" @click="playVideo"><i class="fas fa-play-circle"></i> 點擊觀賞 城堡投影秀</div>
+        <div v-if="showManualBtn" class="video-start-btn" @click="playVideo"><i class="fas fa-play-circle"></i> Play Projection Show</div>
         <video ref="projectionVideo" class="fullscreen-video" :class="{ 'video-visible': videoVisible }" src="images/castle-show.mp4" @ended="onVideoEnded" playsinline webkit-playsinline></video>
     </div>
 
@@ -314,9 +293,9 @@
 
     <div v-if="showTransition" class="modal-mask" style="align-items: center; justify-content: center;">
         <div class="ticket-modal">
-            <div class="ticket-title"><i class="fas fa-ticket-alt"></i> NEXT STOP</div>
-            <div class="ticket-info"><h2>{{ transitionData.title }}</h2><p>One Day Pass</p></div>
-            <button class="btn-play" @click="proceedToNextChapter">出發 <i class="fas fa-arrow-right"></i></button>
+            <div class="ticket-title"><i class="fas fa-ticket-alt"></i> {{ t('next_stop') }}</div>
+            <div class="ticket-info"><h2>{{ transitionData.title }}</h2><p>{{ t('one_day_pass') }}</p></div>
+            <button class="btn-play" @click="proceedToNextChapter">{{ t('go') }} <i class="fas fa-arrow-right"></i></button>
         </div>
     </div>
 
@@ -326,7 +305,7 @@
         <button class="debug-btn" @click="jumpTo('onsen')">Onsen</button>
         <button class="debug-btn" @click="jumpTo('karuizawa')">Skating</button>
         <button class="debug-btn" @click="jumpTo('meiji_intro')">Meiji</button>
-        <button class="debug-btn" @click="testAllCards" style="border-color: #2ED573; color: #2ED573;">圖鑑</button>
+        <button class="debug-btn" @click="testAllCards" style="border-color: #2ED573; color: #2ED573;">Cards</button>
     </div>
 
     <div v-if="showParchmentPhase" class="scroll-modal">
@@ -335,43 +314,43 @@
             <div class="scroll-content">
                 
                 <div v-if="parchmentMode === 'settlement' && phase === 'karuizawa'">
-                    <p style="font-size:18px; color:#5d4037;">滑冰挑戰結束</p>
+                    <p style="font-size:18px; color:#5d4037;">{{ t('skating_end') }}</p>
                     
                     <div style="margin:20px 0; padding:15px; background:rgba(0,0,0,0.05); border-radius:10px;">
-                        <div style="font-size:16px; margin-bottom:5px;">滑冰得分: <b>{{ gameScore }}</b></div>
-                        <div style="font-size:14px; color:#c0392b;">獎金倍率: <b>x5</b></div>
+                        <div style="font-size:16px; margin-bottom:5px;">{{ t('skating_score') }}: <b>{{ gameScore }}</b></div>
+                        <div style="font-size:14px; color:#c0392b;">{{ t('bonus_rate') }}: <b>x5</b></div>
                     </div>
 
                     <div style="font-size:36px; color:#c0392b; margin:10px 0;">
                         <i class="fas fa-camera"></i> +{{ gameScore * 5 }}
                     </div>
-                    <p style="font-size:14px; color:#5d4037;">(目前總資產: ${{ money }})</p>
+                    <p style="font-size:14px; color:#5d4037;">({{ t('total_assets') }}: ${{ money }})</p>
                 </div>
 
                 <div v-else-if="parchmentMode === 'settlement'">
-                    <p style="font-size:18px; color:#5d4037;">本站旅程結束</p>
+                    <p style="font-size:18px; color:#5d4037;">{{ t('trip_end') }}</p>
                     <div style="margin:20px 0; padding:15px; background:rgba(0,0,0,0.05); border-radius:10px;">
-                        <div style="font-size:16px; margin-bottom:5px;">目前累積資產</div>
+                        <div style="font-size:16px; margin-bottom:5px;">{{ t('accumulated') }}</div>
                         <div style="font-size:36px; color:#c0392b; margin:10px 0;">
                             <i class="fas fa-camera"></i> ${{ money }}
                         </div>
                         <div style="font-size:14px; color:#5d4037;">
-                            <i class="fas fa-dizzy"></i> 累積疲勞: <b>{{ fatigue }}%</b>
+                            <i class="fas fa-dizzy"></i> {{ t('acc_fatigue') }}: <b>{{ fatigue }}%</b>
                         </div>
                     </div>
-                    <p style="font-size:14px; color:#888;" v-if="phase === 'chapter1'">前往海洋將恢復部分體力...</p>
-                    <p style="font-size:14px; color:#888;" v-if="phase === 'chapter2'">準備前往溫泉療癒身心...</p>
+                    <p style="font-size:14px; color:#888;" v-if="phase === 'chapter1'">{{ t('hint_sea') }}</p>
+                    <p style="font-size:14px; color:#888;" v-if="phase === 'chapter2'">{{ t('hint_onsen') }}</p>
                 </div>
 
                 <div v-else-if="parchmentMode === 'dinner_summary'">
-                    <p>休息結束，整裝待發！</p>
+                    <p>{{ t('onsen_rest_end') }}</p>
                     <div style="margin-top:15px; font-size:14px; text-align:left; background:rgba(0,0,0,0.05); padding:10px; border-radius:5px;">
-                        <div style="margin-bottom:5px;">💰 剩餘資金: <b>${{ money }}</b></div>
-                        <div style="margin-bottom:5px;">🧖 身體狀態: 疲勞 <b>{{ fatigue }}%</b></div>
-                        <div style="margin-bottom:5px;">🍽️ 攝取營養: <b>{{ dinnerResult.name || '無' }}</b></div>
-                        <div>💪 獲得強化:</div>
-                        <div style="padding-left:15px; font-size:12px; color:#555;" v-if="dinnerResult.effectText" v-html="dinnerResult.effectText"></div>
-                        <div v-else style="padding-left:15px; font-size:12px; color:#999;">(無特殊效果)</div>
+                        <div style="margin-bottom:5px;">💰 {{ t('rem_money') }}: <b>${{ money }}</b></div>
+                        <div style="margin-bottom:5px;">🧖 {{ t('body_status') }}: {{ t('fatigue') }} <b>{{ fatigue }}%</b></div>
+                        <div style="margin-bottom:5px;">🍽️ {{ t('intake') }}: <b>{{ getText(dinnerResult, 'name') || t('no_effect') }}</b></div>
+                        <div>💪 {{ t('buff_get') }}:</div>
+                        <div style="padding-left:15px; font-size:12px; color:#555;" v-if="getText(dinnerResult, 'effectText')" v-html="getText(dinnerResult, 'effectText')"></div>
+                        <div v-else style="padding-left:15px; font-size:12px; color:#999;">{{ t('no_effect') }}</div>
                     </div>
                 </div>
 
@@ -381,8 +360,8 @@
             <button class="scroll-btn" @click="handleParchmentAction">
                 {{ 
                     parchmentMode === 'settlement' 
-                        ? (phase === 'karuizawa' ? '進入涉谷篇章' : '前往下一站') 
-                        : (phase === 'karuizawa' ? '開始挑戰' : '開始探索') 
+                        ? (phase === 'karuizawa' ? t('to_shibuya') : t('to_next')) 
+                        : (phase === 'karuizawa' ? t('start_challenge') : t('play')) 
                 }} <i class="fas fa-arrow-right"></i>
             </button>
         </div>
@@ -402,8 +381,9 @@
     <div v-if="phase === 'prologue'" class="stage-area" style="align-items: center; justify-content: center; text-align: center;">
         <div class="stage-bg" style="background-image: url('images/prologue-bg.png'); opacity: 0.8;"></div>
         <div style="position: relative; z-index: 10;">
-            <h1 style="color: var(--primary); text-shadow: 0 2px 10px black; font-size: 32px;">冬日時空冒險</h1>
-            <button class="btn-play" style="width: 80%; margin: 0 auto;" @click="startGame">開始旅程</button>
+            <h1 style="color: var(--primary); text-shadow: 0 2px 10px black; font-size: 32px;">{{ t('title') }}</h1>
+            <p style="color: #ccc; margin-top:5px;">{{ t('subtitle') }}</p>
+            <button class="btn-play" style="width: 80%; margin: 20px auto;" @click="startGame">{{ t('start_game') }}</button>
         </div>
     </div>
 
@@ -412,28 +392,28 @@
             <div class="stage-bg" :style="{backgroundImage: 'url(' + currentBg + ')'}"></div>
             <div class="stage-overlay"></div>
             <div class="stage-content" v-if="selectedCard">
-                <div class="stage-title">{{ selectedCard.name }}</div>
+                <div class="stage-title">{{ getText(selectedCard, 'name') }}</div>
                 <div class="stage-tags">
                     <span class="tag" v-if="selectedCard.cost > 0 && phase !== 'onsen'">
                         <i class="far fa-clock"></i> 
-                        {{ selectedCard.isRest ? selectedCard.cost : (selectedCard.cost + (selectedCard.playCount||0)) }}h 
+                        {{ selectedCard.isRest ? selectedCard.cost : (selectedCard.cost + (selectedCard.playCount||0)) }}{{ t('time_short') }} 
                         <span v-if="!selectedCard.isRest && selectedCard.playCount>0" style="color:#FF4757; font-size:10px;">(+{{selectedCard.playCount}})</span>
                     </span>
                     <span class="tag" v-if="selectedCard.moneyCost"><i class="fas fa-coins"></i> ${{ selectedCard.moneyCost }}</span>
                     <span class="tag" v-if="selectedCard.fatigueCost"><i class="fas fa-dizzy"></i> +{{ selectedCard.fatigueCost }}%</span>
                 </div>
-                <div class="stage-desc" v-html="stageMessage || selectedCard.desc"></div>
+                <div class="stage-desc" v-html="stageMessage || getText(selectedCard, 'desc')"></div>
                 
                 <button v-if="selectedCard.cost > 1 && !stageResult" class="btn-dpa" @click="executeAction(true)" :disabled="selectedCard.dpaUsed || money < (selectedCard.bad ? selectedCard.bad.val : 200)">
-                    <i class="fas fa-bolt"></i> {{ selectedCard.dpaUsed ? 'DPA 已使用' : 'DPA 快速通關 ($' + (selectedCard.bad ? selectedCard.bad.val : 200) + ')' }}
+                    <i class="fas fa-bolt"></i> {{ selectedCard.dpaUsed ? t('dpa_used') : t('dpa_access') + ' ($' + (selectedCard.bad ? selectedCard.bad.val : 200) + ')' }}
                 </button>
 
                 <button v-if="!stageResult" class="btn-play" @click="executeAction(false)" :disabled="!canAfford(selectedCard)">
-                    <span v-if="fatigue >= 100 && !selectedCard.isRest"><i class="fas fa-bed"></i> 太累了...</span>
-                    <span v-else-if="canAfford(selectedCard)"><i class="fas fa-play"></i> {{ phase === 'onsen' ? '進入溫泉' : '開始體驗' }}</span>
-                    <span v-else><i class="fas fa-ban"></i> 資源不足</span>
+                    <span v-if="fatigue >= 100 && !selectedCard.isRest"><i class="fas fa-bed"></i> {{ t('too_tired') }}</span>
+                    <span v-else-if="canAfford(selectedCard)"><i class="fas fa-play"></i> {{ phase === 'onsen' ? t('enter_onsen') : t('play') }}</span>
+                    <span v-else><i class="fas fa-ban"></i> {{ t('res_lack') }}</span>
                 </button>
-                <button v-else class="btn-play" style="background: #444;" @click="confirmResult"><i class="fas fa-check"></i> {{ phase === 'onsen' ? '查看晚餐' : '收下照片' }}</button>
+                <button v-else class="btn-play" style="background: #444;" @click="confirmResult"><i class="fas fa-check"></i> {{ phase === 'onsen' ? t('check_dinner') : t('get_photo') }}</button>
             </div>
         </div>
         
@@ -441,7 +421,7 @@
             <div class="card-scroller">
                 <div v-for="card in currentCards" :key="card.id" class="mini-card" :class="{active: selectedCard && selectedCard.id === card.id}" @click="selectCard(card)">
                     <img :src="card.cover">
-                    <div style="font-size: 12px; font-weight: bold; text-align: center; color:#fff; text-shadow:0 1px 2px black; position:relative; z-index:2;">{{ card.name }}</div>
+                    <div style="font-size: 12px; font-weight: bold; text-align: center; color:#fff; text-shadow:0 1px 2px black; position:relative; z-index:2;">{{ getText(card, 'name') }}</div>
                 </div>
             </div>
         </div>
@@ -449,12 +429,12 @@
 
     <div v-if="showDinnerShop" class="dinner-overlay">
         <div class="gacha-bg" style="background-image: url('images/hot-spring.png'); opacity: 0.4;"></div>
-        <h2 style="color: #FFD700; margin-bottom: 20px; z-index: 10; text-shadow: 0 0 10px black;">溫泉晚餐 (選擇 Buff)</h2>
+        <h2 style="color: #FFD700; margin-bottom: 20px; z-index: 10; text-shadow: 0 0 10px black;">{{ t('check_dinner') }}</h2>
         <div class="dinner-grid">
             <div v-for="dish in dinnerDishes" :key="dish.id" class="dinner-card" @click="openCardInspector(dish, true)">
                 <img :src="dish.img">
                 <div class="info">
-                    <div style="font-weight:bold;">{{ dish.name }}</div>
+                    <div style="font-weight:bold;">{{ getText(dish, 'name') }}</div>
                     <div class="price">${{ dish.price }}</div>
                 </div>
             </div>
@@ -464,17 +444,17 @@
     <div v-if="phase === 'meiji_intro'" class="stage-area" style="align-items: center; justify-content: center; text-align: center;">
         <div class="stage-bg" style="background-image: url('images/meiji-entry.png'); opacity: 0.8;"></div>
         <div style="position: relative; z-index: 10;">
-            <h1 style="color: #FFD700; text-shadow: 0 2px 10px black; font-size: 32px; margin-bottom: 20px;">明治神宮</h1>
+            <h1 style="color: #FFD700; text-shadow: 0 2px 10px black; font-size: 32px; margin-bottom: 20px;">{{ t('meiji_title') }}</h1>
             <p style="color: #ECEFF4; margin-bottom: 30px;">與現實交錯的時空節點<br>召喚沉睡的守護英靈</p>
             <button class="btn-play" style="width: 200px; margin: 0 auto;" @click="drawGacha(10)">
-                <i class="fas fa-magic"></i> 開始召喚
+                <i class="fas fa-magic"></i> {{ t('summon_start') }}
             </button>
         </div>
     </div>
 
     <div v-if="phase === 'meiji_gacha'" class="gacha-overlay">
         <div class="gacha-bg" style="background-image: url('images/meiji-gacha-bg.png');"></div>
-        <h2 style="color: #FFD700; margin-bottom: 15px; text-shadow: 0 0 10px #e67e22; z-index: 10;">召喚結果 (點擊查看詳情)</h2>
+        <h2 style="color: #FFD700; margin-bottom: 15px; text-shadow: 0 0 10px #e67e22; z-index: 10;">{{ t('summon_result') }}</h2>
         <div class="gacha-grid">
             <div v-for="(card, i) in drawnCards" :key="i" class="gacha-card" 
                  :class="['rank-'+card.rank, {'slow-reveal': card.rank === 'SSR' || card.rank === 'UR'}]" 
@@ -485,8 +465,8 @@
             </div>
         </div>
         <div style="display: flex; gap: 20px; z-index: 10;">
-            <button class="btn-play" style="background: #555;" @click="redrawGacha" :disabled="money < 500">重抽 ($500)</button>
-            <button class="btn-play" @click="startBattlePrep">進入戰鬥</button>
+            <button class="btn-play" style="background: #555;" @click="redrawGacha" :disabled="money < 500">{{ t('redraw') }} ($500)</button>
+            <button class="btn-play" @click="startBattlePrep">{{ t('enter_battle') }}</button>
         </div>
     </div>
 
@@ -497,20 +477,20 @@
         
         <div v-if="showBattleDetail" class="battle-detail-overlay" @click.self="showBattleDetail = false">
             <div class="battle-detail-box">
-                <div class="detail-title">Boss Status</div>
+                <div class="detail-title">{{ t('boss_status') }}</div>
                 <div class="detail-row"><span>HP</span><span>{{ bossStats.hp }} / {{ bossStats.maxHp }}</span></div>
                 <div class="detail-row"><span>Attack</span><span>{{ bossStats.atk }}</span></div>
-                <div class="detail-row"><span>Turn</span><span>{{ bossStats.turn }}</span></div>
-                <div class="detail-row" v-if="bossStats.debuffs.stun > 0"><span style="color:gold;">暈眩</span><span>剩餘 {{ bossStats.debuffs.stun }} 回合</span></div>
-                <div class="detail-row" v-if="bossStats.debuffs.atkDown > 0"><span style="color:#e67e22;">降攻</span><span>剩餘 {{ bossStats.debuffs.atkDown }} 回合</span></div>
+                <div class="detail-row"><span>{{ t('turn') }}</span><span>{{ bossStats.turn }}</span></div>
+                <div class="detail-row" v-if="bossStats.debuffs.stun > 0"><span style="color:gold;">STUN</span><span>{{ bossStats.debuffs.stun }}</span></div>
+                <div class="detail-row" v-if="bossStats.debuffs.atkDown > 0"><span style="color:#e67e22;">ATK DOWN</span><span>{{ bossStats.debuffs.atkDown }}</span></div>
                 
-                <div class="detail-title" style="margin-top:20px; border-color:#2ED573; color:#2ED573;">Player Status</div>
+                <div class="detail-title" style="margin-top:20px; border-color:#2ED573; color:#2ED573;">{{ t('player_status') }}</div>
                 <div class="detail-row"><span>HP</span><span>{{ playerStats.hp }} / {{ playerStats.maxHp }}</span></div>
                 <div class="detail-row"><span>Base ATK</span><span>{{ playerStats.atk }}</span></div>
                 <div class="detail-row"><span>Base DEF</span><span>{{ playerStats.def }}</span></div>
                 <div class="detail-row"><span>ATK Buff</span><span>{{ playerStats.atkBuff }}%</span></div>
                 
-                <button class="btn-play" style="margin-top:20px;" @click="showBattleDetail = false">關閉</button>
+                <button class="btn-play" style="margin-top:20px;" @click="showBattleDetail = false">{{ t('close') }}</button>
             </div>
         </div>
         
@@ -520,7 +500,7 @@
             <img src="./images/boss-guardian.png" class="boss-img" id="boss-target">
             <div class="boss-status-icons">
                 <div v-for="(val, key) in bossStats.debuffs" :key="key" class="status-icon" v-if="val > 0">
-                    <i class="fas" :class="getDebuffIcon(key)"></i> ({{ val }} 回合)
+                    <i class="fas" :class="getDebuffIcon(key)"></i> ({{ val }})
                 </div>
             </div>
             <div class="hp-bar-container" style="border-color: #e74c3c;">
@@ -537,8 +517,8 @@
             <div class="boss-status-icons">
                 <div v-if="playerStats.atkBuff > 0" class="status-icon" style="border-color:gold; color:gold;"><i class="fas fa-sword"></i> +{{playerStats.atkBuff}}%</div>
                 <div v-if="playerStats.defBuff > 0" class="status-icon" style="border-color:cyan; color:cyan;"><i class="fas fa-shield-halved"></i> +{{playerStats.defBuff}}%</div>
-                <div v-if="playerStats.isInvincible" class="status-icon" style="border-color:#fff; color:#fff;"><i class="fas fa-shield-alt"></i> 無敵</div>
-                <div v-if="playerStats.critNext" class="status-icon" style="border-color:red; color:red;"><i class="fas fa-fire"></i> 暴擊</div>
+                <div v-if="playerStats.isInvincible" class="status-icon" style="border-color:#fff; color:#fff;"><i class="fas fa-shield-alt"></i> INVINCIBLE</div>
+                <div v-if="playerStats.critNext" class="status-icon" style="border-color:red; color:red;"><i class="fas fa-fire"></i> CRIT</div>
             </div>
         </div>
 
@@ -570,7 +550,7 @@
                  @click="clickHandCard(card, i)">
                 <div v-if="card.id === 'basic_attack'" class="basic-card-content">
                     <i class="fas fa-fist-raised"></i>
-                    <span>普攻</span>
+                    <span>{{ getText(card, 'name') }}</span>
                 </div>
                 <img v-else :src="card.img">
                 
@@ -602,7 +582,7 @@
         <div class="lane-hint" :class="laneState[4]" style="left:90%"></div>
         <div class="fever-overlay" :style="{opacity: isFever ? 1 : 0}"></div>
         <div class="game-hud">
-            <div class="game-score-board"><i class="fas fa-flag-checkered" style="color: #e74c3c;"></i> 距離: {{ Math.max(0, Math.floor(maxDistance - skatingDistance)) }}m</div>
+            <div class="game-score-board"><i class="fas fa-flag-checkered" style="color: #e74c3c;"></i> {{ t('skating_dist') }}: {{ Math.max(0, Math.floor(maxDistance - skatingDistance)) }}m</div>
             <div style="display:flex; justify-content:space-between; align-items:center; width:90%; margin-top:100px;">
                 <div class="life-container"><i v-for="n in 6" :key="n" class="fas fa-heart" :class="{lost: n > skatingLife}" v-if="n <= maxSkatingLife"></i></div>
                 <div style="color:white; font-size:14px; font-weight:bold; text-shadow:0 0 5px black;">Fever: <span v-for="n in 3" :key="n" style="margin-left:2px;">{{ n <= collectedHearts ? '❤️' : '⚪' }}</span></div>
@@ -628,37 +608,37 @@
             <img :src="inspectingCard.img">
         </div>
         <div class="inspector-info">
-            <div class="inspector-title">{{ inspectingCard.name }}</div>
+            <div class="inspector-title">{{ getText(inspectingCard, 'name') }}</div>
             <div class="inspector-rank" v-if="inspectingCard.rank" :style="{background: getRankColor(inspectingCard.rank)}">{{ inspectingCard.rank }}</div>
-            <div class="inspector-lore" v-if="inspectingCard.lore">{{ inspectingCard.lore }}</div>
-            <div class="inspector-rules" v-html="inspectingCard.effectText"></div>
+            <div class="inspector-lore" v-if="getText(inspectingCard, 'lore')">{{ getText(inspectingCard, 'lore') }}</div>
+            <div class="inspector-rules" v-html="getText(inspectingCard, 'effectText')"></div>
             
             <button v-if="isInspectBuying" class="inspector-btn-buy" 
                     @click="buyDinner(inspectingCard)" 
                     :disabled="money < inspectingCard.price">
-                支付 ${{ inspectingCard.price }} 享用
+                Pay ${{ inspectingCard.price }}
             </button>
             
             <button v-if="phase === 'meiji_battle' && !inspectingCard.isPassive && inspectingCard.cd <= 0" 
                     class="inspector-btn-buy" 
                     @click="equipCard(inspectingCard)" 
                     style="background: #2ED573;">
-                使用卡片
+                Use Card
             </button>
         </div>
-        <button class="close-inspector" @click="showCardInspector = false">關閉</button>
+        <button class="close-inspector" @click="showCardInspector = false">{{ t('close') }}</button>
     </div>
 
     <div v-if="showAllCardsModal" class="modal-mask" style="align-items: center; justify-content: center;" @click.self="showAllCardsModal = false">
         <div class="order-panel" style="max-height: 80vh; background: #222;">
-            <h2 style="color: #2ED573; text-align: center; margin-bottom: 20px;">英靈圖鑑 (30)</h2>
+            <h2 style="color: #2ED573; text-align: center; margin-bottom: 20px;">Gallery (30)</h2>
             <div class="library-grid">
                 <div v-for="card in gachaPool" :key="card.id" class="library-item" @click="openCardInspector(card)">
                     <img :src="card.img">
-                    <div style="position:absolute; bottom:0; width:100%; background:rgba(0,0,0,0.7); font-size:10px; color:#fff; text-align:center;">{{ card.name }}</div>
+                    <div style="position:absolute; bottom:0; width:100%; background:rgba(0,0,0,0.7); font-size:10px; color:#fff; text-align:center;">{{ getText(card, 'name') }}</div>
                 </div>
             </div>
-            <button class="btn-play" style="margin-top:20px; background:#444;" @click="showAllCardsModal = false">關閉</button>
+            <button class="btn-play" style="margin-top:20px; background:#444;" @click="showAllCardsModal = false">{{ t('close') }}</button>
         </div>
     </div>
 
@@ -673,33 +653,33 @@
             </div>
             <div class="result-stats"><div v-for="(c, i) in resultInfo.changes" :key="i" class="stat-change" :style="{color: c.color}">{{ c.text }}</div></div>
             <div class="result-desc">{{ resultInfo.desc }}</div>
-            <button class="btn-play" style="background: rgba(255,255,255,0.2);">KEEP MEMORY</button>
+            <button class="btn-play" style="background: rgba(255,255,255,0.2);">{{ t('keep_memory') }}</button>
         </div>
     </div>
 
     <div v-if="showDinner" class="modal-mask" style="align-items: center; justify-content: center;">
         <div class="order-panel" style="text-align: center;">
-            <h2 style="color: #e67e22;">🍽️ 享用美味</h2>
+            <h2 style="color: #e67e22;">🍽️ {{ t('check_dinner') }}</h2>
             <div class="photo-polaroid" style="width:200px; padding-bottom:20px;">
                 <img :src="dinnerResult.img" class="photo-img">
-                <div class="photo-caption">{{ dinnerResult.name }}</div>
+                <div class="photo-caption">{{ getText(dinnerResult, 'name') }}</div>
             </div>
-            <button class="btn-play" style="margin-top:20px;" @click="finishDinner">完食！</button>
+            <button class="btn-play" style="margin-top:20px;" @click="finishDinner">OK</button>
         </div>
     </div>
 
     <div v-if="showOrder" class="modal-mask" @click.self="showOrder = false">
         <div class="order-panel">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                <h3 style="color: #e67e22; margin:0;">Mobile Order</h3>
+                <h3 style="color: #e67e22; margin:0;">{{ t('mobile_order') }}</h3>
                 <div style="color:gold; font-size:18px; font-weight:bold;"><i class="fas fa-camera"></i> {{ money }}</div>
             </div>
             <div v-for="food in currentMenu" :key="food.id" style="display: flex; align-items: center; padding: 15px 0; border-bottom: 1px solid #333;">
                 <div style="font-size: 40px; margin-right: 15px;">{{ food.icon }}</div>
-                <div style="flex: 1;"><div style="font-weight: bold; font-size:16px;">{{ food.name }}</div><div style="color: #2ED573; font-size: 13px;">{{ food.effect }}</div></div>
+                <div style="flex: 1;"><div style="font-weight: bold; font-size:16px;">{{ getText(food, 'name') }}</div><div style="color: #2ED573; font-size: 13px;">{{ getText(food, 'effect') }}</div></div>
                 <button @click="buyFood(food)" :disabled="money < food.price || orderCooldown > 0" style="background: #e67e22; border: none; color: white; padding: 8px 20px; border-radius: 20px; font-size:14px; font-weight:bold;">${{ food.price }}</button>
             </div>
-            <button class="btn-play" style="margin-top: 20px; background: #333; padding: 10px;" @click="showOrder = false">關閉</button>
+            <button class="btn-play" style="margin-top: 20px; background: #333; padding: 10px;" @click="showOrder = false">{{ t('close') }}</button>
         </div>
     </div>
 </div>
@@ -709,8 +689,54 @@
     createApp({
         setup() {
             // =========================================
-            // 1. 基礎變數定義
+            // 1. 基礎變數與語言系統 (Language System)
             // =========================================
+            
+            // 語言狀態 ('zh' = 繁體中文, 'vi' = Tiếng Việt)
+            const currentLang = ref('zh');
+
+            // [v35.0] 簡化的切換函式
+            const toggleLang = () => {
+                currentLang.value = currentLang.value === 'zh' ? 'vi' : 'zh';
+            };
+
+            // [核心] UI 文字字典 (Static UI Dictionary)
+            const i18n = {
+                zh: {
+                    title: "冬日時空冒險",
+                    subtitle: "Global Ver.",
+                    start_game: "開始旅程",
+                    loading: "載入回憶中...",
+                    money: "資產", fatigue: "疲勞", time: "時間", score: "積分",
+                    play: "開始體驗", enter_onsen: "進入溫泉", check_dinner: "查看晚餐", get_photo: "收下照片", close: "關閉", go: "出發",
+                    time_short: "h", dpa_used: "DPA 已使用", dpa_access: "DPA 快速通關", too_tired: "太累了...", res_lack: "資源不足",
+                    next_stop: "NEXT STOP", one_day_pass: "One Day Pass",
+                    skating_title: "輕井澤滑冰場", skating_dist: "距離", skating_end: "滑冰挑戰結束", skating_score: "滑冰得分", bonus_rate: "獎金倍率", total_assets: "目前總資產", to_shibuya: "進入涉谷篇章", start_challenge: "開始挑戰",
+                    onsen_rest_end: "休息結束，整裝待發！", rem_money: "剩餘資金", body_status: "身體狀態", intake: "攝取營養", buff_get: "獲得強化", no_effect: "(無特殊效果)", mobile_order: "Mobile Order",
+                    meiji_title: "明治神宮", summon_start: "開始召喚", summon_result: "召喚結果", redraw: "重抽", enter_battle: "進入戰鬥",
+                    boss_status: "Boss 狀態", player_status: "Player 狀態", turn: "回合", skill_cd: "CD", victory: "VICTORY! 試煉通過！", game_over: "體力耗盡...",
+                    trip_end: "本站旅程結束", accumulated: "目前累積資產", acc_fatigue: "累積疲勞", to_next: "前往下一站", hint_sea: "前往海洋將恢復部分體力...", hint_onsen: "準備前往溫泉療癒身心...", keep_memory: "KEEP MEMORY"
+                },
+                vi: {
+                    title: "Cuộc Phiêu Lưu Mùa Đông",
+                    subtitle: "Global Ver.",
+                    start_game: "Bắt Đầu Hành Trình",
+                    loading: "Đang tải ký ức...",
+                    money: "Tài Sản", fatigue: "Mệt Mỏi", time: "Giờ", score: "Điểm",
+                    play: "Bắt Đầu", enter_onsen: "Vào Suối Nước Nóng", check_dinner: "Xem Bữa Tối", get_photo: "Nhận Ảnh", close: "Đóng", go: "Đi",
+                    time_short: "h", dpa_used: "Đã Dùng DPA", dpa_access: "DPA Nhanh", too_tired: "Quá mệt...", res_lack: "Thiếu tài nguyên",
+                    next_stop: "TRẠM KẾ TIẾP", one_day_pass: "Vé Một Ngày",
+                    skating_title: "Sân Trượt Băng Karuizawa", skating_dist: "K.Cách", skating_end: "Thử Thách Kết Thúc", skating_score: "Điểm Trượt Băng", bonus_rate: "Hệ Số Thưởng", total_assets: "Tổng Tài Sản", to_shibuya: "Đến Shibuya", start_challenge: "Bắt Đầu",
+                    onsen_rest_end: "Nghỉ ngơi hoàn tất!", rem_money: "Tiền Còn Lại", body_status: "Trạng Thái", intake: "Dinh Dưỡng", buff_get: "Cường Hóa", no_effect: "(Không hiệu ứng)", mobile_order: "Đặt Món",
+                    meiji_title: "Đền Meiji", summon_start: "Triệu Hồi", summon_result: "Kết Quả", redraw: "Rút Lại", enter_battle: "Chiến Đấu",
+                    boss_status: "Trạng Thái Boss", player_status: "Trạng Thái Player", turn: "Lượt", skill_cd: "Hồi Chiêu", victory: "CHIẾN THẮNG!", game_over: "Hết thể lực...",
+                    trip_end: "Kết Thúc Chặng Này", accumulated: "Tài Sản Tích Lũy", acc_fatigue: "Mệt Mỏi Tích Lũy", to_next: "Đi Tiếp", hint_sea: "Đến biển sẽ hồi phục thể lực...", hint_onsen: "Chuẩn bị đến suối nước nóng...", keep_memory: "LƯU KÝ ỨC"
+                }
+            };
+
+            const t = (key) => { return i18n[currentLang.value][key] || key; };
+            const getText = (obj, field) => { if (!obj) return ''; if (currentLang.value === 'vi') { return obj[field + '_vi'] || obj[field]; } return obj[field]; };
+
             const phase = ref('prologue');
             const money = ref(500); 
             const fatigue = ref(0); 
@@ -718,161 +744,293 @@
             const orderCooldown = ref(0); 
             const effects = ref([]);
             
-            // 章節分數追蹤
             const chapterScores = ref({ land: 0, sea: 0, skate: 0 });
-
-            // 戰鬥數值
             const playerStats = ref({ hp: 10000, maxHp: 10000, atk: 500, def: 100, atkBuff:0, defBuff:0, critNext: false, isInvincible: false });
             const bossStats = ref({ hp: 50000, maxHp: 50000, atk: 1500, turn: 1, debuffs: { stun:0, atkDown:0, defDown:0 } });
             
-            // Boss 戰 UI 變數
-            const battleHand = ref([]); 
-            const activePassives = ref([]); 
-            const battleSlots = ref([null, null, null]); 
-            const hoveringCard = ref(-1); 
-            const isBattleAnimating = ref(false); 
-            const showBattleDetail = ref(false); 
-            const passiveAnim = ref({ show: false, text: '', card: {} }); 
-            const turnAnimText = ref(''); 
-            const selectedBattleCards = ref([]); 
-
-            // UI 狀態
-            const showDinner = ref(false); 
-            const showDinnerShop = ref(false); 
-            const dinnerResult = ref({});
-            const selectedCard = ref(null); 
-            const stageMessage = ref(""); 
-            const stageResult = ref(false);
-            const showOrder = ref(false); 
-            const showResultModal = ref(false); 
-            const showParchmentPhase = ref(false); 
-            const parchmentMode = ref('intro'); 
-            
-            // Inspector & Library
-            const showCardInspector = ref(false);
-            const showAllCardsModal = ref(false);
-            const inspectingCard = ref({}); 
-            const isInspectBuying = ref(false); 
-
-            // 結算與轉場
+            // UI Refs
+            const battleHand = ref([]); const activePassives = ref([]); const battleSlots = ref([null, null, null]); 
+            const hoveringCard = ref(-1); const isBattleAnimating = ref(false); const showBattleDetail = ref(false); 
+            const passiveAnim = ref({ show: false, text: '', card: {} }); const turnAnimText = ref(''); const selectedBattleCards = ref([]); 
+            const showDinner = ref(false); const showDinnerShop = ref(false); const dinnerResult = ref({});
+            const selectedCard = ref(null); const stageMessage = ref(""); const stageResult = ref(false);
+            const showOrder = ref(false); const showResultModal = ref(false); const showParchmentPhase = ref(false); 
+            const parchmentMode = ref('intro'); const showCardInspector = ref(false);
+            const showAllCardsModal = ref(false); const inspectingCard = ref({}); const isInspectBuying = ref(false); 
             const resultInfo = ref({ title:'', desc:'', changes:[], bg:'', isLucky:false, photoImg:'', photoName:'', photoVal:0 });
-            const isHurt = ref(false); 
-            const screenEffectClass = ref(""); 
-            const moneyBox = ref(null); 
-            const hpBox = ref(null);
-            const showTransition = ref(false); 
-            const transitionData = ref({ nextPhase:'', title:'' });
-            const isLoading = ref(true); 
-            const loadingProgress = ref(0);
-            
-            const windLv = ref(0);
-            const windColor = computed(() => 'transparent'); 
-            const windLabel = computed(() => '');
-            
-            // 影片
-            const showVideoModal = ref(false); 
-            const videoPlaying = ref(false); 
-            const videoVisible = ref(false); 
-            const projectionVideo = ref(null); 
-            const showManualBtn = ref(false);
-
-            // 滑冰變數
-            const showCountdown = ref(false); 
-            const countdownNum = ref(3);
-            const gameRunning = ref(false); 
-            const gameScore = ref(0);
-            const playerX = ref(50); 
-            const trackOffset = ref(0); 
-            const gameObjects = ref([]); 
+            const isHurt = ref(false); const screenEffectClass = ref(""); const moneyBox = ref(null); const hpBox = ref(null);
+            const showTransition = ref(false); const transitionData = ref({ nextPhase:'', title:'' });
+            const isLoading = ref(true); const loadingProgress = ref(0); const windLv = ref(0);
+            const windColor = computed(() => 'transparent'); const windLabel = computed(() => '');
+            const showVideoModal = ref(false); const videoPlaying = ref(false); const videoVisible = ref(false); 
+            const projectionVideo = ref(null); const showManualBtn = ref(false);
+            const showCountdown = ref(false); const countdownNum = ref(3); const gameRunning = ref(false); 
+            const gameScore = ref(0); const playerX = ref(50); const trackOffset = ref(0); const gameObjects = ref([]); 
             const gameBuffs = ref({ life:0, feverDuration:1, magnet:1, bossHp:0, bossCrit:0, bossAtk:0 }); 
-            const isFever = ref(false); 
-            const collectedHearts = ref(0); 
-            const isHit = ref(false);
-            const skatingSpeed = ref(0.9); 
-            const skatingDistance = ref(0); 
-            const maxDistance = 13200; 
-            const skatingLife = ref(5); 
-            const maxSkatingLife = ref(5);
-            const laneState = ref(['','','','','']); 
-            const stampedeSheep = ref([]); 
-            const feedbackEffects = ref([]); 
-            const consecutiveObstacles = ref(0); 
-            let lastSpawnTime = 0;
-            
-            const imgPath = './images/'; 
+            const isFever = ref(false); const collectedHearts = ref(0); const isHit = ref(false);
+            const skatingSpeed = ref(0.9); const skatingDistance = ref(0); const maxDistance = 13200; 
+            const skatingLife = ref(5); const maxSkatingLife = ref(5); const laneState = ref(['','','','','']); 
+            const stampedeSheep = ref([]); const feedbackEffects = ref([]); const consecutiveObstacles = ref(0); 
+            let lastSpawnTime = 0; const imgPath = './images/'; 
 
             // =========================================
-            // 2. 資料定義
+            // 2. 資料定義 (Data) - 已加入 v33 數值與 v34 翻譯
             // =========================================
+            
             const landRides = ref([
-                { id:'beauty', name:'美女與野獸', cost:2, playCount:0, dpaUsed:false, fatigueCost:15, played:false, cover: imgPath+'beauty-beast.png', bg: imgPath+'beauty-beast.png', desc:'賭人品：能拍到浪漫共舞嗎？', good: { img:imgPath+'land-beauty-good.png', val:1000, name:'浪漫共舞照', fatigue:15 }, bad: { img:imgPath+'land-beauty-bad.png', val:200, name:'排隊後腦杓', fatigue:40 } },
-                { id:'splash', name:'飛濺山', cost:2, playCount:0, dpaUsed:false, fatigueCost:15, played:false, cover: imgPath+'splash-mountain.png', bg: imgPath+'splash-mountain.png', desc:'賭膽量：小心全身濕透！', good: { img:imgPath+'land-splash-good.png', val:800, name:'完美抓拍', fatigue:15 }, bad: { img:imgPath+'land-splash-bad.png', val:150, name:'落湯雞特寫', fatigue:45 } },
-                { id:'baymax', name:'杯麵歡樂搭乘', cost:1, playCount:0, dpaUsed:false, fatigueCost:10, played:false, cover: imgPath+'baymax.png', bg: imgPath+'baymax.png', desc:'快樂搖擺！', good: { img:imgPath+'land-baymax-good.png', val:500, name:'快樂擊拳照', fatigue:10 }, bad: { img:imgPath+'land-baymax-bad.png', val:100, name:'模糊的殘影', fatigue:30 } },
-                { id:'monsters', name:'怪獸電力公司', cost:2, playCount:0, dpaUsed:false, fatigueCost:10, played:false, cover: imgPath+'monsters.png', bg: imgPath+'monsters.png', desc:'尋找阿布！', good: { img:imgPath+'land-monsters-good.png', val:600, name:'阿布合照', fatigue:10 }, bad: { img:imgPath+'land-monsters-bad.png', val:150, name:'閉眼照', fatigue:25 } },
-                { id:'shoot', name:'西部射擊', cost:1, playCount:0, dpaUsed:false, fatigueCost:5, moneyCost:100, played:false, cover: imgPath+'westernland-shootin.png', bg: imgPath+'westernland-shootin.png', desc:'付費挑戰：神射手！', good: { img:imgPath+'land-shoot-good.png', val:700, name:'神射手警徽', fatigue:5 }, bad: { img:imgPath+'land-shoot-bad.png', val:50, name:'射偏的彈孔', fatigue:15 } },
-                { id:'carrousel', name:'城堡旋轉木馬', cost:1, playCount:0, dpaUsed:false, fatigueCost:5, played:false, cover: imgPath+'castle-carrousel.png', bg: imgPath+'castle-carrousel.png', desc:'輕鬆拍照聖地。', good: { img:imgPath+'land-carousel-good.png', val:400, name:'網美打卡照', fatigue:5 }, bad: { img:imgPath+'land-carousel-bad.png', val:80, name:'晃到的馬頭', fatigue:10 } },
-                { id:'rest', name:'中央廣場長椅', cost:1, playCount:0, dpaUsed:false, fatigueCost:0, played:false, isRest:true, cover: imgPath+'common-rest.png', bg: imgPath+'common-rest.png', desc:'休息一下，回復體力 (固定耗時1小時)。', good: { img:imgPath+'common-rest.png', val:0, name:'休息時光', fatigue:-50 } }
+                { id:'beauty', name:'美女與野獸', name_vi:'Người Đẹp và Quái Vật', cost:2, playCount:0, dpaUsed:false, fatigueCost:15, played:false, cover: imgPath+'beauty-beast.png', bg: imgPath+'beauty-beast.png', desc:'賭人品：能拍到浪漫共舞嗎？', desc_vi:'Thử vận may: Có chụp được cảnh khiêu vũ lãng mạn không?', good: { img:imgPath+'land-beauty-good.png', val:1000, name:'浪漫共舞照', name_vi:'Ảnh Khiêu Vũ', fatigue:15 }, bad: { img:imgPath+'land-beauty-bad.png', val:200, name:'排隊後腦杓', name_vi:'Ảnh Xếp Hàng', fatigue:40 } },
+                { id:'splash', name:'飛濺山', name_vi:'Núi Splash', cost:2, playCount:0, dpaUsed:false, fatigueCost:15, played:false, cover: imgPath+'splash-mountain.png', bg: imgPath+'splash-mountain.png', desc:'賭膽量：小心全身濕透！', desc_vi:'Thử can đảm: Coi chừng ướt sũng!', good: { img:imgPath+'land-splash-good.png', val:800, name:'完美抓拍', name_vi:'Khoảnh Khắc Đẹp', fatigue:15 }, bad: { img:imgPath+'land-splash-bad.png', val:150, name:'落湯雞特寫', name_vi:'Ướt Như Chuột', fatigue:45 } },
+                { id:'baymax', name:'杯麵歡樂搭乘', name_vi:'Baymax Vui Vẻ', cost:1, playCount:0, dpaUsed:false, fatigueCost:10, played:false, cover: imgPath+'baymax.png', bg: imgPath+'baymax.png', desc:'快樂搖擺！', desc_vi:'Lắc lư vui vẻ!', good: { img:imgPath+'land-baymax-good.png', val:500, name:'快樂擊拳照', name_vi:'Cú Đấm Vui Vẻ', fatigue:10 }, bad: { img:imgPath+'land-baymax-bad.png', val:100, name:'模糊的殘影', name_vi:'Ảnh Bị Mờ', fatigue:30 } },
+                { id:'monsters', name:'怪獸電力公司', name_vi:'Công Ty Quái Vật', cost:2, playCount:0, dpaUsed:false, fatigueCost:10, played:false, cover: imgPath+'monsters.png', bg: imgPath+'monsters.png', desc:'尋找阿布！', desc_vi:'Tìm kiếm Boo!', good: { img:imgPath+'land-monsters-good.png', val:600, name:'阿布合照', name_vi:'Ảnh Với Boo', fatigue:10 }, bad: { img:imgPath+'land-monsters-bad.png', val:150, name:'閉眼照', name_vi:'Nhắm Mắt', fatigue:25 } },
+                { id:'shoot', name:'西部射擊', name_vi:'Xạ Thủ Miền Tây', cost:1, playCount:0, dpaUsed:false, fatigueCost:5, moneyCost:100, played:false, cover: imgPath+'westernland-shootin.png', bg: imgPath+'westernland-shootin.png', desc:'付費挑戰：神射手！', desc_vi:'Thử thách trả phí: Xạ thủ!', good: { img:imgPath+'land-shoot-good.png', val:700, name:'神射手警徽', name_vi:'Huy Hiệu Xạ Thủ', fatigue:5 }, bad: { img:imgPath+'land-shoot-bad.png', val:50, name:'射偏的彈孔', name_vi:'Bắn Trượt', fatigue:15 } },
+                { id:'carrousel', name:'城堡旋轉木馬', name_vi:'Vòng Quay Ngựa Gỗ', cost:1, playCount:0, dpaUsed:false, fatigueCost:5, played:false, cover: imgPath+'castle-carrousel.png', bg: imgPath+'castle-carrousel.png', desc:'輕鬆拍照聖地。', desc_vi:'Nơi chụp ảnh thư giãn.', good: { img:imgPath+'land-carousel-good.png', val:400, name:'網美打卡照', name_vi:'Ảnh Sống Ảo', fatigue:5 }, bad: { img:imgPath+'land-carousel-bad.png', val:80, name:'晃到的馬頭', name_vi:'Ảnh Bị Rung', fatigue:10 } },
+                { id:'rest', name:'中央廣場長椅', name_vi:'Ghế Dài Quảng Trường', cost:1, playCount:0, dpaUsed:false, fatigueCost:0, played:false, isRest:true, cover: imgPath+'common-rest.png', bg: imgPath+'common-rest.png', desc:'休息一下，回復體力 (固定耗時1小時)。', desc_vi:'Nghỉ ngơi một chút để hồi phục (Mất 1 giờ).', good: { img:imgPath+'common-rest.png', val:0, name:'休息時光', name_vi:'Thời Gian Nghỉ', fatigue:-50 } }
             ]);
 
             const seaRides = ref([
-                { id:'rapunzel', name:'樂佩天燈', cost:3, playCount:0, dpaUsed:false, fatigueCost:20, played:false, cover: imgPath+'rapunzel-lantern.png', bg: imgPath+'rapunzel-lantern.png', desc:'(3hr) 絕美場景，高耗時。', good: { img:imgPath+'sea-rapunzel-good.png', val:1500, name:'絕美天燈海', fatigue:20 }, bad: { img:imgPath+'sea-rapunzel-bad.png', val:300, name:'被人頭擋住', fatigue:50 } },
-                { id:'journey', name:'地心探險', cost:2, playCount:0, dpaUsed:false, fatigueCost:15, played:false, cover: imgPath+'journey-to-earth.png', bg: imgPath+'journey-to-earth.png', desc:'刺激！小心怪獸。', good: { img:imgPath+'sea-journey-good.png', val:900, name:'岩漿怪獸合影', fatigue:15 }, bad: { img:imgPath+'sea-journey-bad.png', val:200, name:'驚恐表情包', fatigue:50 } },
-                { id:'peter', name:'小彼得潘', cost:2, playCount:0, dpaUsed:false, fatigueCost:10, played:false, cover: imgPath+'peter-pan.png', bg: imgPath+'peter-pan.png', desc:'童話飛行。', good: { img:imgPath+'sea-peterpan-good.png', val:700, name:'夢幻島俯視', fatigue:10 }, bad: { img:imgPath+'sea-peterpan-bad.png', val:150, name:'暈車嘔吐袋', fatigue:30 } },
-                { id:'sindbad', name:'辛巴達', cost:1, playCount:0, dpaUsed:false, fatigueCost:5, played:false, cover: imgPath+'sindbad.png', bg: imgPath+'sindbad.png', desc:'療癒系遊船。', good: { img:imgPath+'sea-sindbad-good.png', val:500, name:'小老虎合照', fatigue:5 }, bad: { img:imgPath+'sea-sindbad-bad.png', val:100, name:'睡著的側臉', fatigue:-5 } },
-                { id:'20k', name:'海底兩萬哩', cost:1, playCount:0, dpaUsed:false, fatigueCost:10, played:false, cover: imgPath+'under-the-sea.png', bg: imgPath+'under-the-sea.png', desc:'潛入深海。', good: { img:imgPath+'sea-20k-good.png', val:400, name:'大章魚特寫', fatigue:10 }, bad: { img:imgPath+'sea-20k-bad.png', val:80, name:'起霧的玻璃', fatigue:25 } },
-                { id:'arendelle', name:'皇家宴會', cost:2, playCount:0, dpaUsed:false, fatigueCost:0, moneyCost:500, played:false, cover: imgPath+'frozen.png', bg: imgPath+'frozen.png', desc:'付費大餐，大幅恢復。', good: { img:imgPath+'sea-frozen-good.png', val:600, name:'艾莎女王合照', fatigue:-40 } },
-                { id:'rest', name:'港口長椅', cost:1, playCount:0, dpaUsed:false, fatigueCost:0, played:false, isRest:true, cover: imgPath+'common-rest.png', bg: imgPath+'common-rest.png', desc:'休息一下，回復體力 (固定耗時1小時)。', good: { img:imgPath+'common-rest.png', val:0, name:'港口小憩', fatigue:-50 } }
+                { id:'rapunzel', name:'樂佩天燈', name_vi:'Đèn Lời Nguyền Rapunzel', cost:3, playCount:0, dpaUsed:false, fatigueCost:20, played:false, cover: imgPath+'rapunzel-lantern.png', bg: imgPath+'rapunzel-lantern.png', desc:'(3hr) 絕美場景，高耗時。', desc_vi:'(3 giờ) Cảnh tuyệt đẹp, tốn nhiều thời gian.', good: { img:imgPath+'sea-rapunzel-good.png', val:1500, name:'絕美天燈海', name_vi:'Biển Đèn Trời', fatigue:20 }, bad: { img:imgPath+'sea-rapunzel-bad.png', val:300, name:'被人頭擋住', name_vi:'Bị Che Khuất', fatigue:50 } },
+                { id:'journey', name:'地心探險', name_vi:'Hành Trình Vào Tâm Trái Đất', cost:2, playCount:0, dpaUsed:false, fatigueCost:15, played:false, cover: imgPath+'journey-to-earth.png', bg: imgPath+'journey-to-earth.png', desc:'刺激！小心怪獸。', desc_vi:'Kịch tính! Cẩn thận quái vật.', good: { img:imgPath+'sea-journey-good.png', val:900, name:'岩漿怪獸合影', name_vi:'Ảnh Quái Vật Dung Nham', fatigue:15 }, bad: { img:imgPath+'sea-journey-bad.png', val:200, name:'驚恐表情包', name_vi:'Biểu Cảm Hoảng Sợ', fatigue:50 } },
+                { id:'peter', name:'小彼得潘', name_vi:'Peter Pan', cost:2, playCount:0, dpaUsed:false, fatigueCost:10, played:false, cover: imgPath+'peter-pan.png', bg: imgPath+'peter-pan.png', desc:'童話飛行。', desc_vi:'Chuyến bay cổ tích.', good: { img:imgPath+'sea-peterpan-good.png', val:700, name:'夢幻島俯視', name_vi:'Neverland Từ Trên Cao', fatigue:10 }, bad: { img:imgPath+'sea-peterpan-bad.png', val:150, name:'暈車嘔吐袋', name_vi:'Say Xe', fatigue:30 } },
+                { id:'sindbad', name:'辛巴達', name_vi:'Sindbad', cost:1, playCount:0, dpaUsed:false, fatigueCost:5, played:false, cover: imgPath+'sindbad.png', bg: imgPath+'sindbad.png', desc:'療癒系遊船。', desc_vi:'Chuyến đi thuyền thư giãn.', good: { img:imgPath+'sea-sindbad-good.png', val:500, name:'小老虎合照', name_vi:'Ảnh Hổ Con', fatigue:5 }, bad: { img:imgPath+'sea-sindbad-bad.png', val:100, name:'睡著的側臉', name_vi:'Ngủ Gật', fatigue:-5 } },
+                { id:'20k', name:'海底兩萬哩', name_vi:'2 Vạn Dặm Dưới Đáy Biển', cost:1, playCount:0, dpaUsed:false, fatigueCost:10, played:false, cover: imgPath+'under-the-sea.png', bg: imgPath+'under-the-sea.png', desc:'潛入深海。', desc_vi:'Lặn xuống biển sâu.', good: { img:imgPath+'sea-20k-good.png', val:400, name:'大章魚特寫', name_vi:'Bạch Tuộc Khổng Lồ', fatigue:10 }, bad: { img:imgPath+'sea-20k-bad.png', val:80, name:'起霧的玻璃', name_vi:'Kính Bị Mờ', fatigue:25 } },
+                { id:'arendelle', name:'皇家宴會', name_vi:'Yến Tiệc Hoàng Gia', cost:2, playCount:0, dpaUsed:false, fatigueCost:0, moneyCost:500, played:false, cover: imgPath+'frozen.png', bg: imgPath+'frozen.png', desc:'付費大餐，大幅恢復。', desc_vi:'Bữa ăn trả phí, hồi phục lớn.', good: { img:imgPath+'sea-frozen-good.png', val:600, name:'艾莎女王合照', name_vi:'Ảnh Nữ Hoàng Elsa', fatigue:-40 } },
+                { id:'rest', name:'港口長椅', name_vi:'Ghế Cảng', cost:1, playCount:0, dpaUsed:false, fatigueCost:0, played:false, isRest:true, cover: imgPath+'common-rest.png', bg: imgPath+'common-rest.png', desc:'休息一下，回復體力 (固定耗時1小時)。', desc_vi:'Nghỉ ngơi một chút để hồi phục (Mất 1 giờ).', good: { img:imgPath+'common-rest.png', val:0, name:'港口小憩', name_vi:'Nghỉ Ngơi Tại Cảng', fatigue:-50 } }
             ]);
 
-            const onsenOptions = ref([{ id:'onsen_entry', name:'汪泉閣露天風呂', cost:0, playCount:0, cover: imgPath+'hot-spring.png', bg: imgPath+'hot-spring.png', desc:'進入雪中秘湯，試試運氣。' }]);
+            const onsenOptions = ref([
+                { id:'onsen_entry', name:'汪泉閣露天風呂', name_vi:'Suối Nước Nóng Lộ Thiên', cost:0, playCount:0, cover: imgPath+'hot-spring.png', bg: imgPath+'hot-spring.png', desc:'進入雪中秘湯，試試運氣。', desc_vi:'Vào suối nước nóng bí mật trong tuyết để thử vận may.' }
+            ]);
             
-            // [修正] 溫泉數值調整
+            // [v33.0 修正] 疲勞數值調整
             const onsenLoot = [
-                { prob:0.2, img:imgPath+'onsen-outdoor-S.png', val:2000, name:'雪中秘湯 (S級)', fatigueDrop: 30 }, 
-                { prob:0.4, img:imgPath+'onsen-window-A.png', val:1200, name:'雪見之窗 (A級)', fatigueDrop: 15 }, 
-                { prob:0.4, img:imgPath+'onsen-steam-B.png', val:500, name:'暖呼呼白煙 (B級)', fatigueDrop: 5 }
+                { prob:0.2, img:imgPath+'onsen-outdoor-S.png', val:2000, name:'雪中秘湯 (S級)', name_vi:'Suối Nước Nóng Tuyết (Hạng S)', fatigueDrop: 30 }, 
+                { prob:0.4, img:imgPath+'onsen-window-A.png', val:1200, name:'雪見之窗 (A級)', name_vi:'Cửa Sổ Ngắm Tuyết (Hạng A)', fatigueDrop: 15 }, 
+                { prob:0.4, img:imgPath+'onsen-steam-B.png', val:500, name:'暖呼呼白煙 (B級)', name_vi:'Làn Khói Ấm Áp (Hạng B)', fatigueDrop: 5 }
             ];
             
-            const menus = { chapter1: [{id:'waffle', name:'米奇鬆餅', icon:'🧇', price:150, fatigue:-10, effect:'-10% Fatigue'},{id:'mochi', name:'三眼怪麻糬', icon:'🍡', price:250, fatigue:-20, effect:'-20% Fatigue'},{id:'turkey', name:'煙燻火雞腿', icon:'🍗', price:500, fatigue:-40, effect:'-40% Fatigue'}], chapter2: [{id:'icecream', name:'海鹽冰淇淋', icon:'🍦', price:150, fatigue:-10, effect:'-10% Fatigue'},{id:'wine', name:'熱紅酒', icon:'🍷', price:300, fatigue:-25, effect:'-25% Fatigue'},{id:'chicken', name:'辣味燻雞腿', icon:'🍖', price:550, fatigue:-45, effect:'-45% Fatigue'}] };
+            const menus = { 
+                chapter1: [
+                    { id:'waffle', name:'米奇鬆餅', name_vi:'Bánh Waffle Mickey', icon:'🧇', price:150, fatigue:-10, effect:'-10% Fatigue', effect_vi:'-10% Mệt Mỏi' },
+                    { id:'mochi', name:'三眼怪麻糬', name_vi:'Bánh Mochi Người Ngoài Hành Tinh', icon:'🍡', price:250, fatigue:-20, effect:'-20% Fatigue', effect_vi:'-20% Mệt Mỏi' },
+                    { id:'turkey', name:'煙燻火雞腿', name_vi:'Đùi Gà Tây Hun Khói', icon:'🍗', price:500, fatigue:-40, effect:'-40% Fatigue', effect_vi:'-40% Mệt Mỏi' }
+                ], 
+                chapter2: [
+                    { id:'icecream', name:'海鹽冰淇淋', name_vi:'Kem Muối Biển', icon:'🍦', price:150, fatigue:-10, effect:'-10% Fatigue', effect_vi:'-10% Mệt Mỏi' },
+                    { id:'wine', name:'熱紅酒', name_vi:'Rượu Vang Nóng', icon:'🍷', price:300, fatigue:-25, effect:'-25% Fatigue', effect_vi:'-25% Mệt Mỏi' },
+                    { id:'chicken', name:'辣味燻雞腿', name_vi:'Đùi Gà Hun Khói Cay', icon:'🍖', price:550, fatigue:-45, effect:'-45% Fatigue', effect_vi:'-45% Mệt Mỏi' }
+                ] 
+            };
             
-            // 隱藏 Boss 戰效果說明，但保留 buff 數值
+            // [v33.0 & v34.0 修正] 隱藏 Boss 效果文字，增加越南文
             const dinnerDishes = [
-                { id:'d1', name:'熊肉火鍋 (S級)', price:1500, img:imgPath+'food-bear-S.png', rank:'S', lore:'用當地獵人捕獲的熊肉製成的鍋物，極度滋補。', effectText:'<b>[滑冰 小遊戲]</b><br>額外生命 <b>+1</b> (可多撞一次)', buff:{life:1, feverDuration:1, magnet:1, bossHp:0.2} },
-                { id:'d2', name:'精緻懷石 (S級)', price:1200, img:imgPath+'food-kaiseki-S.png', rank:'S', lore:'展現料理職人精神的藝術品，提升專注力。', effectText:'<b>[滑冰 小遊戲]</b><br>Fever 無敵衝刺時間 <b>加倍</b>', buff:{life:0, feverDuration:2, magnet:1, bossCrit:0.15} },
-                { id:'d3', name:'鹽烤岩魚 (A級)', price:600, img:imgPath+'food-fish-A.png', rank:'A', lore:'溪流中捕獲的新鮮岩魚，簡單鹽烤最美味。', effectText:'<b>[滑冰 小遊戲]</b><br>金幣磁鐵吸力 <b>大幅增強</b>', buff:{life:0, feverDuration:1, magnet:2, bossAtk:0.05} },
-                { id:'d4', name:'山菜天婦羅 (B級)', price:0, img:imgPath+'food-tempura-B.png', rank:'B', lore:'溫泉旅館招待的家常炸物。', effectText:'<b>[滑冰 小遊戲]</b><br>無特殊效果', buff:{life:0, feverDuration:1, magnet:1} }
+                { id:'d1', name:'熊肉火鍋 (S級)', name_vi:'Lẩu Thịt Gấu (Hạng S)', price:1500, img:imgPath+'food-bear-S.png', rank:'S', lore:'用當地獵人捕獲的熊肉製成的鍋物，極度滋補。', lore_vi:'Món lẩu làm từ thịt gấu do thợ săn địa phương bắt, cực kỳ bổ dưỡng.', effectText:'<b>[滑冰 小遊戲]</b><br>額外生命 <b>+1</b> (可多撞一次)', effectText_vi:'<b>[Trò Chơi Trượt Băng]</b><br>Thêm mạng <b>+1</b> (Chịu thêm 1 lần va chạm)', buff:{life:1, feverDuration:1, magnet:1, bossHp:0.2} },
+                { id:'d2', name:'精緻懷石 (S級)', name_vi:'Kaiseki Tinh Tế (Hạng S)', price:1200, img:imgPath+'food-kaiseki-S.png', rank:'S', lore:'展現料理職人精神的藝術品，提升專注力。', lore_vi:'Tác phẩm nghệ thuật thể hiện tinh thần của đầu bếp, tăng khả năng tập trung.', effectText:'<b>[滑冰 小遊戲]</b><br>Fever 無敵衝刺時間 <b>加倍</b>', effectText_vi:'<b>[Trò Chơi Trượt Băng]</b><br>Thời gian Fever bất tử <b>gấp đôi</b>', buff:{life:0, feverDuration:2, magnet:1, bossCrit:0.15} },
+                { id:'d3', name:'鹽烤岩魚 (A級)', name_vi:'Cá Nướng Muối (Hạng A)', price:600, img:imgPath+'food-fish-A.png', rank:'A', lore:'溪流中捕獲的新鮮岩魚，簡單鹽烤最美味。', lore_vi:'Cá tươi bắt từ suối, nướng muối đơn giản là ngon nhất.', effectText:'<b>[滑冰 小遊戲]</b><br>金幣磁鐵吸力 <b>大幅增強</b>', effectText_vi:'<b>[Trò Chơi Trượt Băng]</b><br>Lực hút nam châm vàng <b>tăng mạnh</b>', buff:{life:0, feverDuration:1, magnet:2, bossAtk:0.05} },
+                { id:'d4', name:'山菜天婦羅 (B級)', name_vi:'Tempura Rau Núi (Hạng B)', price:0, img:imgPath+'food-tempura-B.png', rank:'B', lore:'溫泉旅館招待的家常炸物。', lore_vi:'Món chiên dân dã do quán trọ suối nước nóng chiêu đãi.', effectText:'<b>[滑冰 小遊戲]</b><br>無特殊效果', effectText_vi:'<b>[Trò Chơi Trượt Băng]</b><br>Không có hiệu ứng đặc biệt', buff:{life:0, feverDuration:1, magnet:1} }
             ];
-
             const drawnCards = ref([]);
             const gachaPool = [
-                { id: 'ur_watermelon', name: '傳說中的西瓜', rank: 'UR', type:'passive', img: imgPath+'card-ur-watermelon.png', desc: '傳說中的神聖水果。', lore: '供奉給最高神祇的稀有供品。', effectText: '<b>[被動] 西瓜神威</b><br>戰鬥開始時，對 Boss 造成 3 回合 <b>暈眩</b>。<br>並使 Boss 防禦力永久 <b>-50%</b>。<br>主角全數值 (HP/ATK/DEF) <b>+10%</b>。' },
-                { id: 'ssr_emperor', name: '明治天皇', rank: 'SSR', type:'active', cd:3, img: imgPath+'card-ssr-emperor.png', desc: '開拓時代的英主。', effectText: '<b>[主動] 皇威 (CD:3)</b><br>對 Boss 造成 <b>3000</b> 點神聖傷害。<br>若 Boss 處於 Debuff 狀態，傷害加倍 (6000)。' },
-                { id: 'ssr_empress', name: '昭憲皇太后', rank: 'SSR', type:'active', cd:4, img: imgPath+'card-ssr-empress.png', desc: '慈愛與教育的守護者。', effectText: '<b>[主動] 慈愛之鏡 (CD:4)</b><br>將我方全體 HP <b>完全恢復 (100%)</b>。<br>並賦予 1 回合 <b>無敵</b> 狀態。' },
-                { id: 'ssr_susanoo', name: '建速須佐之男', rank: 'SSR', type:'active', cd:3, img: imgPath+'card-ssr-susanoo.png', desc: '掌管暴風雨的破壞神。', effectText: '<b>[主動] 十拳劍 (CD:3)</b><br>造成 <b>2000</b> 點傷害。<br>並賦予 Boss <b>攻擊下降 30%</b> (3回合)。' },
-                { id: 'ssr_inari', name: '稻荷大神', rank: 'SSR', type:'passive', img: imgPath+'card-ssr-inari.png', desc: '豐收與繁榮的狐狸神。', effectText: '<b>[被動] 神使的護佑</b><br>戰鬥開始時，清除自身所有負面狀態，並使每回合 CD 回復速度 +1。' },
-                { id: 'ssr_torii', name: '大鳥居之靈', rank: 'SSR', type:'passive', img: imgPath+'card-ssr-torii.png', desc: '守護神域的巨大結界。', effectText: '<b>[被動] 神域結界</b><br>永久減少全隊受到的傷害 <b>25%</b>。' },
-                { id: 'sr_sake', name: '奉納清酒樽', rank: 'SR', type:'active', cd:2, img: imgPath+'card-sr-sake.png', desc: '祈求豐收的菰樽牆。', effectText: '<b>[主動] 乾杯 (CD:2)</b><br>使下一次攻擊必定 <b>爆擊</b> (傷害 200%)。' },
-                { id: 'sr_wine', name: '奉納葡萄酒樽', rank: 'SR', type:'active', cd:2, img: imgPath+'card-sr-wine.png', desc: '和洋折衷的精神象徵。', effectText: '<b>[主動] 醉意 (CD:2)</b><br>降低 Boss 攻擊力 <b>40%</b>，持續 2 回合。' },
-                { id: 'sr_tree', name: '夫婦楠', rank: 'SR', type:'passive', img: imgPath+'card-sr-tree.png', desc: '結緣與圓滿的象徵。', effectText: '<b>[被動] 共生</b><br>進入戰鬥時，立即回復 <b>5000</b> 點血量。' },
-                { id: 'sr_well', name: '清正井之龍', rank: 'SR', type:'passive', img: imgPath+'card-sr-well.png', desc: '強大的能量點。', effectText: '<b>[被動] 湧泉之力</b><br>戰鬥開始時，直接對 Boss 造成 <b>15% (7500)</b> 當前血量的傷害。' },
-                { id: 'sr_crow', name: '八咫烏', rank: 'SR', type:'active', cd:2, img: imgPath+'card-sr-crow.png', desc: '導引勝利的神鴉。', effectText: '<b>[主動] 導引 (CD:2)</b><br>賦予自身 1 回合 <b>絕對迴避</b> (不受傷害)。' },
-                { id: 'sr_miko', name: '神樂巫女', rank: 'SR', type:'active', cd:2, img: imgPath+'card-sr-miko.png', desc: '跳著浦安之舞的巫女。', effectText: '<b>[主動] 淨化之舞 (CD:2)</b><br>造成 1000 傷害，並 <b>驅散</b> Boss 身上的增益狀態 (Buff)。' },
-                { id: 'sr_amazake', name: '甜酒', rank: 'SR', type:'passive', img: imgPath+'card-sr-amazake.png', desc: '溫暖身心的神酒。', effectText: '<b>[被動] 溫暖</b><br>每回合結束時，回復 <b>5%</b> 生命。' },
-                { id: 'sr_iris', name: '御苑菖蒲花', rank: 'SR', type:'passive', img: imgPath+'card-sr-iris.png', desc: '御苑中盛開的花朵。', effectText: '<b>[被動] 高雅</b><br>持有者免疫 <b>暈眩</b> 類效果。' },
-                { id: 'sr_forest', name: '代代木之森', rank: 'SR', type:'passive', img: imgPath+'card-sr-forest.png', desc: '人工種植的百年森林。', effectText: '<b>[被動] 生命循環</b><br>最大生命值提升 <b>20%</b>。' },
-                { id: 'sr_festival', name: '鎮座百年祭', rank: 'SR', type:'active', cd:3, img: imgPath+'card-sr-festival.png', desc: '熱鬧非凡的祭典。', effectText: '<b>[主動] 祭典高潮 (CD:3)</b><br>我方所有技能冷卻時間 (CD) <b>減少 1 回合</b>。' },
-                { id: 'r_arrow', name: '破魔矢', rank: 'R', type:'active', cd:1, img: imgPath+'card-r-arrow.png', desc: '破除邪氣的箭矢。', effectText: '<b>[主動] 破魔 (CD:1)</b><br>造成 <b>500</b> 點傷害。' },
-                { id: 'r_charm_win', name: '勝守', rank: 'R', type:'passive', img: imgPath+'card-r-charm-win.png', desc: '必勝祈願。', effectText: '<b>[被動] 必勝</b><br>攻擊力永久提升 <b>10%</b>。' },
-                { id: 'r_charm_love', name: '緣結守', rank: 'R', type:'passive', img: imgPath+'card-r-charm-love.png', desc: '良緣祈願。', effectText: '<b>[被動] 結緣</b><br>生命上限增加 <b>10%</b>。' },
-                { id: 'r_charm_bad', name: '厄除守', rank: 'R', type:'passive', img: imgPath+'card-r-charm-bad.png', desc: '災厄退散。', effectText: '<b>[被動] 厄除</b><br>防禦力永久提升 <b>10%</b>。' },
-                { id: 'r_ema', name: '合格繪馬', rank: 'R', type:'active', cd:2, img: imgPath+'card-r-ema.png', desc: '寫滿願望的木牌。', effectText: '<b>[主動] 祈願 (CD:2)</b><br>下一回合攻擊力提升 <b>30%</b>。' },
-                { id: 'r_fortune_good', name: '大吉籤', rank: 'R', type:'active', cd:3, img: imgPath+'card-r-fortune.png', desc: '最好的運氣。', effectText: '<b>[主動] 強運 (CD:3)</b><br>隨機造成 <b>500~2000</b> 點傷害。' },
-                { id: 'r_fortune_bad', name: '兇籤', rank: 'R', type:'active', cd:2, img: imgPath+'card-r-fortune-bad.png', desc: '把厄運綁在樹上。', effectText: '<b>[主動] 轉運 (CD:2)</b><br>造成 300 傷害，並使 Boss 防禦下降 10%。' },
-                { id: 'r_book', name: '御朱印帳', rank: 'R', type:'passive', img: imgPath+'card-r-book.png', desc: '參拜的證明。', effectText: '<b>[被動] 巡禮</b><br>最大生命值提升 <b>5%</b>。' },
-                { id: 'r_ladle', name: '洗手舍水杓', rank: 'R', type:'active', cd:1, img: imgPath+'card-r-ladle.png', desc: '淨化身心。', effectText: '<b>[主動] 淨身 (CD:1)</b><br>回復 <b>300</b> 點生命。' },
-                { id: 'r_pebble', name: '參道的小石子', rank: 'R', type:'active', cd:1, img: imgPath+'card-r-pebble.png', desc: '腳下的碎石聲。', effectText: '<b>[主動] 投石 (CD:1)</b><br>造成 100 傷害。' },
-                { id: 'r_coin', name: '5円硬幣', rank: 'R', type:'passive', img: imgPath+'card-r-coin.png', desc: '象徵「有緣」。', effectText: '<b>[被動] 緣分</b><br>爆擊率提升 <b>5%</b>。' },
-                { id: 'r_bow', name: '鳥居前的鞠躬', rank: 'R', type:'passive', img: imgPath+'card-r-bow.png', desc: '表達敬意。', effectText: '<b>[被動] 禮儀</b><br>防禦力提升 <b>5%</b>。' }
+                // UR
+                { 
+                    id: 'ur_watermelon', name: '傳說中的西瓜', name_vi: 'Dưa Hấu Truyền Thuyết',
+                    rank: 'UR', type:'passive', img: imgPath+'card-ur-watermelon.png', 
+                    desc: '傳說中的神聖水果。', desc_vi: 'Trái cây thần thánh trong truyền thuyết.',
+                    lore: '供奉給最高神祇的稀有供品。', lore_vi: 'Vật phẩm hiếm dâng lên vị thần tối cao.',
+                    effectText: '<b>[被動] 西瓜神威</b><br>戰鬥開始時，對 Boss 造成 3 回合 <b>暈眩</b>。<br>並使 Boss 防禦力永久 <b>-50%</b>。<br>主角全數值 (HP/ATK/DEF) <b>+10%</b>。',
+                    effectText_vi: '<b>[Bị Động] Thần Uy Dưa Hấu</b><br>Khi bắt đầu, gây <b>Choáng</b> 3 lượt cho Boss.<br>Giảm vĩnh viễn <b>50%</b> Phòng Thủ của Boss.<br>Tăng <b>10%</b> mọi chỉ số (HP/ATK/DEF).'
+                },
+                // SSR
+                { 
+                    id: 'ssr_emperor', name: '明治天皇', name_vi: 'Thiên Hoàng Minh Trị',
+                    rank: 'SSR', type:'active', cd:3, img: imgPath+'card-ssr-emperor.png', 
+                    desc: '開拓時代的英主。', desc_vi: 'Vị vua anh minh của thời đại khai phá.',
+                    effectText: '<b>[主動] 皇威 (CD:3)</b><br>對 Boss 造成 <b>3000</b> 點神聖傷害。<br>若 Boss 處於 Debuff 狀態，傷害加倍 (6000)。',
+                    effectText_vi: '<b>[Chủ Động] Hoàng Uy (CD:3)</b><br>Gây <b>3000</b> sát thương thánh lên Boss.<br>Nếu Boss đang chịu Debuff, sát thương gấp đôi (6000).'
+                },
+                { 
+                    id: 'ssr_empress', name: '昭憲皇太后', name_vi: 'Chiêu Hiến Hoàng Thái Hậu',
+                    rank: 'SSR', type:'active', cd:4, img: imgPath+'card-ssr-empress.png', 
+                    desc: '慈愛與教育的守護者。', desc_vi: 'Người bảo hộ của lòng nhân ái và giáo dục.',
+                    effectText: '<b>[主動] 慈愛之鏡 (CD:4)</b><br>將我方全體 HP <b>完全恢復 (100%)</b>。<br>並賦予 1 回合 <b>無敵</b> 狀態。',
+                    effectText_vi: '<b>[Chủ Động] Gương Nhân Ái (CD:4)</b><br>Hồi phục <b>100%</b> HP cho toàn đội.<br>Ban trạng thái <b>Vô Địch</b> trong 1 lượt.'
+                },
+                { 
+                    id: 'ssr_susanoo', name: '建速須佐之男', name_vi: 'Susanoo',
+                    rank: 'SSR', type:'active', cd:3, img: imgPath+'card-ssr-susanoo.png', 
+                    desc: '掌管暴風雨的破壞神。', desc_vi: 'Vị thần bão tố và hủy diệt.',
+                    effectText: '<b>[主動] 十拳劍 (CD:3)</b><br>造成 <b>2000</b> 點傷害。<br>並賦予 Boss <b>攻擊下降 30%</b> (3回合)。',
+                    effectText_vi: '<b>[Chủ Động] Kiếm Totsuka (CD:3)</b><br>Gây <b>2000</b> sát thương.<br>Giảm <b>30% Tấn Công</b> của Boss (3 lượt).'
+                },
+                { 
+                    id: 'ssr_inari', name: '稻荷大神', name_vi: 'Thần Inari',
+                    rank: 'SSR', type:'passive', img: imgPath+'card-ssr-inari.png', 
+                    desc: '豐收與繁榮的狐狸神。', desc_vi: 'Vị thần cáo của sự thịnh vượng.',
+                    effectText: '<b>[被動] 神使的護佑</b><br>戰鬥開始時，清除自身所有負面狀態，並使每回合 CD 回復速度 +1。',
+                    effectText_vi: '<b>[Bị Động] Hộ Mệnh</b><br>Khi bắt đầu, xóa mọi trạng thái xấu và tăng tốc độ hồi CD thêm 1 mỗi lượt.'
+                },
+                { 
+                    id: 'ssr_torii', name: '大鳥居之靈', name_vi: 'Linh Hồn Torii Lớn',
+                    rank: 'SSR', type:'passive', img: imgPath+'card-ssr-torii.png', 
+                    desc: '守護神域的巨大結界。', desc_vi: 'Kết giới khổng lồ bảo vệ vùng đất thánh.',
+                    effectText: '<b>[被動] 神域結界</b><br>永久減少全隊受到的傷害 <b>25%</b>。',
+                    effectText_vi: '<b>[Bị Động] Kết Giới Thần</b><br>Giảm vĩnh viễn <b>25%</b> sát thương nhận vào.'
+                },
+                // SR
+                { 
+                    id: 'sr_sake', name: '奉納清酒樽', name_vi: 'Thùng Rượu Sake Cúng',
+                    rank: 'SR', type:'active', cd:2, img: imgPath+'card-sr-sake.png', 
+                    desc: '祈求豐收的菰樽牆。', desc_vi: 'Bức tường thùng rượu cầu mong mùa màng bội thu.',
+                    effectText: '<b>[主動] 乾杯 (CD:2)</b><br>使下一次攻擊必定 <b>爆擊</b> (傷害 200%)。',
+                    effectText_vi: '<b>[Chủ Động] Cụng Ly (CD:2)</b><br>Đòn đánh tiếp theo chắc chắn <b>Chí Mạng</b> (200% sát thương).'
+                },
+                { 
+                    id: 'sr_wine', name: '奉納葡萄酒樽', name_vi: 'Thùng Rượu Vang Cúng',
+                    rank: 'SR', type:'active', cd:2, img: imgPath+'card-sr-wine.png', 
+                    desc: '和洋折衷的精神象徵。', desc_vi: 'Biểu tượng của sự giao thoa văn hóa Đông Tây.',
+                    effectText: '<b>[主動] 醉意 (CD:2)</b><br>降低 Boss 攻擊力 <b>40%</b>，持續 2 回合。',
+                    effectText_vi: '<b>[Chủ Động] Say Rượu (CD:2)</b><br>Giảm <b>40%</b> Tấn Công của Boss trong 2 lượt.'
+                },
+                { 
+                    id: 'sr_tree', name: '夫婦楠', name_vi: 'Cây Phu Thê',
+                    rank: 'SR', type:'passive', img: imgPath+'card-sr-tree.png', 
+                    desc: '結緣與圓滿的象徵。', desc_vi: 'Biểu tượng của nhân duyên và viên mãn.',
+                    effectText: '<b>[被動] 共生</b><br>進入戰鬥時，立即回復 <b>5000</b> 點血量。',
+                    effectText_vi: '<b>[Bị Động] Cộng Sinh</b><br>Khi vào trận, hồi ngay lập tức <b>5000</b> HP.'
+                },
+                { 
+                    id: 'sr_well', name: '清正井之龍', name_vi: 'Rồng Giếng Kiyomasa',
+                    rank: 'SR', type:'passive', img: imgPath+'card-sr-well.png', 
+                    desc: '強大的能量點。', desc_vi: 'Điểm năng lượng mạnh mẽ.',
+                    effectText: '<b>[被動] 湧泉之力</b><br>戰鬥開始時，直接對 Boss 造成 <b>15% (7500)</b> 當前血量的傷害。',
+                    effectText_vi: '<b>[Bị Động] Sức Mạnh Suối Nguồn</b><br>Khi bắt đầu, gây sát thương bằng <b>15% (7500)</b> HP hiện tại của Boss.'
+                },
+                { 
+                    id: 'sr_crow', name: '八咫烏', name_vi: 'Quạ Ba Chân Yatagarasu',
+                    rank: 'SR', type:'active', cd:2, img: imgPath+'card-sr-crow.png', 
+                    desc: '導引勝利的神鴉。', desc_vi: 'Thần quạ dẫn đường đến chiến thắng.',
+                    effectText: '<b>[主動] 導引 (CD:2)</b><br>賦予自身 1 回合 <b>絕對迴避</b> (不受傷害)。',
+                    effectText_vi: '<b>[Chủ Động] Dẫn Đường (CD:2)</b><br>Ban trạng thái <b>Né Tránh Tuyệt Đối</b> trong 1 lượt.'
+                },
+                { 
+                    id: 'sr_miko', name: '神樂巫女', name_vi: 'Vu Nữ Kagura',
+                    rank: 'SR', type:'active', cd:2, img: imgPath+'card-sr-miko.png', 
+                    desc: '跳著浦安之舞的巫女。', desc_vi: 'Vu nữ nhảy điệu múa Urayasu.',
+                    effectText: '<b>[主動] 淨化之舞 (CD:2)</b><br>造成 1000 傷害，並 <b>驅散</b> Boss 身上的增益狀態 (Buff)。',
+                    effectText_vi: '<b>[Chủ Động] Điệu Múa Thanh Tẩy (CD:2)</b><br>Gây 1000 sát thương và <b>Xóa Bỏ</b> hiệu ứng có lợi (Buff) của Boss.'
+                },
+                { 
+                    id: 'sr_amazake', name: '甜酒', name_vi: 'Rượu Ngọt Amazake',
+                    rank: 'SR', type:'passive', img: imgPath+'card-sr-amazake.png', 
+                    desc: '溫暖身心的神酒。', desc_vi: 'Rượu thần làm ấm cơ thể và tâm hồn.',
+                    effectText: '<b>[被動] 溫暖</b><br>每回合結束時，回復 <b>5%</b> 生命。',
+                    effectText_vi: '<b>[Bị Động] Ấm Áp</b><br>Hồi <b>5%</b> HP khi kết thúc mỗi lượt.'
+                },
+                { 
+                    id: 'sr_iris', name: '御苑菖蒲花', name_vi: 'Hoa Diên Vĩ Ngự Uyển',
+                    rank: 'SR', type:'passive', img: imgPath+'card-sr-iris.png', 
+                    desc: '御苑中盛開的花朵。', desc_vi: 'Hoa nở rộ trong vườn thượng uyển.',
+                    effectText: '<b>[被動] 高雅</b><br>持有者免疫 <b>暈眩</b> 類效果。',
+                    effectText_vi: '<b>[Bị Động] Tao Nhã</b><br>Miễn nhiễm với hiệu ứng <b>Choáng</b>.'
+                },
+                { 
+                    id: 'sr_forest', name: '代代木之森', name_vi: 'Rừng Yoyogi',
+                    rank: 'SR', type:'passive', img: imgPath+'card-sr-forest.png', 
+                    desc: '人工種植的百年森林。', desc_vi: 'Khu rừng trăm tuổi do con người trồng.',
+                    effectText: '<b>[被動] 生命循環</b><br>最大生命值提升 <b>20%</b>。',
+                    effectText_vi: '<b>[Bị Động] Vòng Tròn Sự Sống</b><br>Tăng <b>20%</b> HP tối đa.'
+                },
+                { 
+                    id: 'sr_festival', name: '鎮座百年祭', name_vi: 'Lễ Hội Trăm Năm',
+                    rank: 'SR', type:'active', cd:3, img: imgPath+'card-sr-festival.png', 
+                    desc: '熱鬧非凡的祭典。', desc_vi: 'Lễ hội vô cùng náo nhiệt.',
+                    effectText: '<b>[主動] 祭典高潮 (CD:3)</b><br>我方所有技能冷卻時間 (CD) <b>減少 1 回合</b>。',
+                    effectText_vi: '<b>[Chủ Động] Cao Trào Lễ Hội (CD:3)</b><br>Giảm <b>1 lượt</b> hồi chiêu (CD) cho tất cả kỹ năng.'
+                },
+                // R
+                { 
+                    id: 'r_arrow', name: '破魔矢', name_vi: 'Mũi Tên Trừ Tà',
+                    rank: 'R', type:'active', cd:1, img: imgPath+'card-r-arrow.png', 
+                    desc: '破除邪氣的箭矢。', desc_vi: 'Mũi tên phá tan tà khí.',
+                    effectText: '<b>[主動] 破魔 (CD:1)</b><br>造成 <b>500</b> 點傷害。',
+                    effectText_vi: '<b>[Chủ Động] Trừ Tà (CD:1)</b><br>Gây <b>500</b> sát thương.'
+                },
+                { 
+                    id: 'r_charm_win', name: '勝守', name_vi: 'Bùa Thắng Lợi',
+                    rank: 'R', type:'passive', img: imgPath+'card-r-charm-win.png', 
+                    desc: '必勝祈願。', desc_vi: 'Cầu nguyện tất thắng.',
+                    effectText: '<b>[被動] 必勝</b><br>攻擊力永久提升 <b>10%</b>。',
+                    effectText_vi: '<b>[Bị Động] Tất Thắng</b><br>Tăng vĩnh viễn <b>10%</b> Tấn Công.'
+                },
+                { 
+                    id: 'r_charm_love', name: '緣結守', name_vi: 'Bùa Kết Duyên',
+                    rank: 'R', type:'passive', img: imgPath+'card-r-charm-love.png', 
+                    desc: '良緣祈願。', desc_vi: 'Cầu nguyện lương duyên.',
+                    effectText: '<b>[被動] 結緣</b><br>生命上限增加 <b>10%</b>。',
+                    effectText_vi: '<b>[Bị Động] Kết Duyên</b><br>Tăng <b>10%</b> HP tối đa.'
+                },
+                { 
+                    id: 'r_charm_bad', name: '厄除守', name_vi: 'Bùa Trừ Tà',
+                    rank: 'R', type:'passive', img: imgPath+'card-r-charm-bad.png', 
+                    desc: '災厄退散。', desc_vi: 'Đẩy lùi tai ương.',
+                    effectText: '<b>[被動] 厄除</b><br>防禦力永久提升 <b>10%</b>。',
+                    effectText_vi: '<b>[Bị Động] Trừ Tà</b><br>Tăng vĩnh viễn <b>10%</b> Phòng Thủ.'
+                },
+                { 
+                    id: 'r_ema', name: '合格繪馬', name_vi: 'Thẻ Gỗ Ema',
+                    rank: 'R', type:'active', cd:2, img: imgPath+'card-r-ema.png', 
+                    desc: '寫滿願望的木牌。', desc_vi: 'Tấm thẻ gỗ viết đầy điều ước.',
+                    effectText: '<b>[主動] 祈願 (CD:2)</b><br>下一回合攻擊力提升 <b>30%</b>。',
+                    effectText_vi: '<b>[Chủ Động] Cầu Nguyện (CD:2)</b><br>Tăng <b>30%</b> Tấn Công trong lượt sau.'
+                },
+                { 
+                    id: 'r_fortune_good', name: '大吉籤', name_vi: 'Quẻ Đại Cát',
+                    rank: 'R', type:'active', cd:3, img: imgPath+'card-r-fortune.png', 
+                    desc: '最好的運氣。', desc_vi: 'Vận may tốt nhất.',
+                    effectText: '<b>[主動] 強運 (CD:3)</b><br>隨機造成 <b>500~2000</b> 點傷害。',
+                    effectText_vi: '<b>[Chủ Động] Vận May (CD:3)</b><br>Gây sát thương ngẫu nhiên từ <b>500~2000</b>.'
+                },
+                { 
+                    id: 'r_fortune_bad', name: '兇籤', name_vi: 'Quẻ Hung',
+                    rank: 'R', type:'active', cd:2, img: imgPath+'card-r-fortune-bad.png', 
+                    desc: '把厄運綁在樹上。', desc_vi: 'Buộc vận rủi lên cây.',
+                    effectText: '<b>[主動] 轉運 (CD:2)</b><br>造成 300 傷害，並使 Boss 防禦下降 10%。',
+                    effectText_vi: '<b>[Chủ Động] Chuyển Vận (CD:2)</b><br>Gây 300 sát thương và giảm 10% Phòng Thủ của Boss.'
+                },
+                { 
+                    id: 'r_book', name: '御朱印帳', name_vi: 'Sổ Goshuin',
+                    rank: 'R', type:'passive', img: imgPath+'card-r-book.png', 
+                    desc: '參拜的證明。', desc_vi: 'Chứng nhận đã đến viếng đền.',
+                    effectText: '<b>[被動] 巡禮</b><br>最大生命值提升 <b>5%</b>。',
+                    effectText_vi: '<b>[Bị Động] Hành Hương</b><br>Tăng <b>5%</b> HP tối đa.'
+                },
+                { 
+                    id: 'r_ladle', name: '洗手舍水杓', name_vi: 'Gáo Nước Temizuya',
+                    rank: 'R', type:'active', cd:1, img: imgPath+'card-r-ladle.png', 
+                    desc: '淨化身心。', desc_vi: 'Thanh lọc cơ thể và tâm hồn.',
+                    effectText: '<b>[主動] 淨身 (CD:1)</b><br>回復 <b>300</b> 點生命。',
+                    effectText_vi: '<b>[Chủ Động] Tẩy Trần (CD:1)</b><br>Hồi <b>300</b> HP.'
+                },
+                { 
+                    id: 'r_pebble', name: '參道的小石子', name_vi: 'Đá Cuội Lối Đi',
+                    rank: 'R', type:'active', cd:1, img: imgPath+'card-r-pebble.png', 
+                    desc: '腳下的碎石聲。', desc_vi: 'Tiếng sỏi vụn dưới chân.',
+                    effectText: '<b>[主動] 投石 (CD:1)</b><br>造成 100 傷害。',
+                    effectText_vi: '<b>[Chủ Động] Ném Đá (CD:1)</b><br>Gây 100 sát thương.'
+                },
+                { 
+                    id: 'r_coin', name: '5円硬幣', name_vi: 'Đồng 5 Yên',
+                    rank: 'R', type:'passive', img: imgPath+'card-r-coin.png', 
+                    desc: '象徵「有緣」。', desc_vi: 'Tượng trưng cho "Duyên Phận".',
+                    effectText: '<b>[被動] 緣分</b><br>爆擊率提升 <b>5%</b>。',
+                    effectText_vi: '<b>[Bị Động] Duyên Phận</b><br>Tăng <b>5%</b> tỷ lệ Chí Mạng.'
+                },
+                { 
+                    id: 'r_bow', name: '鳥居前的鞠躬', name_vi: 'Cúi Chào Trước Cổng',
+                    rank: 'R', type:'passive', img: imgPath+'card-r-bow.png', 
+                    desc: '表達敬意。', desc_vi: 'Thể hiện sự tôn kính.',
+                    effectText: '<b>[被動] 禮儀</b><br>防禦力提升 <b>5%</b>。',
+                    effectText_vi: '<b>[Bị Động] Lễ Nghi</b><br>Tăng <b>5%</b> Phòng Thủ.'
+                }
             ];
 
             const currentCards = computed(() => { if(phase.value==='chapter1') return landRides.value; if(phase.value==='chapter2') return seaRides.value; if(phase.value==='onsen') return onsenOptions.value; return []; });
@@ -880,14 +1038,37 @@
             const currentBg = computed(() => { if (selectedCard.value) return selectedCard.value.bg; if (phase.value === 'chapter1') return imgPath+'land-castle.png'; if (phase.value === 'chapter2') return imgPath+'disney-sea.png'; if (phase.value === 'onsen') return imgPath+'hot-spring.png'; return ''; });
             
             const parchmentData = computed(() => {
-                if (phase.value === 'chapter1') return { title: 'Disney Land', desc: 'Welcome to the Kingdom of Dreams!<br><br>目標：收集回憶照片 (積分)。<br>注意：疲勞值滿 100% 將無法行動。<br>善用休息與飲食！' };
-                if (phase.value === 'chapter2') return { title: 'Disney Sea', desc: 'Welcome to the Ocean of Adventure!<br><br>這裡的設施更刺激，容易累積疲勞。<br>小心控制體力，避免暈眩！' };
+                const isVi = currentLang.value === 'vi';
+                
+                if (phase.value === 'chapter1') return { 
+                    title: isVi ? 'Disney Land' : 'Disney Land', 
+                    desc: isVi 
+                        ? 'Chào mừng đến Vương quốc của những Giấc mơ!<br><br>Mục tiêu: Thu thập ảnh kỷ niệm (Điểm).<br>Lưu ý: Bạn không thể hành động nếu Mệt Mỏi đạt 100%.<br>Hãy nghỉ ngơi và ăn uống hợp lý!' 
+                        : 'Welcome to the Kingdom of Dreams!<br><br>目標：收集回憶照片 (積分)。<br>注意：疲勞值滿 100% 將無法行動。<br>善用休息與飲食！' 
+                };
+                if (phase.value === 'chapter2') return { 
+                    title: isVi ? 'Disney Sea' : 'Disney Sea', 
+                    desc: isVi 
+                        ? 'Chào mừng đến Đại dương Phiêu lưu!<br><br>Các trò chơi ở đây kích thích hơn, dễ tích tụ mệt mỏi.<br>Hãy kiểm soát thể lực để tránh bị choáng!' 
+                        : 'Welcome to the Ocean of Adventure!<br><br>這裡的設施更刺激，容易累積疲勞。<br>小心控制體力，避免暈眩！' 
+                };
                 if (phase.value === 'karuizawa') {
-                    if (parchmentMode.value === 'settlement') return { title: '輕井澤挑戰成功!', desc: '恭喜您完成了滑冰挑戰！' };
-                    const dishName = dinnerResult.value.name || '美味的晚餐';
-                    return { title: '輕井澤滑冰場', desc: `您剛才享用了 <b>${dishName}</b><br><br><b>【滑冰操作說明】</b><br>左右滑動螢幕控制綿羊移動<br>閃避障礙物 🪨 並收集金幣 💰` };
+                    if (parchmentMode.value === 'settlement') return { 
+                        title: isVi ? 'Thử Thách Hoàn Thành!' : '輕井澤挑戰成功!', 
+                        desc: isVi ? 'Chúc mừng bạn đã hoàn thành trượt băng!' : '恭喜您完成了滑冰挑戰！' 
+                    };
+                    const dishName = getText(dinnerResult.value, 'name') || (isVi ? 'Bữa tối ngon miệng' : '美味的晚餐');
+                    return { 
+                        title: isVi ? 'Sân Trượt Băng Karuizawa' : '輕井澤滑冰場', 
+                        desc: isVi 
+                            ? `Bạn vừa thưởng thức <b>${dishName}</b><br><br><b>【Hướng Dẫn】</b><br>Vuốt màn hình trái/phải để di chuyển cừu<br>Né tránh chướng ngại vật 🪨 và thu thập vàng 💰`
+                            : `您剛才享用了 <b>${dishName}</b><br><br><b>【滑冰操作說明】</b><br>左右滑動螢幕控制綿羊移動<br>閃避障礙物 🪨 並收集金幣 💰` 
+                    };
                 }
-                if (parchmentMode.value === 'dinner_summary') return { title: '♨️ 溫泉休息結算', desc: '' };
+                if (parchmentMode.value === 'dinner_summary') return { 
+                    title: isVi ? '♨️ Tổng Kết Nghỉ Ngơi' : '♨️ 溫泉休息結算', 
+                    desc: '' 
+                };
                 
                 return { title:'', desc:'' };
             });
@@ -898,10 +1079,6 @@
                 if(type === 'defDown') return 'fa-shield-virus';
                 return 'fa-circle';
             };
-
-            // =========================================
-            // 3. 邏輯函式 (Methods)
-            // =========================================
 
             const loadList = async (list) => { 
                 let loaded = 0; 
@@ -928,7 +1105,6 @@
             };
             onMounted(() => { preloadImages(); });
 
-            // 一般場景的浮動文字
             const spawnText = (t,c,tag) => { 
                 const el = (tag==='money'?moneyBox.value:hpBox.value); if(!el) return; 
                 const r = el.getBoundingClientRect(); 
@@ -936,199 +1112,146 @@
                 setTimeout(()=>effects.value.shift(),1500); 
             };
 
-            // ★★★ 戰鬥場景專用浮動文字 (定位修正) ★★★
             const spawnBattleText = (txt, cls, target) => {
-                let x = window.innerWidth / 2;
-                let y = window.innerHeight / 4;
-                
-                if (target === 'boss') {
-                    const el = document.getElementById('boss-target');
-                    if(el) { const r = el.getBoundingClientRect(); x = r.left + r.width/2; y = r.top + r.height/2; }
-                } else if (target === 'player') {
-                    const el = document.getElementById('player-target');
-                    if(el) { const r = el.getBoundingClientRect(); x = r.left + r.width/2; y = r.top; }
-                }
-                
-                // 加入隨機偏移
+                let x = window.innerWidth / 2; let y = window.innerHeight / 4;
+                if (target === 'boss') { const el = document.getElementById('boss-target'); if(el) { const r = el.getBoundingClientRect(); x = r.left + r.width/2; y = r.top + r.height/2; } } 
+                else if (target === 'player') { const el = document.getElementById('player-target'); if(el) { const r = el.getBoundingClientRect(); x = r.left + r.width/2; y = r.top; } }
                 x += (Math.random() - 0.5) * 40;
-                
                 effects.value.push({ id: Date.now(), txt: txt, cls: cls, x: x, y: y });
                 setTimeout(() => effects.value.shift(), 1000); 
             };
 
-            const openCardInspector = (card, buying = false) => { 
-                inspectingCard.value = card; 
-                isInspectBuying.value = buying; 
-                showCardInspector.value = true; 
-            };
-            
+            const openCardInspector = (card, buying = false) => { inspectingCard.value = card; isInspectBuying.value = buying; showCardInspector.value = true; };
             const testAllCards = () => { showAllCardsModal.value = true; };
             const getRankColor = (rank) => { if(rank==='UR') return '#8e44ad'; if(rank==='SSR') return '#e74c3c'; if(rank==='SR') return '#f1c40f'; return '#bdc3c7'; };
 
             const drawGacha = (count) => {
                 const results = [];
                 for(let i=0; i<count; i++) {
-                    const r = Math.random();
-                    let rank = 'R';
-                    if (r < 0.01) rank = 'UR'; 
-                    else if (r < 0.11) rank = 'SSR'; 
-                    else if (r < 0.46) rank = 'SR';  
-                    
+                    const r = Math.random(); let rank = 'R';
+                    if (r < 0.01) rank = 'UR'; else if (r < 0.11) rank = 'SSR'; else if (r < 0.46) rank = 'SR';  
                     const pool = gachaPool.filter(c => c.rank === rank);
                     const finalPool = pool.length > 0 ? pool : gachaPool.filter(c => c.rank === 'R');
-                    const card = finalPool[Math.floor(Math.random() * finalPool.length)];
-                    results.push(card);
+                    results.push(finalPool[Math.floor(Math.random() * finalPool.length)]);
                 }
-                drawnCards.value = results;
-                phase.value = 'meiji_gacha'; 
+                drawnCards.value = results; phase.value = 'meiji_gacha'; 
             };
 
             const redrawGacha = () => {
-                if(money.value >= 500) {
-                    money.value -= 500; spawnText('-$500', 'ft-bad', 'money');
-                    drawnCards.value = []; setTimeout(() => { drawGacha(10); }, 50); 
-                } else { alert('金錢不足！($500)'); }
+                if(money.value >= 500) { money.value -= 500; spawnText('-$500', 'ft-bad', 'money'); drawnCards.value = []; setTimeout(() => { drawGacha(10); }, 50); } 
+                else { alert(t('res_lack')); }
             };
 
             const resetGacha = () => { phase.value = 'meiji_intro'; drawnCards.value = []; };
 
             const buyDinner = (dish) => {
                 if(money.value >= dish.price) {
-                    money.value -= dish.price;
-                    // 溫泉晚餐費用記入滑冰/溫泉章節成本
-                    chapterScores.value.skate -= dish.price;
-                    
+                    money.value -= dish.price; chapterScores.value.skate -= dish.price;
                     spawnText(`-$${dish.price}`, 'ft-bad', 'money');
-                    dinnerResult.value = dish;
-                    gameBuffs.value = dish.buff; 
-                    showCardInspector.value = false;
-                    showDinnerShop.value = false;
-                    showDinner.value = true; 
-                } else { alert('金錢不足！'); }
+                    dinnerResult.value = dish; gameBuffs.value = dish.buff; 
+                    showCardInspector.value = false; showDinnerShop.value = false; showDinner.value = true; 
+                } else { alert(t('res_lack')); }
             };
 
-            const finishDinner = () => { 
-                showDinner.value = false; 
-                parchmentMode.value = 'dinner_summary'; 
-                showParchmentPhase.value = true; 
-            }; 
+            const finishDinner = () => { showDinner.value = false; parchmentMode.value = 'dinner_summary'; showParchmentPhase.value = true; }; 
 
             const executeAction = (useDpa = false) => {
                 const c = selectedCard.value;
-                if (phase.value !== 'onsen' && fatigue.value >= 100 && !c.isRest) { spawnText('太累了!', 'ft-bad', 'hp'); return; }
+                if (phase.value !== 'onsen' && fatigue.value >= 100 && !c.isRest) { spawnText(t('too_tired'), 'ft-bad', 'hp'); return; }
                 
-                let timeCost = c.isRest ? c.cost : c.cost + (c.playCount || 0);
-                let moneyCost = c.moneyCost || 0;
-
+                let timeCost = c.isRest ? c.cost : c.cost + (c.playCount || 0); let moneyCost = c.moneyCost || 0;
                 if (useDpa) {
                     if (c.dpaUsed) return;
                     const dpaPrice = c.bad ? c.bad.val : 200;
-                    if (money.value < dpaPrice) { alert('金錢不足以支付 DPA！'); return; }
-                    moneyCost += dpaPrice; 
-                    timeCost = 1; 
-                    c.dpaUsed = true; 
-                    spawnText('DPA ACCESS!', 'ft-good', 'money');
+                    if (money.value < dpaPrice) { alert(t('res_lack')); return; }
+                    moneyCost += dpaPrice; timeCost = 1; c.dpaUsed = true; 
+                    spawnText(t('dpa_access'), 'ft-good', 'money');
                 }
 
                 if (phase.value !== 'onsen') {
-                    if (time.value < timeCost) { alert('時間不足！'); return; }
-                    if (money.value < moneyCost) { alert('金錢不足！'); return; }
+                    if (time.value < timeCost) { alert(t('res_lack')); return; }
+                    if (money.value < moneyCost) { alert(t('res_lack')); return; }
                     time.value -= timeCost;
                 }
                 money.value -= moneyCost;
                 if (moneyCost > 0) spawnText(`-$${moneyCost}`, 'ft-bad', 'money');
 
-                // 記錄各章節成本
                 if (phase.value === 'chapter1') chapterScores.value.land -= moneyCost;
                 else if (phase.value === 'chapter2') chapterScores.value.sea -= moneyCost;
 
                 if(phase.value === 'onsen') { 
                     const r = Math.random(); 
-                    let loot = onsenLoot[2]; 
-                    if (r < 0.2) loot = onsenLoot[0]; 
-                    else if (r < 0.6) loot = onsenLoot[1]; 
-                    
-                    money.value += loot.val;
-                    // 溫泉獲得獎金記入 Skate 章節收益
-                    chapterScores.value.skate += loot.val;
-                    
-                    // [修正] 溫泉疲勞減少邏輯
+                    let loot = onsenLoot[2]; if (r < 0.2) loot = onsenLoot[0]; else if (r < 0.6) loot = onsenLoot[1]; 
+                    money.value += loot.val; chapterScores.value.skate += loot.val;
                     fatigue.value = Math.max(0, fatigue.value - loot.fatigueDrop);
-                    let fatigueRecoverMsg = `疲勞 -${loot.fatigueDrop}%`;
+                    
+                    let fatigueRecoverMsg = `${t('fatigue')} -${loot.fatigueDrop}%`;
+                    let title = getText(loot, 'name').split('(')[0].trim();
+                    let desc = currentLang.value === 'vi' ? 'Cảm thấy sảng khoái...' : '身心舒暢...';
 
-                    resultInfo.value = { title: loot.name.split(' ')[0], desc:'身心舒暢...', changes:[{text:fatigueRecoverMsg, color:'#2ED573'}], bg:c.bg, isLucky:true, photoImg:loot.img, photoName:loot.name, photoVal:loot.val }; 
+                    resultInfo.value = { title: title, desc: desc, changes:[{text:fatigueRecoverMsg, color:'#2ED573'}], bg:c.bg, isLucky:true, photoImg:loot.img, photoName:getText(loot, 'name'), photoVal:loot.val }; 
                     showResultModal.value=true; return; 
                 } 
 
                 if (c.playCount !== undefined) c.playCount++;
-
-                let isLucky = true;
-                if (!c.isRest) fatigue.value = Math.min(100, fatigue.value + c.fatigueCost);
-                let photoData = c.good; let outcomeDesc = "拍到了好照片！";
-                if (c.isRest) { fatigue.value = Math.max(0, fatigue.value - 50); outcomeDesc = "體力大幅恢復。"; } 
-                else if (c.bad) { if (Math.random() > 0.6) { isLucky = false; photoData = c.bad; fatigue.value = Math.min(100, fatigue.value + photoData.fatigue); outcomeDesc = "發生了意外..."; } else { fatigue.value = Math.min(100, fatigue.value + photoData.fatigue); } } else { fatigue.value = Math.max(0, fatigue.value + photoData.fatigue); }
+                let isLucky = true; if (!c.isRest) fatigue.value = Math.min(100, fatigue.value + c.fatigueCost);
+                
+                let photoData = c.good; 
+                let outcomeDesc = currentLang.value === 'vi' ? "Chụp được ảnh đẹp!" : "拍到了好照片！";
+                
+                if (c.isRest) { 
+                    fatigue.value = Math.max(0, fatigue.value - 50); 
+                    outcomeDesc = currentLang.value === 'vi' ? "Thể lực hồi phục đáng kể." : "體力大幅恢復。"; 
+                } else if (c.bad) { 
+                    if (Math.random() > 0.6) { 
+                        isLucky = false; photoData = c.bad; fatigue.value = Math.min(100, fatigue.value + photoData.fatigue); 
+                        outcomeDesc = currentLang.value === 'vi' ? "Đã có sự cố xảy ra..." : "發生了意外..."; 
+                    } else { fatigue.value = Math.min(100, fatigue.value + photoData.fatigue); } 
+                } else { fatigue.value = Math.max(0, fatigue.value + photoData.fatigue); }
 
                 money.value += photoData.val; 
                 if (photoData.val > 0) spawnText(`+$${photoData.val}`, 'ft-money', 'money');
-                
-                // 記錄各章節獲利
                 if (phase.value === 'chapter1') chapterScores.value.land += photoData.val;
                 else if (phase.value === 'chapter2') chapterScores.value.sea += photoData.val;
 
                 let fatChangeText = c.isRest ? "-50%" : (photoData.fatigue > 0 ? `+${photoData.fatigue}%` : `${photoData.fatigue}%`);
-                spawnText(`疲勞 ${fatChangeText}`, photoData.fatigue > 0 ? 'ft-bad' : 'ft-good', 'hp');
+                spawnText(`${t('fatigue')} ${fatChangeText}`, photoData.fatigue > 0 ? 'ft-bad' : 'ft-good', 'hp');
                 if(orderCooldown.value>0) orderCooldown.value--;
 
-                resultInfo.value = { title: isLucky ? 'Great Memory!' : 'Bad Memory...', desc: outcomeDesc, changes: [{text: `疲勞 ${fatChangeText}`, color: photoData.fatigue > 0 ? '#FF4757' : '#2ED573'}], bg: c.bg, isLucky: isLucky, photoImg: photoData.img, photoName: photoData.name, photoVal: photoData.val };
+                resultInfo.value = { 
+                    title: isLucky ? 'Great Memory!' : 'Bad Memory...', 
+                    desc: outcomeDesc, 
+                    changes: [{text: `${t('fatigue')} ${fatChangeText}`, color: photoData.fatigue > 0 ? '#FF4757' : '#2ED573'}], 
+                    bg: c.bg, isLucky: isLucky, photoImg: photoData.img, photoName: getText(photoData, 'name'), photoVal: photoData.val 
+                };
                 showResultModal.value = true; 
             };
 
-            const confirmResult = () => { 
-                showResultModal.value = false; 
-                selectedCard.value = null; 
-                if(phase.value === 'onsen') showDinnerShop.value = true; 
-                else endTurnCheck(); 
-            };
+            const confirmResult = () => { showResultModal.value = false; selectedCard.value = null; if(phase.value === 'onsen') showDinnerShop.value = true; else endTurnCheck(); };
             
             const buyFood = (f) => { 
                 money.value -= f.price; 
-                // 購買食物成本記錄
                 if (phase.value === 'chapter1') chapterScores.value.land -= f.price;
                 else if (phase.value === 'chapter2') chapterScores.value.sea -= f.price;
-
                 fatigue.value = Math.max(0, fatigue.value + f.fatigue); 
                 showOrder.value = false; orderCooldown.value = 1; 
                 spawnText(`-${f.price}`, 'ft-bad', 'money'); 
-                spawnText(`${f.effect}`, 'ft-good', 'hp'); 
+                spawnText(getText(f, 'effect'), 'ft-good', 'hp'); 
             };
 
-            // 按鈕行為：若在 Karuizawa 結算，處理獎金並跳轉
             const handleParchmentAction = () => {
                 if (parchmentMode.value === 'settlement' && phase.value === 'karuizawa') {
-                    // 1. 計算並發放獎金 (x5)
-                    const earn = gameScore.value * 5;
-                    money.value += earn; 
-                    chapterScores.value.skate += earn;
-
-                    // 2. 跳轉涉谷，傳遞所有參數
+                    const earn = gameScore.value * 5; money.value += earn; chapterScores.value.skate += earn;
                     window.location.href = `shibuya.html?money=${money.value}&fatigue=${fatigue.value}&land=${chapterScores.value.land}&sea=${chapterScores.value.sea}&skate=${chapterScores.value.skate}`;
                     return;
                 }
-                
-                if (parchmentMode.value === 'dinner_summary') {
-                    phase.value = 'karuizawa';
-                    parchmentMode.value = 'intro';
-                    return;
-                }
+                if (parchmentMode.value === 'dinner_summary') { phase.value = 'karuizawa'; parchmentMode.value = 'intro'; return; }
                 if (parchmentMode.value === 'intro') { showParchmentPhase.value = false; if(phase.value === 'karuizawa') startCountdown(); } else { proceedToNextChapter(); }
             };
 
             const startGame = () => { money.value = 500; fatigue.value = 0; phase.value = 'chapter1'; time.value = 8; parchmentMode.value='intro'; showParchmentPhase.value = true; }; 
             const selectCard = (c) => { selectedCard.value = c; stageMessage.value = ""; stageResult.value = false; };
-            const canAfford = (c) => {
-                const realCost = c.isRest ? c.cost : c.cost + (c.playCount||0);
-                return (time.value >= realCost) && (!c.moneyCost || money.value >= c.moneyCost);
-            };
+            const canAfford = (c) => { const realCost = c.isRest ? c.cost : c.cost + (c.playCount||0); return (time.value >= realCost) && (!c.moneyCost || money.value >= c.moneyCost); };
 
             const startProjectionShow = async () => { showVideoModal.value = true; showManualBtn.value = false; await nextTick(); playVideo(); };
             const playVideo = () => { const v = projectionVideo.value; if(!v) return; v.volume = 0; const playPromise = v.play(); if (playPromise !== undefined) { playPromise.then(() => { videoPlaying.value = true; videoVisible.value = true; let vol = 0; const fadeAudio = setInterval(() => { vol += 0.05; if(vol >= 1) { vol = 1; clearInterval(fadeAudio); } v.volume = vol; }, 100); }).catch(error => { videoPlaying.value = false; setTimeout(() => { if (!videoPlaying.value) showManualBtn.value = true; }, 2500); }); } };
@@ -1145,7 +1268,7 @@
                     }
                     showTransition.value = false; return; 
                 }
-                if (phase.value === 'chapter1') startProjectionShow(); else if (phase.value === 'chapter2') { transitionData.value = { nextPhase:'onsen', title:'Healing Onsen' }; showTransition.value = true; }
+                if (phase.value === 'chapter1') startProjectionShow(); else if (phase.value === 'chapter2') { transitionData.value = { nextPhase:'onsen', title: t('onsen_rest_end') }; showTransition.value = true; }
             };
             
             const jumpTo = (p) => { 
@@ -1164,65 +1287,37 @@
             const onTouchStart = (e) => { };
             const onTouchMove = (e) => { 
                 if(!gameRunning.value) return; 
-                const touch = e.touches[0]; 
-                const screenWidth = window.innerWidth; 
-                const touchX = touch.clientX; 
-                let posPercent = (touchX / screenWidth) * 100; 
-                playerX.value = Math.max(10, Math.min(90, posPercent)); 
+                const touch = e.touches[0]; const screenWidth = window.innerWidth; const touchX = touch.clientX; 
+                let posPercent = (touchX / screenWidth) * 100; playerX.value = Math.max(10, Math.min(90, posPercent)); 
             };
             const onTouchEnd = (e) => { };
-
             const spawnFeedback = (x, icon, val) => { feedbackEffects.value.push({ id: Date.now(), x: x, y: 80, icon: icon, val: val }); setTimeout(() => feedbackEffects.value.shift(), 800); };
             
-            // ★★★ 滑冰 Loop (修正結算與判定) ★★★
             const gameLoop = () => {
                 if(!gameRunning.value) return;
-                skatingSpeed.value = isFever.value ? 2.2 : 0.9; 
-                const move = skatingSpeed.value * 5; 
-                skatingDistance.value += move; 
-                trackOffset.value = (trackOffset.value + move) % 100; 
+                skatingSpeed.value = isFever.value ? 2.2 : 0.9; const move = skatingSpeed.value * 5; 
+                skatingDistance.value += move; trackOffset.value = (trackOffset.value + move) % 100; 
                 
-                // 1. 抵達終點 -> 顯示結算羊皮紙
                 if(skatingDistance.value >= maxDistance && !isFever.value) { 
-                    gameRunning.value = false; 
-                    parchmentMode.value = 'settlement'; 
-                    showParchmentPhase.value = true; 
-                    return; 
+                    gameRunning.value = false; parchmentMode.value = 'settlement'; showParchmentPhase.value = true; return; 
                 }
  
-                // 羊群生成
-                if(isFever.value && Math.random() > 0.7) { 
-                    stampedeSheep.value.push({ 
-                        id: Date.now() + Math.random(), x: Math.random() * 90, y: 110, 
-                        speed: 2.0 + Math.random() * 2.0, size: 80 + Math.random() * 100 
-                    }); 
-                }
-                stampedeSheep.value.forEach((s, i) => { s.y -= s.speed; });
-                stampedeSheep.value = stampedeSheep.value.filter(s => s.y > -50); 
+                if(isFever.value && Math.random() > 0.7) { stampedeSheep.value.push({ id: Date.now() + Math.random(), x: Math.random() * 90, y: 110, speed: 2.0 + Math.random() * 2.0, size: 80 + Math.random() * 100 }); }
+                stampedeSheep.value.forEach((s, i) => { s.y -= s.speed; }); stampedeSheep.value = stampedeSheep.value.filter(s => s.y > -50); 
 
                 const now = Date.now(); const spawnRate = isFever.value ? 100 : Math.max(500, 1200 - (skatingSpeed.value * 400));
                 
                 if(now - lastSpawnTime > spawnRate) { 
-                    const lanes = [10, 30, 50, 70, 90]; 
-                    const usedLanes = new Set();
-                    const loopCount = 2; 
-
+                    const lanes = [10, 30, 50, 70, 90]; const usedLanes = new Set(); const loopCount = 2; 
                     for(let k=0; k<loopCount; k++) {
-                        let laneIdx = -1; let safety = 0;
-                        do { laneIdx = Math.floor(Math.random() * lanes.length); safety++; } while(usedLanes.has(laneIdx) && safety < 10);
+                        let laneIdx = -1; let safety = 0; do { laneIdx = Math.floor(Math.random() * lanes.length); safety++; } while(usedLanes.has(laneIdx) && safety < 10);
                         if(!usedLanes.has(laneIdx)) {
-                            usedLanes.add(laneIdx);
-                            const x = lanes[laneIdx];
+                            usedLanes.add(laneIdx); const x = lanes[laneIdx];
                             laneState.value[laneIdx] = 'warn'; setTimeout(() => laneState.value[laneIdx] = '', 500); 
                             let t='obstacle', i='🪨', cls='obstacle'; 
                             if (isFever.value) { t='item-coin'; i='💰'; cls='item-coin'; laneState.value[laneIdx] = 'gold'; } else { 
-                                let isReward = false; const r = Math.random(); 
-                                if (consecutiveObstacles.value >= 5) isReward = true; else if (r > 0.65) isReward = true; 
-                                if (isReward) { 
-                                    consecutiveObstacles.value = 0; 
-                                    if (Math.random() > 0.7) { t='item-heart'; i='❤️'; cls='item-heart'; laneState.value[laneIdx] = 'gold'; } 
-                                    else { t='item-coin'; i='💰'; cls='item-coin'; laneState.value[laneIdx] = 'gold'; } 
-                                } else { consecutiveObstacles.value++; const obs = ['🪨', '🪵', '🐦‍⬛']; i = obs[Math.floor(Math.random()*obs.length)]; } 
+                                let isReward = false; const r = Math.random(); if (consecutiveObstacles.value >= 5) isReward = true; else if (r > 0.65) isReward = true; 
+                                if (isReward) { consecutiveObstacles.value = 0; if (Math.random() > 0.7) { t='item-heart'; i='❤️'; cls='item-heart'; laneState.value[laneIdx] = 'gold'; } else { t='item-coin'; i='💰'; cls='item-coin'; laneState.value[laneIdx] = 'gold'; } } else { consecutiveObstacles.value++; const obs = ['🪨', '🪵', '🐦‍⬛']; i = obs[Math.floor(Math.random()*obs.length)]; } 
                             } 
                             gameObjects.value.push({id:now + k, x, y:-10, type:t, icon:i, cls, hit:false});
                         }
@@ -1231,27 +1326,17 @@
                 }
                 
                 gameObjects.value.forEach((o, idx)=>{ 
-                    o.y += (1.0 * skatingSpeed.value); 
-                    const magnetStrength = 0.6 * gameBuffs.value.magnet; 
+                    o.y += (1.0 * skatingSpeed.value); const magnetStrength = 0.6 * gameBuffs.value.magnet; 
                     if(isFever.value && (o.type==='item-coin' || o.type==='item-heart')) { const dx = playerX.value - o.x; o.x += dx * magnetStrength; } 
-                    
-                    // [修正] 判定範圍放寬 (12)
                     const hitRange = isFever.value ? 40 : 12; 
                     
                     if(!o.hit && o.y>75 && o.y<90 && Math.abs(o.x-playerX.value) < hitRange){ 
                         o.hit=true; 
                         if(o.type==='obstacle'){ 
                             if(!isFever.value){ 
-                                isHit.value = true; isHurt.value = true; 
-                                setTimeout(() => { isHit.value = false; isHurt.value = false; }, 400); 
+                                isHit.value = true; isHurt.value = true; setTimeout(() => { isHit.value = false; isHurt.value = false; }, 400); 
                                 skatingLife.value--; 
-                                
-                                // 2. 死亡 -> 顯示結算
-                                if(skatingLife.value<=0) { 
-                                    gameRunning.value = false; 
-                                    parchmentMode.value = 'settlement'; 
-                                    showParchmentPhase.value = true; 
-                                } 
+                                if(skatingLife.value<=0) { gameRunning.value = false; parchmentMode.value = 'settlement'; showParchmentPhase.value = true; } 
                             } else { gameScore.value += 2; spawnFeedback(o.x, '💥', '+2'); } 
                         } else if(o.type==='item-coin'){ gameScore.value+=10; spawnFeedback(o.x, '💰', '+10'); gameObjects.value.splice(idx,1); } else if(o.type==='item-heart'){ spawnFeedback(o.x, '❤️', '+20'); if(!isFever.value) { collectedHearts.value++; if(collectedHearts.value >= 3) { isFever.value = true; collectedHearts.value = 3; const feverTime = 5000 * gameBuffs.value.feverDuration; setTimeout(() => { isFever.value = false; collectedHearts.value = 0; stampedeSheep.value = []; }, feverTime); } } else { gameScore.value += 20; } gameObjects.value.splice(idx,1); } 
                     } 
@@ -1259,17 +1344,92 @@
                 gameObjects.value = gameObjects.value.filter(o=>o.y<110); requestAnimationFrame(gameLoop);
             };
 
-            // =========================================
-            // Boss Battle Logic (保留，避免 JS 錯誤)
-            // =========================================
-            const startBattlePrep = () => {}; 
-            const runPassiveIntro = async () => {};
-            const clickHandCard = (card, idx) => {};
-            const equipCard = (card) => {};
-            const removeCardFromSlot = (idx) => {};
-            const executeTurn = async () => {};
-            const bossAI = () => {};
-            const processTurnEndPassives = () => {};
+            const startBattlePrep = () => {
+                const maxHp = 10000 * (1 - (fatigue.value / 200));
+                const hasWatermelon = drawnCards.value.some(c => c.id === 'ur_watermelon');
+                const melonMulti = hasWatermelon ? 1.1 : 1.0;
+                playerStats.value = { hp: Math.floor(maxHp * melonMulti) + (gameBuffs.value.bossHp ? 2000 : 0), maxHp: Math.floor(maxHp * melonMulti) + (gameBuffs.value.bossHp ? 2000 : 0), atk: 500 * melonMulti + (gameBuffs.value.bossAtk ? 25 : 0), def: 100 * melonMulti, atkBuff: 0, defBuff: 0, critNext: false, isInvincible: false };
+                bossStats.value = { hp: 50000, maxHp: 50000, atk: 1500, turn: 1, debuffs: { stun: 0, atkDown: 0, defDown: 0 } };
+                const uniqueHand = []; const ids = new Set(); battleHand.value = []; activePassives.value = []; 
+                drawnCards.value.forEach(c => { if(!ids.has(c.id)) { if(c.type === 'passive') { activePassives.value.push(c); } else { battleHand.value.push({ ...c, cd: 0 }); } ids.add(c.id); } });
+                battleHand.value.push({ id: 'basic_attack', name: currentLang.value === 'vi' ? 'Tấn Công' : '普通攻擊', rank: 'N', type: 'active', cd: 0, img: '', desc: 'Basic Attack', effectText: '' });
+                battleSlots.value = [null, null, null]; phase.value = 'meiji_battle'; setTimeout(runPassiveIntro, 500);
+            };
+            
+            const runPassiveIntro = async () => {
+                for (const card of activePassives.value) {
+                    passiveAnim.value = { show: true, text: `${getText(card, 'name')} ${currentLang.value === 'vi' ? 'Kích hoạt!' : '發動！'}`, card: card };
+                    if(card.id === 'ur_watermelon') { bossStats.value.debuffs.stun = 3; } if(card.id === 'sr_tree') { playerStats.value.hp = Math.min(playerStats.value.maxHp, playerStats.value.hp + 5000); } if(card.id === 'sr_well') { bossStats.value.hp -= Math.floor(bossStats.value.hp * 0.15); } if(card.id === 'r_charm_win') { playerStats.value.atk += 50; } if(card.id === 'r_charm_love') { playerStats.value.maxHp += 1000; playerStats.value.hp += 1000; } if(card.id === 'r_charm_bad') { playerStats.value.def += 50; }
+                    await new Promise(r => setTimeout(r, 1500)); passiveAnim.value.show = false; await new Promise(r => setTimeout(r, 200));
+                }
+                turnAnimText.value = 'BATTLE START'; setTimeout(() => turnAnimText.value = '', 2000);
+            };
+            
+            const clickHandCard = (card, idx) => { if(isBattleAnimating.value) return; if(card.cd > 0) { return; } openCardInspector(card); };
+            const equipCard = (card) => { const emptyIdx = battleSlots.value.findIndex(s => s === null); if(emptyIdx === -1) { alert('Slot Full!'); return; } battleSlots.value[emptyIdx] = card; battleHand.value = battleHand.value.filter(c => c.id !== card.id); showCardInspector.value = false; };
+            const removeCardFromSlot = (idx) => { const card = battleSlots.value[idx]; if(!card) return; battleSlots.value[idx] = null; battleHand.value.push(card); };
+            
+            const executeTurn = async () => {
+                if (isBattleAnimating.value) return;
+                const cardsToPlay = battleSlots.value.filter(c => c !== null);
+                if(cardsToPlay.length === 0) { if(!confirm('Skip Turn?')) return; }
+                isBattleAnimating.value = true;
+                
+                for(const card of cardsToPlay) {
+                    card.isFlying = true; await new Promise(r => setTimeout(r, 350));
+                    let dmg = 0;
+                    if(card.id === 'basic_attack') dmg = 500; if(card.id === 'ssr_emperor') dmg = (bossStats.value.debuffs.atkDown > 0 || bossStats.value.debuffs.defDown > 0) ? 6000 : 3000;
+                    if(card.id === 'ssr_empress') { playerStats.value.hp = playerStats.value.maxHp; playerStats.value.isInvincible = true; spawnBattleText('+MAX', 'battle-float-text dmg-heal', 'player'); }
+                    if(card.id === 'ssr_susanoo') { dmg = 2000; bossStats.value.debuffs.atkDown = 3; } if(card.id === 'sr_sake') { playerStats.value.critNext = true; spawnBattleText('NEXT CRIT!', 'battle-float-text dmg-normal', 'player'); }
+                    if(card.id === 'sr_wine') { bossStats.value.debuffs.atkDown = 2; } if(card.id === 'sr_crow') { playerStats.value.isInvincible = true; } if(card.id === 'sr_miko') { dmg = 1000; }
+                    if(card.id === 'sr_festival') { battleHand.value.forEach(c => { if(c.cd > 0) c.cd--; }); spawnBattleText('CD -1', 'battle-float-text dmg-normal', 'player'); }
+                    if(card.id === 'r_arrow') dmg = 500; if(card.id === 'r_ema') playerStats.value.atkBuff = 30; if(card.id === 'r_fortune_good') dmg = 500 + Math.random()*1500;
+                    if(card.id === 'r_fortune_bad') { dmg = 300; bossStats.value.debuffs.defDown = 2; } if(card.id === 'r_ladle') { playerStats.value.hp = Math.min(playerStats.value.maxHp, playerStats.value.hp + 300); spawnBattleText('+300', 'battle-float-text dmg-heal', 'player'); }
+                    if(card.id === 'r_pebble') dmg = 100;
+                    
+                    if(dmg > 0) {
+                        let totalDmg = Math.floor(dmg * (1 + playerStats.value.atkBuff/100));
+                        let isCrit = false; if(playerStats.value.critNext) { totalDmg *= 2; isCrit = true; playerStats.value.critNext = false; }
+                        bossStats.value.hp -= totalDmg; spawnBattleText(`-${totalDmg}`, isCrit ? 'battle-float-text dmg-crit' : 'battle-float-text dmg-normal', 'boss'); 
+                        const bossEl = document.getElementById('boss-target'); if(bossEl) { bossEl.classList.remove('shake-hard', 'boss-hit-flash'); void bossEl.offsetWidth; bossEl.classList.add('shake-hard', 'boss-hit-flash'); }
+                    }
+                    card.cd = card.rank === 'SSR' ? (card.cdMax || 3) : (card.rank === 'SR' ? 2 : 1); if(card.id === 'basic_attack') card.cd = 0; card.justUsed = true;
+                    battleHand.value.push(card); await new Promise(r => setTimeout(r, 600)); 
+                }
+                battleSlots.value = [null, null, null];
+                
+                if(bossStats.value.hp <= 0) { alert(t('victory')); phase.value = 'prologue'; return; }
+                
+                await new Promise(r => setTimeout(r, 1000)); turnAnimText.value = 'BOSS TURN'; await new Promise(r => setTimeout(r, 1500)); turnAnimText.value = '';
+                
+                if(bossStats.value.debuffs.stun > 0) { bossStats.value.debuffs.stun--; spawnBattleText(currentLang.value==='vi'?'CHOÁNG':'STUNNED', 'battle-float-text dmg-normal', 'boss'); } else { bossAI(); }
+                processTurnEndPassives();
+                battleHand.value.forEach(c => { if(c.justUsed) { c.justUsed = false; } else if(c.cd > 0) { c.cd--; } });
+                if(playerStats.value.atkBuff > 0) playerStats.value.atkBuff = 0; playerStats.value.isInvincible = false; 
+                if(bossStats.value.debuffs.atkDown > 0) bossStats.value.debuffs.atkDown--; if(bossStats.value.debuffs.defDown > 0) bossStats.value.debuffs.defDown--;
+                bossStats.value.turn++; isBattleAnimating.value = false;
+            };
+            
+            const bossAI = () => {
+                const turn = bossStats.value.turn; let dmg = 0;
+                if (turn <= 3 || turn === 6) { dmg = 1500; } else if (turn === 4) { playerStats.value.atkBuff = -30; } 
+                else if (turn === 5) { bossStats.value.hp = Math.min(bossStats.value.maxHp, bossStats.value.hp + 5000); spawnBattleText('+5000', 'battle-float-text dmg-heal', 'boss'); } 
+                else if (turn === 7) { dmg = 3000; } 
+                else if (turn === 8) { if(!playerStats.value.isInvincible) { playerStats.value.hp = 1; spawnBattleText('HP -> 1', 'battle-float-text dmg-player', 'player'); isHurt.value = true; setTimeout(() => isHurt.value = false, 800); } else { spawnBattleText('IMMUNE', 'battle-float-text dmg-normal', 'player'); } } 
+                else { dmg = 2000 + (turn * 100); }
+                
+                if (dmg > 0) {
+                    if(playerStats.value.isInvincible) { spawnBattleText('IMMUNE', 'battle-float-text dmg-normal', 'player'); } else {
+                        const defMulti = (100 + playerStats.value.def) / 100; const bossAtkMulti = bossStats.value.debuffs.atkDown > 0 ? 0.7 : 1.0;
+                        const realDmg = Math.floor((dmg * bossAtkMulti) / defMulti);
+                        playerStats.value.hp -= realDmg; spawnBattleText(`-${realDmg}`, 'battle-float-text dmg-player', 'player');
+                        isHurt.value = true; setTimeout(() => isHurt.value = false, 500);
+                    }
+                }
+                if (playerStats.value.hp <= 0) { alert(t('game_over')); location.reload(); }
+            };
+            
+            const processTurnEndPassives = () => { activePassives.value.forEach(card => { if(card.id === 'sr_amazake') { const heal = Math.floor(playerStats.value.maxHp * 0.05); playerStats.value.hp = Math.min(playerStats.value.maxHp, playerStats.value.hp + heal); spawnBattleText(`+${heal}`, 'battle-float-text dmg-heal', 'player'); } }); };
 
             return {
                 phase, money, fatigue, time, windLv, windColor, windLabel, effects, 
@@ -1291,7 +1451,9 @@
                 onTouchStart, onTouchMove, onTouchEnd,
                 battleHand, activePassives, battleSlots, hoveringCard, isBattleAnimating, passiveAnim, turnAnimText,
                 clickHandCard, equipCard, removeCardFromSlot, executeTurn, getDebuffIcon, startBattlePrep,
-                showBattleDetail
+                showBattleDetail,
+                // [新增] 語言系統相關
+                currentLang, toggleLang, t, getText
             };
         }
     }).mount('#app');
